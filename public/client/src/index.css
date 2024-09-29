@@ -1,0 +1,83 @@
+/* @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap'); */
+
+*{
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+
+}
+
+html{
+  font-size: 62.5%;
+  font-size: medium;
+}
+
+/* .grid{
+  display: grid;
+  gap: 6.4rem;
+} */
+
+.grid-two-cols{
+  grid-template-columns: repeat(2,1fr);
+}
+
+button:hover{
+  cursor: pointer;
+}
+
+
+/* Admin users table */
+body tr{
+  display: grid;
+  grid-template-columns: repeat(5,minmax(10rem,1fr));
+  align-items: center;
+  box-shadow: 0 0.3rem 0 gray;
+  margin-bottom: 10px;
+  border-bottom: 4px solid transparent;
+   &:last-child{
+    box-shadow: none;
+   }
+}
+
+td{
+  font-size: 1rem;
+  /* letter-spacing: 0.1rem; */
+  padding: 0.5rem;
+  text-align: center;
+  color: blue;
+  width: 12rem;
+}
+
+th{
+  margin-left: 3rem;
+}
+
+table{
+  background-color: aliceblue;
+  padding: 1rem;
+  box-shadow: 0 0.3rem 0 gray;
+  box-shadow: rgba(red, green, blue, alpha);
+  border-collapse: collapse;
+  border-radius: 1rem;
+}
+
+.container-admin-users{
+  display: grid;
+  grid-template-columns: repeat(5,minmax(10rem,1fr));
+  align-items: center;
+  box-shadow: 0 0.3rem 0 gray;
+  margin-bottom: 10px;
+  border-bottom: 4px solid transparent;
+  font-size: 1rem;
+  padding: 1rem;
+  text-align: center;
+  color: blue;
+  width: 20rem;
+}
+
+/* react toastify css */
+.toastBody {
+  font-family: "Atlas Grotesk Web", Arial, Helvetica, sans-serif;
+  color: #10171D; /* #10171D */
+  font-size: 1.7rem ;
+}
