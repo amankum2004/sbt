@@ -1,0 +1,11 @@
+version: "3.7"
+services:
+  app:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    container_name: fsc
+    env_file:
+      - prod.env
+    ports:
+      - "13340:8000"
