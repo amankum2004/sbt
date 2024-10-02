@@ -218,8 +218,8 @@ export const Contact = () => {
                     <div className="flex flex-col items-center space-y-2">
                         <i className="fas fa-envelope text-3xl text-purple-700"></i>
                         <div className="text-lg font-medium">Email</div>
-                        <div className="text-sm text-gray-500">kumaraman6012@gmail.com</div>
-                        <div className="text-sm text-gray-500">amankumariitian2023@gmail.com</div>
+                        {/* <div className=" text-sm text-gray-500">sbthelp123@gmail.com</div> */}
+                        <a href="mailto: sbthelp123@gmail.com" className="hover:text-black flex items-center">sbthelp123@gmail.com</a>
                     </div>
                 </div>
 

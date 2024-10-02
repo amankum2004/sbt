@@ -140,8 +140,9 @@ export const Footer = () => {
                   </a>
                 </li>
                 <li>
-                  <a href="mailto: kumaraman6012@gmail.com" className="hover:text-black flex items-center">
-                    <i className="fa-solid fa-envelope pr-2 text-pink-700"></i> kumaraman6012@gmail.com
+                  <a href="mailto: sbthelp123@gmail.com" className="hover:text-black flex items-center">
+                    <i className="fa-solid fa-envelope pr-2 text-pink-700"></i> sbthelp123@gmail.com
+                    {/* <i className="fa-solid fa-envelope pr-2 text-pink-700"></i> kumaraman6012@gmail.com */}
                   </a>
                 </li>
               </ul>
