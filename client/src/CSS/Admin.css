@@ -1,8 +1,8 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap');
-/* ///////////////////// */
+/* @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap'); */
+
 /*//// Admin-Users /////*/
-/* //////////////////// */
-.admin-users-section {
+
+/* .admin-users-section {
     padding: 40px;
     background-color: #f9f9f9;
     min-height: 100vh;
@@ -14,7 +14,7 @@
 
 .admin-users-section .container {
     width: 90%;
-    /* max-width: 1200px; */
+    max-width: 1200px;
     margin: auto;
     background-color: #ffffff;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -23,7 +23,6 @@
     padding: 20px;
 }
 
-/* Heading Styling */
 .admin-users-section h1 {
     font-size: 2rem;
     color: #333;
@@ -31,7 +30,6 @@
     margin-bottom: 20px;
 }
 
-/* Table Styling */
 .admin-users table {
     width: 100%;
     border-collapse: collapse;
@@ -68,7 +66,7 @@
     color: #333;
 }
 
-/* Link Styling */
+
 .admin-users table tbody td a {
     color: #007bff;
     text-decoration: none;
@@ -80,7 +78,7 @@
     color: #0056b3;
 }
 
-/* Button Styling */
+
 .admin-users table tbody td button {
     background-color: #dc3545;
     color: white;
@@ -96,20 +94,20 @@
     background-color: #c82333;
 }
 
-/* No Users Found Styling */
 .admin-users table tbody tr td[colspan="5"] {
     text-align: center;
     font-size: 1rem;
     color: #999;
     padding: 20px 0;
-}
+} */
 
 
 
 /* ///////////////////// */
 /*//// Admin-Contacts /////*/
 /* //////////////////// */
-.admin-contacts-section {
+
+/* .admin-contacts-section {
     background-color: #f8f9fa;
     padding: 40px;
     border-radius: 12px;
@@ -187,14 +185,15 @@
 .container-admin-users .btn:active {
     background-color: #b30000;
     transform: translateY(0);
-}
+} */
 
 
 
 /* ////////////////////////// */
 /*//// Admin-User-Update /////*/
 /* //////////////////// //////*/
-.section-update {
+
+/* .section-update {
     background-color: #eef2f7;
     padding: 40px;
     border-radius: 12px;
@@ -282,14 +281,15 @@
 .update-form button[type="submit"]:active {
     background-color: #003366;
     transform: translateY(0);
-}
+} */
 
 
 
 /* ////////////////////////// */
 /*//// Admin-Shop-Update /////*/
 /* //////////////////// //////*/
-*{
+
+/* *{
   margin: 0;
   padding: 0;
   box-sizing: border-box;
@@ -302,12 +302,12 @@ h2{
 }
 
 .container{
-  /* max-width: 700px; */
+  max-width: 700px;
   width: 100%;
-  /* background-color: #fff; */
+  background-color: #fff;
   padding: 25px 30px;
   border-radius: 5px;
-  /* box-shadow: 0 5px 10px rgba(0,0,0,0.15); */
+  box-shadow: 0 5px 10px rgba(0,0,0,0.15);
 }
 .container .title{
   font-size: 25px;
@@ -316,13 +316,13 @@ h2{
 }
 .container .title::before{
   content: "";
-  /* position: absolute; */
+  position: absolute;
   left: 0;
   bottom: 0;
   height: 3px;
   width: 30px;
   border-radius: 5px;
-  /* background: linear-gradient(135deg, #71b7e6, #9b59b6); */
+  background: linear-gradient(135deg, #71b7e6, #9b59b6);
 }
 .content form .user-details{
   display: flex;
@@ -339,11 +339,11 @@ form .user-details div label{
   margin-bottom: 15px;
   width: calc(100% / 2 - 20px);
 }
-/* form .input-box label{
+form .input-box label{
   display: block;
   font-weight: 500;
   margin-bottom: 5px;
-} */
+}
 .user-details input{
   height: 45px;
   width: 100%;
@@ -355,7 +355,7 @@ form .user-details div label{
   border-bottom-width: 2px;
   transition: all 0.3s ease;
 }
-/* .user-details .input-box select{
+.user-details .input-box select{
   height: 45px;
   width: 100%;
   outline: none;
@@ -365,11 +365,11 @@ form .user-details div label{
   border: 1px solid #ccc;
   border-bottom-width: 2px;
   transition: all 0.3s ease;
-} */
-/* .user-details .input-box input:focus,
+}
+.user-details .input-box input:focus,
 .user-details .input-box input:valid{
   border-color: #9b59b6;
-} */
+}
  
  form .button{
    height: 45px;
@@ -389,7 +389,7 @@ form .user-details div label{
    background: linear-gradient(135deg, #71b7e6, #9b59b6);
  }
  form .button input:hover{
-  /* transform: scale(0.99); */
+  transform: scale(0.99);
   background: linear-gradient(-135deg, #71b7e6, #9b59b6);
   }
  @media(max-width: 584px){
@@ -404,7 +404,7 @@ form .user-details{
     width: 100%;
   }
   .content form .user-details{
-    /* max-height: 300px; */
+    max-height: 300px;
     overflow-y: scroll;
   }
 
@@ -425,12 +425,12 @@ form .user-details{
   padding-left: 20px;
 }
 
-/* .title {
+.title {
   text-align: center;
   font-size: 26px;
   margin-bottom: 30px;
   color: #9b59b6;
-} */
+}
 
 table {
   border-collapse: collapse;
@@ -444,7 +444,7 @@ tr th {
   text-align: left;
   background-color: rgba(217, 221, 146, 0.2);
   margin-right: 25px;
-}
+} */
 
 
 

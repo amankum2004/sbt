@@ -3,6 +3,7 @@ import { useLogin } from "../components/LoginContext";
 import { useState } from "react";
 import { api } from "../utils/api";
 // import { useParams } from "react-router-dom";
+import React from "react"; 
 
 const defaultContactFormData = {
     username: "",
@@ -129,21 +130,21 @@ export const CustomerProfile = () => {
             </main> */}
 
             <main
-                style={{
-                    padding: '20px',
-                    backgroundColor: '#f4f4f4',
-                    minHeight: '100vh',
-                }}
+                // style={{
+                //     padding: '20px',
+                //     backgroundColor: '#f4f4f4',
+                //     minHeight: '100vh',
+                // }}
             >
                 <section
-                    style={{
-                        backgroundColor: '#fff',
-                        borderRadius: '10px',
-                        padding: '30px',
-                        boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)',
-                        maxWidth: '600px',
-                        margin: '0 auto',
-                    }}
+                    // style={{
+                    //     backgroundColor: '#fff',
+                    //     borderRadius: '10px',
+                    //     padding: '30px',
+                    //     boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)',
+                    //     maxWidth: '600px',
+                    //     margin: '0 auto',
+                    // }}
                     className="section-hero"
                 >
                     <div className="container"

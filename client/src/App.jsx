@@ -1,3 +1,4 @@
+import React from "react"; 
 import {BrowserRouter,Routes,Route} from "react-router-dom"
 import { Home } from "./pages/home"
 import { About } from "./pages/About"
@@ -26,16 +27,17 @@ import { Payment } from "./pages/Payment"
 import { CustomerProfile } from "./pages/CustomerProfile"
 import {BarberProfile} from "./pages/BarberProfile"
 import { LoginProvider } from "./components/LoginContext"
-// import { AuthProvider } from "./store/auth"
 
-const App = () => {
+function App()  {
+  
   return (
     <>
     <BrowserRouter>
-    <div className="relative flex h-screen w-full flex-col overflow-x-hidden bg-[#e5e8f0] dark:bg-[#0C0C0C] font-monts text-black dark:text-white ">
+    {/* <div className="relative flex h-screen w-full flex-col overflow-x-hidden bg-[#e5e8f0]  font-monts text-black "> */}
       <LoginProvider>
-      {/* <AuthProvider></AuthProvider> */}
       <Header/>
+      {/* <div className="relative z-10 w-full grow py-10"> */}
+
         <Routes>
           <Route path="/" element = {<Home />}/>
           <Route path="/about" element = {<About />}/>
@@ -63,9 +65,10 @@ const App = () => {
             <Route path="shops/:id/edit" element={<AdminShopUpdate/>}/>
           </Route>
         </Routes>
+      {/* </div> */}
       </LoginProvider>
       <Footer/>
-    </div>
+    {/* </div> */}
     </BrowserRouter>
     </>
   )

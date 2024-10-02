@@ -5,6 +5,7 @@ import { useNavigate, useLocation } from "react-router-dom"
 import Swal from "sweetalert2";
 // import axios from "axios"
 import { api } from "../utils/api";
+import React from "react"; 
 
 export const Register = () => {
   const location = useLocation()

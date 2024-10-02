@@ -349,7 +349,8 @@
 //     )
 // }
 
-import '../CSS/Admin.css';
+import React from "react"; 
+// import '../CSS/Admin.css';
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -491,163 +492,259 @@ export const AdminShopUpdate = () => {
     }
 
     return (
-        <section className="container">
-            <div className="shops-update container">
-                <h2 className="heading">Update Shop Data</h2>
-            </div>
-            <div className="title">
-                <div className="content">
-                    <form onSubmit={handleSubmit}>
-                    <div className="user-details">
-                        <div>
-                            <label htmlFor="name">Name</label>
-                            <input type="text" 
-                            name="name" 
-                            id="name" 
-                            autoComplete="off"
-                            value={data.name}
-                            onChange={handleInput}
-                            required/>
-                        </div>
+        // <section className="container">
+        //     <div className="shops-update container">
+        //         <h2 className="heading">Update Shop Data</h2>
+        //     </div>
+        //     <div className="title">
+        //         <div className="content">
+        //             <form onSubmit={handleSubmit}>
+        //             <div className="user-details">
+        //                 <div>
+        //                     <label htmlFor="name">Name</label>
+        //                     <input type="text" 
+        //                     name="name" 
+        //                     id="name" 
+        //                     autoComplete="off"
+        //                     value={data.name}
+        //                     onChange={handleInput}
+        //                     required/>
+        //                 </div>
                         
-                        <div>
-                            <label htmlFor="email">Email</label>
-                            <input type="email" 
-                            name="email" 
-                            id="email" 
-                            autoComplete="off"
-                            value={data.email}
-                            onChange={handleInput}
-                            required/>
-                        </div>
+        //                 <div>
+        //                     <label htmlFor="email">Email</label>
+        //                     <input type="email" 
+        //                     name="email" 
+        //                     id="email" 
+        //                     autoComplete="off"
+        //                     value={data.email}
+        //                     onChange={handleInput}
+        //                     required/>
+        //                 </div>
                         
-                        <div>
-                            <label htmlFor="phone">Phone</label>
-                            <input type="phone" 
-                            name="phone" 
-                            id="phone" 
-                            autoComplete="off"
-                            value={data.phone}
-                            onChange={handleInput}
-                            required/>
-                        </div>
+        //                 <div>
+        //                     <label htmlFor="phone">Phone</label>
+        //                     <input type="phone" 
+        //                     name="phone" 
+        //                     id="phone" 
+        //                     autoComplete="off"
+        //                     value={data.phone}
+        //                     onChange={handleInput}
+        //                     required/>
+        //                 </div>
 
-                        <div>
-                            <label htmlFor="shopname">Shop Name</label>
-                            <input type="text" 
-                            name="shopname" 
-                            id="shopname" 
-                            autoComplete="off"
-                            value={data.shopname}
-                            onChange={handleInput}
-                            required/>
-                        </div>
+        //                 <div>
+        //                     <label htmlFor="shopname">Shop Name</label>
+        //                     <input type="text" 
+        //                     name="shopname" 
+        //                     id="shopname" 
+        //                     autoComplete="off"
+        //                     value={data.shopname}
+        //                     onChange={handleInput}
+        //                     required/>
+        //                 </div>
 
-                        <div>
-                            <span>State</span>
-                            <select name="state" value={data.state} onChange={handleStateChange} required>
-                                <option value="" disabled>Select State</option>
-                                {Object.keys(stateDistrictCityData).map((state, index) => (
-                                    <option key={index} value={state}>{state}</option>
-                                ))}
-                            </select>
-                        </div>
-                        <div>
-                            <span>District</span>
-                            <select name="district" value={data.district} onChange={handleDistrictChange} required>
-                                <option value="" disabled>Select District</option>
-                                {districts.map((district, index) => (
-                                    <option key={index} value={district}>{district}</option>
-                                ))}
-                            </select>
-                        </div>
-                        <div>
-                            <span>City</span>
-                            <select name="city" value={data.city} onChange={handleCityChange} required>
-                                <option value="" disabled>Select City</option>
-                                {cities.map((city, index) => (
-                                    <option key={index} value={city}>{city}</option>
-                                ))}
-                            </select>
-                        </div>
-                        <div>
-                            <label htmlFor="street">Street</label>
-                            <input type="text" 
-                            name="street" 
-                            id="street" 
-                            autoComplete="off"
-                            value={data.street}
-                            onChange={handleInput}
-                            />
-                        </div>
+        //                 <div>
+        //                     <span>State</span>
+        //                     <select name="state" value={data.state} onChange={handleStateChange} required>
+        //                         <option value="" disabled>Select State</option>
+        //                         {Object.keys(stateDistrictCityData).map((state, index) => (
+        //                             <option key={index} value={state}>{state}</option>
+        //                         ))}
+        //                     </select>
+        //                 </div>
+        //                 <div>
+        //                     <span>District</span>
+        //                     <select name="district" value={data.district} onChange={handleDistrictChange} required>
+        //                         <option value="" disabled>Select District</option>
+        //                         {districts.map((district, index) => (
+        //                             <option key={index} value={district}>{district}</option>
+        //                         ))}
+        //                     </select>
+        //                 </div>
+        //                 <div>
+        //                     <span>City</span>
+        //                     <select name="city" value={data.city} onChange={handleCityChange} required>
+        //                         <option value="" disabled>Select City</option>
+        //                         {cities.map((city, index) => (
+        //                             <option key={index} value={city}>{city}</option>
+        //                         ))}
+        //                     </select>
+        //                 </div>
+        //                 <div>
+        //                     <label htmlFor="street">Street</label>
+        //                     <input type="text" 
+        //                     name="street" 
+        //                     id="street" 
+        //                     autoComplete="off"
+        //                     value={data.street}
+        //                     onChange={handleInput}
+        //                     />
+        //                 </div>
                         
-                        <div>
-                            <label htmlFor="pin">PIN</label>
-                            <input type="number" 
-                            name="pin" 
-                            id="pin" 
-                            autoComplete="off"
-                            value={data.pin}
-                            onChange={handleInput}
-                            required/>
-                        </div>
-                        <div>
-                            <label htmlFor="bankname">Bank Name</label>
-                            <input type="text" 
-                            name="bankname" 
-                            id="bankname" 
-                            autoComplete="off"
-                            value={data.bankname}
-                            onChange={handleInput}
-                            required/>
-                        </div>
-                        <div>
-                            <label htmlFor="bankbranch">Bank Branch</label>
-                            <input type="text" 
-                            name="bankbranch" 
-                            id="bankbranch" 
-                            autoComplete="off"
-                            value={data.bankbranch}
-                            onChange={handleInput}
-                            required/>
-                        </div>
-                        <div>
-                            <label htmlFor="ifsc">IFSC</label>
-                            <input type="text" 
-                            name="ifsc" 
-                            id="ifsc" 
-                            autoComplete="off"
-                            value={data.ifsc}
-                            onChange={handleInput}
-                            required/>
-                        </div>
-                        <div>
-                            <label htmlFor="micr">MICR</label>
-                            <input type="text" 
-                            name="micr" 
-                            id="micr" 
-                            autoComplete="off"
-                            value={data.micr}
-                            onChange={handleInput}
-                            required/>
-                        </div>
-                        <div>
-                            <label htmlFor="account">Account Number</label>
-                            <input type="number" 
-                            name="account" 
-                            id="account" 
-                            autoComplete="off"
-                            value={data.account}
-                            onChange={handleInput}
-                            required/>
-                        </div>
-                        <div className="button">
-                            <input type="submit" value="Update Shop"/>
-                        </div>
-                    </div>
-                    </form>
-                </div>
-            </div>
-        </section>
+        //                 <div>
+        //                     <label htmlFor="pin">PIN</label>
+        //                     <input type="number" 
+        //                     name="pin" 
+        //                     id="pin" 
+        //                     autoComplete="off"
+        //                     value={data.pin}
+        //                     onChange={handleInput}
+        //                     required/>
+        //                 </div>
+        //                 <div>
+        //                     <label htmlFor="bankname">Bank Name</label>
+        //                     <input type="text" 
+        //                     name="bankname" 
+        //                     id="bankname" 
+        //                     autoComplete="off"
+        //                     value={data.bankname}
+        //                     onChange={handleInput}
+        //                     required/>
+        //                 </div>
+        //                 <div>
+        //                     <label htmlFor="bankbranch">Bank Branch</label>
+        //                     <input type="text" 
+        //                     name="bankbranch" 
+        //                     id="bankbranch" 
+        //                     autoComplete="off"
+        //                     value={data.bankbranch}
+        //                     onChange={handleInput}
+        //                     required/>
+        //                 </div>
+        //                 <div>
+        //                     <label htmlFor="ifsc">IFSC</label>
+        //                     <input type="text" 
+        //                     name="ifsc" 
+        //                     id="ifsc" 
+        //                     autoComplete="off"
+        //                     value={data.ifsc}
+        //                     onChange={handleInput}
+        //                     required/>
+        //                 </div>
+        //                 <div>
+        //                     <label htmlFor="micr">MICR</label>
+        //                     <input type="text" 
+        //                     name="micr" 
+        //                     id="micr" 
+        //                     autoComplete="off"
+        //                     value={data.micr}
+        //                     onChange={handleInput}
+        //                     required/>
+        //                 </div>
+        //                 <div>
+        //                     <label htmlFor="account">Account Number</label>
+        //                     <input type="number" 
+        //                     name="account" 
+        //                     id="account" 
+        //                     autoComplete="off"
+        //                     value={data.account}
+        //                     onChange={handleInput}
+        //                     required/>
+        //                 </div>
+        //                 <div className="button">
+        //                     <input type="submit" value="Update Shop"/>
+        //                 </div>
+        //             </div>
+        //             </form>
+        //         </div>
+        //     </div>
+        // </section>
+
+        <section className="max-w-4xl mx-auto bg-white p-8 shadow-lg rounded-lg">
+      <h2 className="text-2xl text-center font-semibold text-purple-600 mb-6">Update Shop Data</h2>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label htmlFor="name" className="block text-sm font-medium text-gray-700">Name</label>
+            <input type="text" name="name" id="name" value={data.name} onChange={handleInput} required className="mt-1 p-2 block w-full border border-gray-300 rounded-md"/>
+          </div>
+
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
+            <input type="email" name="email" id="email" value={data.email} onChange={handleInput} required className="mt-1 p-2 block w-full border border-gray-300 rounded-md"/>
+          </div>
+
+          <div>
+            <label htmlFor="phone" className="block text-sm font-medium text-gray-700">Phone</label>
+            <input type="phone" name="phone" id="phone" value={data.phone} onChange={handleInput} required className="mt-1 p-2 block w-full border border-gray-300 rounded-md"/>
+          </div>
+
+          <div>
+            <label htmlFor="shopname" className="block text-sm font-medium text-gray-700">Shop Name</label>
+            <input type="text" name="shopname" id="shopname" value={data.shopname} onChange={handleInput} required className="mt-1 p-2 block w-full border border-gray-300 rounded-md"/>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">State</label>
+            <select name="state" value={data.state} onChange={handleStateChange} required className="mt-1 p-2 block w-full border border-gray-300 rounded-md">
+              <option value="" disabled>Select State</option>
+              {Object.keys(stateDistrictCityData).map((state, index) => (
+                <option key={index} value={state}>{state}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">District</label>
+            <select name="district" value={data.district} onChange={handleDistrictChange} required className="mt-1 p-2 block w-full border border-gray-300 rounded-md">
+              <option value="" disabled>Select District</option>
+              {districts.map((district, index) => (
+                <option key={index} value={district}>{district}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">City</label>
+            <select name="city" value={data.city} onChange={handleCityChange} required className="mt-1 p-2 block w-full border border-gray-300 rounded-md">
+              <option value="" disabled>Select City</option>
+              {cities.map((city, index) => (
+                <option key={index} value={city}>{city}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label htmlFor="street" className="block text-sm font-medium text-gray-700">Street</label>
+            <input type="text" name="street" id="street" value={data.street} onChange={handleInput} className="mt-1 p-2 block w-full border border-gray-300 rounded-md"/>
+          </div>
+
+          <div>
+            <label htmlFor="pin" className="block text-sm font-medium text-gray-700">PIN</label>
+            <input type="number" name="pin" id="pin" value={data.pin} onChange={handleInput} required className="mt-1 p-2 block w-full border border-gray-300 rounded-md"/>
+          </div>
+
+          <div>
+            <label htmlFor="bankname" className="block text-sm font-medium text-gray-700">Bank Name</label>
+            <input type="text" name="bankname" id="bankname" value={data.bankname} onChange={handleInput} required className="mt-1 p-2 block w-full border border-gray-300 rounded-md"/>
+          </div>
+
+          <div>
+            <label htmlFor="bankbranch" className="block text-sm font-medium text-gray-700">Bank Branch</label>
+            <input type="text" name="bankbranch" id="bankbranch" value={data.bankbranch} onChange={handleInput} required className="mt-1 p-2 block w-full border border-gray-300 rounded-md"/>
+          </div>
+
+          <div>
+            <label htmlFor="ifsc" className="block text-sm font-medium text-gray-700">IFSC</label>
+            <input type="text" name="ifsc" id="ifsc" value={data.ifsc} onChange={handleInput} required className="mt-1 p-2 block w-full border border-gray-300 rounded-md"/>
+          </div>
+
+          <div>
+            <label htmlFor="micr" className="block text-sm font-medium text-gray-700">MICR</label>
+            <input type="text" name="micr" id="micr" value={data.micr} onChange={handleInput} className="mt-1 p-2 block w-full border border-gray-300 rounded-md"/>
+          </div>
+
+          <div>
+            <label htmlFor="account" className="block text-sm font-medium text-gray-700">Account Number</label>
+            <input type="text" name="account" id="account" value={data.account} onChange={handleInput} required className="mt-1 p-2 block w-full border border-gray-300 rounded-md"/>
+          </div>
+        </div>
+
+        <div className="text-center">
+          <button type="submit" className="bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded-md">Update Shop</button>
+        </div>
+      </form>
+    </section>
     )
 }

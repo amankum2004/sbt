@@ -15,7 +15,6 @@
     "@radix-ui/react-dialog": "^1.1.1",
     "@sweetalert2/theme-dark": "^5.0.18",
     "@zxing/library": "^0.21.3",
-    "autoprefixer": "^10.4.20",
     "axios": "^1.7.2",
     "bootstrap": "^5.3.3",
     "clsx": "^2.1.1",
@@ -28,7 +27,6 @@
     "jsqr": "^1.4.0",
     "jwt-decode": "^4.0.0",
     "node": "^21.7.1",
-    "postcss": "^8.4.41",
     "prettier-plugin-organize-imports": "^4.0.0",
     "prop-types": "^15.8.1",
     "qrcode": "^1.5.4",
@@ -47,19 +45,21 @@
     "redux-mock-store": "^1.5.4",
     "redux-persist": "^6.0.0",
     "sweetalert2": "^11.6.13",
-    "tailwind-merge": "^2.5.2",
-    "tailwindcss": "^3.4.10"
+    "tailwind-merge": "^2.5.2"
   },
   "devDependencies": {
     "@types/react": "^18.3.4",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.2.1",
+    "autoprefixer": "^10.4.20",
     "cross-env": "^7.0.3",
     "eslint": "^8.57.0",
     "eslint-plugin-react": "^7.34.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.5",
+    "postcss": "^8.4.47",
     "react-error-overlay": "^6.0.9",
+    "tailwindcss": "^3.4.13",
     "vite": "^5.4.2"
   }
 }

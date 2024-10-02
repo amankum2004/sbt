@@ -1,57 +1,21 @@
 import "../CSS/Header.css"
+import React from "react"; 
 // import { useEffect } from "react";
 // import { useNavigate  } from "react-router-dom";
 import { NavLink } from "react-router-dom"
-// import { useAuth } from "../store/auth"
 import { useState } from "react";
 import { HamburgetMenuClose, HamburgetMenuOpen } from "./icons/Hamburget";
 import { NavDropdown } from "react-bootstrap"
 import { useLogin } from "./LoginContext";
-// import {isAllowedLvl} from '../utils/levelCheck'
 
 
 export const Header = () => {
-  // const {isLoggedIn,user, API} = useAuth();
   const { loggedIn, user, logout } = useLogin();
   // const navigate = useNavigate();
   const [click, setClick] = useState(false);
-  // const [userType, setUserType] = useState('');
+
 
   const handleClick = () => setClick(!click);
-
-  // useEffect(() => {
-  //   const fetchUserData = async () => {
-  //     const token = localStorage.getItem('token');
-  //     if (!token) {
-  //       console.error('No token found');
-  //       setUserType('');
-  //       return; // Handle no token scenario
-  //     }
-  //     try {
-  //       // const response = await fetch(`${API}/api/auth/usertype`,{
-  //       const response = await fetch(`http://localhost:8000/api/auth/usertype`,{
-  //         method:"GET",
-  //         headers:{
-  //           "Content-Type"  :"application/json",
-  //           "Authorization" :`Bearer ${token}`
-  //         }
-  //       });
-  //       const userData = await response.json();
-  //       if (!response.ok) {
-  //         throw new Error(userData.error || 'Failed to fetch user data');
-  //       }
-  //       setUserType(userData.userType || '');
-  //     } catch (error) {
-  //       console.error('Error fetching user data:', error);
-  //       setUserType('');
-  //       navigate('/login'); 
-  //     }
-  //   };
-
-  //   if(loggedIn){
-  //     fetchUserData();
-  //   }
-  // }, [ loggedIn, navigate]);
 
   return (
     <>
@@ -132,23 +96,6 @@ export const Header = () => {
                   </span>
                 }
                 id="collasible-nav-dropdown">
-                {/* {isAllowedLvl('customer', user?.usertype) && (
-                  <>
-                    <NavLink to="/customerprofile">
-                      Customer Profile
-                    </NavLink>
-                  </>
-                  )}
-                  {isAllowedLvl('shopOwner', user?.usertype) && (
-                  <>
-                  <NavLink to="/barberprofile">
-                    BarberProfile
-                  </NavLink>
-                  <NavLink to="/registershop">
-                    Register your Salon
-                  </NavLink>
-                  </>
-                  )} */}
                 {user.usertype === 'shopOwner' ? (
                   <>
                     <NavDropdown.Item href="/barberprofile" style={{ color: 'blue', fontWeight: 'bold' }}>My Profile</NavDropdown.Item>
@@ -210,6 +157,94 @@ export const Header = () => {
     </>
   )
 }
+
+
+// import React, { useState } from "react";
+// import { NavLink } from "react-router-dom";
+// import { HamburgetMenuClose, HamburgetMenuOpen } from "./icons/Hamburget";
+// import { NavDropdown } from "react-bootstrap";
+// import { useLogin } from "./LoginContext";
+
+// export const Header = () => {
+//   const { loggedIn, user, logout } = useLogin();
+//   const [click, setClick] = useState(false);
+
+//   const handleClick = () => setClick(!click);
+
+//   return (
+//     <>
+//       <nav className="bg-black h-20 flex justify-center items-center text-lg fixed z-1000">
+//         <div className="bg-black flex justify-cent items-center w-full max-w-[1500px] px-5 z-1000">
+//           <NavLink to="/" className="flex items-center text-[#f5b921] text-2xl font-bold">
+//             <span>Salon Booking Time</span>
+//             <img src="/images/sbt logo sm.jpg" alt="logo" className="ml-4 w-12 h-12" />
+//           </NavLink>
+
+//           <ul className={`flex list-none text-center transition-all duration-500 ${click ? "flex-col absolute bg-[#1f5156] left-0 w-full top-20 opacity-100 z-10" : "hidden md:flex"}`}>
+//             <li className="nav-item">
+//               <NavLink to="/" className="text-white px-4 py-2 hover:text-[#ffdd40]" onClick={handleClick}>
+//                 Home
+//               </NavLink>
+//             </li>
+//             <li className="nav-item">
+//               <NavLink to="/about" className="text-white px-4 py-2 hover:text-[#ffdd40]" onClick={handleClick}>
+//                 About
+//               </NavLink>
+//             </li>
+//             <li className="nav-item">
+//               <NavLink to="/services" className="text-white px-4 py-2 hover:text-[#ffdd40]" onClick={handleClick}>
+//                 Services
+//               </NavLink>
+//             </li>
+//             <li className="nav-item">
+//               <NavLink to="/contact" className="text-white px-4 py-2 hover:text-[#ffdd40]" onClick={handleClick}>
+//                 Contact Us
+//               </NavLink>
+//             </li>
+//           </ul>
+
+//           {loggedIn ? (
+//             <div className="flex items-center space-x-4">
+//               <img alt="profile" className="w-12 h-12" src="/images/dp_logo.jpg" />
+//               <NavDropdown title={<span className="text-yellow-500 font-bold text-lg">{user.name}</span>} id="collasible-nav-dropdown">
+//                 {user.usertype === "shopOwner" ? (
+//                   <>
+//                     <NavDropdown.Item href="/barberprofile" className="text-blue-500 font-bold">My Profile</NavDropdown.Item>
+//                     <NavDropdown.Item href="/registershop" className="text-blue-500 font-bold">Register your Salon</NavDropdown.Item>
+//                   </>
+//                 ) : user.usertype === "admin" ? (
+//                   <>
+//                     <NavDropdown.Item href="/admin" className="text-green-500 font-bold">Admin Dashboard</NavDropdown.Item>
+//                     <NavDropdown.Item href="/registershop" className="text-blue-500 font-bold">Register Salon</NavDropdown.Item>
+//                   </>
+//                 ) : (
+//                   <>
+//                     <NavDropdown.Item href="/customerprofile" className="text-orange-500 font-bold">My Profile</NavDropdown.Item>
+//                     <NavDropdown.Item href="/nearbyShops" className="text-orange-500 font-bold">Book Appointment</NavDropdown.Item>
+//                   </>
+//                 )}
+//                 <NavDropdown.Divider />
+//                 <NavDropdown.Item onClick={logout} className="text-red-500 font-bold">Logout</NavDropdown.Item>
+//               </NavDropdown>
+//             </div>
+//           ) : (
+//             <div className="flex items-center space-x-4">
+//               <img alt="profile" className="w-12 h-12" src="/images/dp_logo.jpg" />
+//               <NavLink to="/login" className="text-yellow-500 font-bold" onClick={handleClick}>
+//                 Login
+//               </NavLink>
+//             </div>
+//           )}
+
+//           <div className="md:hidden text-yellow-500" onClick={handleClick}>
+//             {click ? <HamburgetMenuOpen /> : <HamburgetMenuClose />}
+//           </div>
+//         </div>
+//       </nav>
+//     </>
+//   );
+// };
+
 
 
 

@@ -1,6 +1,8 @@
 import {useEffect} from "react";
 import {useLogin} from '../components/LoginContext'
 import { useLocation } from 'react-router-dom'; // To access the passed state
+// import '../CSS/Payment.css'
+import React from "react"; 
 
 export const Payment = () => {
   const location = useLocation();
@@ -103,25 +105,105 @@ export const Payment = () => {
   };
 
   return (
-    <section className="section-payment">
-      <div className="container">
-        <h1 className="main-heading">Payment</h1>
-        <h3>Dear {customerName}</h3>
-        <h3>Total Amount: ₹{totalAmount}</h3>
-        <h3>Selected Time Slot: {selectedShowtimes && selectedShowtimes.length > 0 ? selectedShowtimes.map(slot => (
-          <div key={slot.showtimeId}>
-            Date: {new Date(slot.showtimeDate).toLocaleDateString()}, Time: {new Date(slot.showtimeDate).toLocaleTimeString()}
-          </div>
-        )) : "No time slot selected"}</h3>
-        <h3>Customer Email: {customerEmail}</h3>
-        <h3>Shop Name: {shopName}</h3>
-        <h3>Location: {shopLocation}</h3>
-        <button
-          className="book-appointment-button"
-          onClick={paymentHandler}
-        >Pay
-        </button>
-      </div>
-    </section>
+//     <section className="section-payment">
+//   <div className="container">
+//     <h1 className="main-heading">Payment</h1>
+    
+//     <h3>
+//       <span className="static-content">Dear: </span>
+//       <span className="dynamic-content">{customerName}</span>
+//     </h3>
+    
+//     <h3>
+//       <span className="static-content">Total Amount: </span>
+//       <span className="dynamic-content">₹{totalAmount}</span>
+//     </h3>
+    
+//     <h3>
+//       <span className="static-content">Selected Time Slot: </span>
+//       <span className="dynamic-content">
+//         {selectedShowtimes && selectedShowtimes.length > 0 ? selectedShowtimes.map(slot => (
+//           <div key={slot.showtimeId}>
+//             Date: {new Date(slot.showtimeDate).toLocaleDateString()},
+//             <br></br> 
+//             Time: {new Date(slot.showtimeDate).toLocaleTimeString()}
+//           </div>
+//         )) : "No time slot selected"}
+//       </span>
+//     </h3>
+    
+//     <h3>
+//       <span className="static-content">Customer Email: </span>
+//       <span className="dynamic-content">{customerEmail}</span>
+//     </h3>
+    
+//     <h3>
+//       <span className="static-content">Shop Name: </span>
+//       <span className="dynamic-content">{shopName}</span>
+//     </h3>
+    
+//     <h3>
+//       <span className="static-content">Location: </span>
+//       <span className="dynamic-content">{shopLocation}</span>
+//     </h3>
+    
+//     <button className="book-appointment-button" onClick={paymentHandler}>
+//       Pay
+//     </button>
+//   </div>
+// </section>
+
+<section className="section-payment py-10 bg-gray-50">
+<div className="container mx-auto max-w-2xl p-8 bg-white shadow-lg rounded-lg">
+  <h1 className="text-3xl font-bold text-center text-gray-800 mb-6">Payment</h1>
+  
+  <h3 className="text-lg font-semibold text-gray-700 mb-2">
+    <span className="static-content font-medium">Dear: </span>
+    <span className="dynamic-content text-gray-900">{customerName}</span>
+  </h3>
+  
+  <h3 className="text-lg font-semibold text-gray-700 mb-2">
+    <span className="static-content font-medium">Total Amount: </span>
+    <span className="dynamic-content text-green-600">₹{totalAmount}</span>
+  </h3>
+  
+  <h3 className="text-lg font-semibold text-gray-700 mb-4">
+    <span className="static-content font-medium">Selected Time Slot: </span>
+    <span className="dynamic-content text-gray-900">
+      {selectedShowtimes && selectedShowtimes.length > 0 ? selectedShowtimes.map(slot => (
+        <div key={slot.showtimeId} className="mb-1">
+          Date: {new Date(slot.showtimeDate).toLocaleDateString()},
+          <br />
+          Time: {new Date(slot.showtimeDate).toLocaleTimeString()}
+        </div>
+      )) : "No time slot selected"}
+    </span>
+  </h3>
+  
+  <h3 className="text-lg font-semibold text-gray-700 mb-2">
+    <span className="static-content font-medium">Customer Email: </span>
+    <span className="dynamic-content text-gray-900">{customerEmail}</span>
+  </h3>
+  
+  <h3 className="text-lg font-semibold text-gray-700 mb-2">
+    <span className="static-content font-medium">Shop Name: </span>
+    <span className="dynamic-content text-gray-900">{shopName}</span>
+  </h3>
+  
+  <h3 className="text-lg font-semibold text-gray-700 mb-6">
+    <span className="static-content font-medium">Location: </span>
+    <span className="dynamic-content text-gray-900">{shopLocation}</span>
+  </h3>
+  
+  <button
+    className="book-appointment-button w-full py-3 px-6 bg-indigo-600 text-white font-semibold rounded-md hover:bg-indigo-700 transition-all"
+    onClick={paymentHandler}
+  >
+    Pay
+  </button>
+</div>
+</section>
+
+
   );
 };

@@ -1,5 +1,6 @@
 import  { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import React from "react"; 
 // import axios from "axios";
 // import imageOne from "../images/forgotPassword.svg";
 // import { SERVERIP } from "../config";

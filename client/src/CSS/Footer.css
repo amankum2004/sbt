@@ -1,6 +1,4 @@
-/* HTML CSSResult Skip Results Iframe
-EDIT ON */
-/* footer section start */
+/* 
 @import url("https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.0.2/css/bootstrap.min.css");
 @import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css");
 *{
@@ -9,8 +7,8 @@ EDIT ON */
   -o-box-sizing:border-box;
   -ms-box-sizing:border-box;
   box-sizing:border-box;
-}
-body{
+} */
+/* body{
   font-size:14px;
   background: #fff;
     max-width:1920px;
@@ -21,7 +19,7 @@ body{
 #footer{
   background: #f7f7f7;
     padding: 3rem;
-  /* padding-top: 5rem; */
+  padding-top: 5rem;
   padding-top: 7rem;
     padding-bottom: 80px;
   background-image: url(https://arena.km.ua/wp-content/uploads/3538533.jpg);
@@ -30,12 +28,12 @@ body{
   background: #f7f7f7;
     padding: 3rem;
     margin-top: 0px;
-  /* padding-top: 5rem; */
+  padding-top: 5rem;
   padding-top: 7rem;
   padding-bottom: 80px;
   background-image: url(../images/cards/v748-toon-111.png);
 }
-/* .logo-footer{
+.logo-footer{
   max-width: 300px;
 }
 .social-links{
@@ -43,7 +41,7 @@ body{
     flex-direction: column;
     align-items: center;
     justify-content: center;
-} */
+}
 .social-links h2{
   padding-bottom: 15px;
   font-size: 20px;
@@ -54,8 +52,8 @@ body{
   padding-bottom: 25px;
 }
 .social-icons{
-  /* display: flex;
-    gap: 3rem; */
+  display: flex;
+    gap: 3rem;
   margin-left: -18px;
   display: flex;
   flex-direction: column;
@@ -63,13 +61,13 @@ body{
   color: #777777;
 }
 .social-icons a{
-  /* font-size: 18px; */
-    /* background: #ffffff; */
-    /* box-shadow: rgb(0 0 0 / 8%) 0px 4px 12px;
+  font-size: 18px;
+    background: #ffffff;
+    box-shadow: rgb(0 0 0 / 8%) 0px 4px 12px;
     padding: 0.4rem 1rem 0.4rem 1rem;
     border-radius: 3px;
-  color: #82074a; */
-  /* margin-right: 18px; */
+  color: #82074a;
+  margin-right: 18px;
   color: #777777;
 }
 .social-icons a:hover{
@@ -162,6 +160,5 @@ li{
 }
 a{
   text-decoration:none;
-}
+} */
 
-/* footer section end */

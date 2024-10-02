@@ -1,4 +1,4 @@
-import "../CSS/RegisterShop.css"
+// import "../CSS/RegisterShop.css"
 // import { useAuth } from "../store/auth"
 import { useLogin } from "../components/LoginContext"
 import { useEffect, useState } from "react"
@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom"
 // import { toast } from "react-toastify"
 import Swal from "sweetalert2"
 import { api } from "../utils/api"
+import React from "react"; 
 // import axios from "axios"
 const token = JSON.parse(localStorage.getItem('token'))
 
@@ -225,7 +226,7 @@ export const RegisterShop = () => {
         <>
             <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" />
             <link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet"></link>
-            <div className="container">
+            {/* <div className="container">
                 <h2>Shop Registration</h2>
                 <div className="title">Basic Details</div>
                 <div className="content">
@@ -437,7 +438,133 @@ export const RegisterShop = () => {
                             <input type="submit" value="Register" />
                         </div>
                 </form>
-            </div>
+            </div> */}
+
+<div className="max-w-3xl mx-auto p-6 bg-white rounded shadow-md">
+            <h2 className="text-2xl font-semibold text-center mb-6">Shop Registration</h2>
+
+            <form onSubmit={handleSubmit}>
+                <div className="mb-6">
+                    <h3 className="text-lg font-medium mb-2">Basic Details</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Full Name</label>
+                            <input type="text" name="username" placeholder="Shop owner name" required
+                                value={formData.name} onChange={handleInput} className="w-full h-10 border rounded p-2 focus:outline-none focus:border-purple-500" readOnly />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Email</label>
+                            <input type="email" name="email" placeholder="Enter your email" required
+                                value={formData.email} onChange={handleInput} className="w-full h-10 border rounded p-2 focus:outline-none focus:border-purple-500" readOnly />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Phone Number</label>
+                            <input type="number" name="phone" placeholder="Enter your number" required
+                                value={formData.phone} onChange={handleInput} className="w-full h-10 border rounded p-2 focus:outline-none focus:border-purple-500" readOnly />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Saloon Name</label>
+                            <input type="text" name="shopname" placeholder="Saloon Name" required
+                                value={formData.shopname} onChange={handleInput} className="w-full h-10 border rounded p-2 focus:outline-none focus:border-purple-500" />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-1">State</label>
+                            <select name="state" value={formData.state} onChange={handleStateChange} required
+                                className="w-full h-10 border rounded p-2 focus:outline-none focus:border-purple-500">
+                                <option value="" disabled>Select State</option>
+                                {Object.keys(stateDistrictCityData).map((state, index) => (
+                                    <option key={index} value={state}>{state}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-1">District</label>
+                            <select name="district" value={formData.district} onChange={handleDistrictChange} required
+                                className="w-full h-10 border rounded p-2 focus:outline-none focus:border-purple-500">
+                                <option value="" disabled>Select District</option>
+                                {districts.map((district, index) => (
+                                    <option key={index} value={district}>{district}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-1">City</label>
+                            <select name="city" value={formData.city} onChange={handleCityChange} required
+                                className="w-full h-10 border rounded p-2 focus:outline-none focus:border-purple-500">
+                                <option value="" disabled>Select City</option>
+                                {cities.map((city, index) => (
+                                    <option key={index} value={city}>{city}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Street</label>
+                            <input type="text" name="street" placeholder="Street" required
+                                value={formData.street} onChange={handleInput} className="w-full h-10 border rounded p-2 focus:outline-none focus:border-purple-500" />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Pin Code</label>
+                            <input type="number" name="pin" placeholder="Pin Code" required
+                                value={formData.pin} onChange={handleInput} className="w-full h-10 border rounded p-2 focus:outline-none focus:border-purple-500" />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Password (created during registration)</label>
+                            <input type="text" name="password" placeholder="password" required
+                                value={formData.password} onChange={handleInput} className="w-full h-10 border rounded p-2 focus:outline-none focus:border-purple-500" />
+                        </div>
+                    </div>
+                </div>
+
+                <div className="mb-6">
+                    <h3 className="text-lg font-medium mb-2">Bank Details</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Bank Name</label>
+                            <input type="text" name="bankname" placeholder="Bank Name" required
+                                value={formData.bankname} onChange={handleInput} className="w-full h-10 border rounded p-2 focus:outline-none focus:border-purple-500" />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Bank Branch</label>
+                            <input type="text" name="bankbranch" placeholder="Bank Branch" required
+                                value={formData.bankbranch} onChange={handleInput} className="w-full h-10 border rounded p-2 focus:outline-none focus:border-purple-500" />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-1">IFSC Code</label>
+                            <input type="text" name="ifsc" placeholder="IFSC Code" required
+                                value={formData.ifsc} onChange={handleInput} className="w-full h-10 border rounded p-2 focus:outline-none focus:border-purple-500" />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-1">MICR Code</label>
+                            <input type="text" name="micr" placeholder="MICR Code" required
+                                value={formData.micr} onChange={handleInput} className="w-full h-10 border rounded p-2 focus:outline-none focus:border-purple-500" />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Account Number</label>
+                            <input type="number" name="account" placeholder="Account Number" required
+                                value={formData.account} onChange={handleInput} className="w-full h-10 border rounded p-2 focus:outline-none focus:border-purple-500" />
+                        </div>
+                    </div>
+                </div>
+
+                <div className="mb-6">
+                    <h3 className="text-lg font-medium mb-2">Services</h3>
+                    {formData.services.map((service, index) => (
+                        <div key={index} className="flex items-center space-x-4 mb-4">
+                            <input type="text" name="service" placeholder="Service Name" value={service.service}
+                                onChange={(e) => handleServiceChange(e, index)} className="w-full h-10 border rounded p-2 focus:outline-none focus:border-purple-500" />
+                            <input type="number" name="price" placeholder="Price" value={service.price}
+                                onChange={(e) => handleServiceChange(e, index)} className="w-24 h-10 border rounded p-2 focus:outline-none focus:border-purple-500" />
+                            <button type="button" onClick={() => handleRemoveService(index)} className="text-red-500">Remove</button>
+                        </div>
+                    ))}
+                    <button type="button" onClick={handleAddService} className="text-blue-500">Add Service</button>
+                </div>
+
+                <div className="mb-6">
+                    <button type="submit" className="w-full bg-purple-600 text-white py-2 rounded hover:bg-purple-700 transition">Register Shop</button>
+                </div>
+            </form>
+        </div>
         </>
     )
 

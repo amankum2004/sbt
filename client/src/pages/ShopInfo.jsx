@@ -100,8 +100,8 @@
 
 // export default DateTimeSelection;
 
-
-import '../CSS/ShopInfo.css';
+import React from "react"; 
+// import '../CSS/ShopInfo.css';
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
@@ -181,34 +181,80 @@ const DateTimeSelection = () => {
   };
 
   return (
-    <div className="time-slots-container">
-      <h2 className="section-title">Book Your Time Slot</h2>
-      <div className="time-slots-wrapper">
+    // <div className="time-slots-container">
+    //   <h2 className="section-title">Book Your Time Slot</h2>
+    //   <div className="time-slots-wrapper">
+    //     {timeSlots.length > 0 ? (
+    //       <>
+    //         {timeSlots.map((timeSlot) => (
+    //           <div key={timeSlot._id} className="time-slot-card">
+    //             <h3 className="time-slot-date">Date: {new Date(timeSlot.date).toLocaleDateString('en-IN')}</h3>
+    //             <div className="showtimes-wrapper">
+    //               {timeSlot.showtimes.map((showtime) => (
+    //                 <button
+    //                   key={showtime._id}
+    //                   className={`showtime-button ${showtime.is_booked ? 'booked' : selectedShowtimes.some(slot => slot.showtimeId === showtime._id) ? 'selected' : 'available'}`}
+    //                   disabled={showtime.is_booked}
+    //                   onClick={() => handleShowtimeSelect(timeSlot._id, showtime._id, showtime.date)}
+    //                 >
+    //                   {new Date(showtime.date).toLocaleTimeString('en-US', {
+    //                   hour: '2-digit',
+    //                   minute: '2-digit'
+    //                 })}
+    //                 </button>
+    //               ))}
+    //             </div>
+    //           </div>
+    //         ))}
+    //         <h3>Total Amount: ₹{totalAmount}</h3>
+    //         <button
+    //           className="book-appointment-button"
+    //           onClick={handleBookAppointment}
+    //           disabled={selectedShowtimes.length === 0}
+    //         >
+    //           Book Appointment
+    //         </button>
+    //       </>
+    //     ) : (
+    //       <h2 className="no-slots-message">No available time slots for this shop.</h2>
+    //     )}
+    //   </div>
+    // </div>
+
+    <div className="p-5 max-w-2xl mx-auto">
+      <h2 className="text-2xl font-bold mb-5 text-center">Book Your Time Slot</h2>
+      <div className="space-y-5">
         {timeSlots.length > 0 ? (
           <>
             {timeSlots.map((timeSlot) => (
-              <div key={timeSlot._id} className="time-slot-card">
-                <h3 className="time-slot-date">Date: {new Date(timeSlot.date).toLocaleDateString('en-IN')}</h3>
-                <div className="showtimes-wrapper">
+              <div key={timeSlot._id} className="bg-gray-100 p-4 rounded-lg shadow-md">
+                <h3 className="text-xl mb-2 text-gray-800">Date: {new Date(timeSlot.date).toLocaleDateString('en-IN')}</h3>
+                <div className="flex gap-2 flex-wrap">
                   {timeSlot.showtimes.map((showtime) => (
                     <button
                       key={showtime._id}
-                      className={`showtime-button ${showtime.is_booked ? 'booked' : selectedShowtimes.some(slot => slot.showtimeId === showtime._id) ? 'selected' : 'available'}`}
+                      className={`px-4 py-2 rounded-lg text-white transition-colors duration-300 min-w-[80px] text-center ${
+                        showtime.is_booked
+                          ? 'bg-red-500 cursor-not-allowed'
+                          : selectedShowtimes.some(slot => slot.showtimeId === showtime._id)
+                          ? 'bg-orange-600'
+                          : 'bg-green-500 hover:bg-green-600'
+                      }`}
                       disabled={showtime.is_booked}
                       onClick={() => handleShowtimeSelect(timeSlot._id, showtime._id, showtime.date)}
                     >
                       {new Date(showtime.date).toLocaleTimeString('en-US', {
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    })}
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
                     </button>
                   ))}
                 </div>
               </div>
             ))}
-            <h3>Total Amount: ₹{totalAmount}</h3>
+            <h3 className="text-lg font-semibold">Total Amount: ₹{totalAmount}</h3>
             <button
-              className="book-appointment-button"
+              className="mt-5 px-5 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-300"
               onClick={handleBookAppointment}
               disabled={selectedShowtimes.length === 0}
             >
@@ -216,7 +262,7 @@ const DateTimeSelection = () => {
             </button>
           </>
         ) : (
-          <h2 className="no-slots-message">No available time slots for this shop.</h2>
+          <h2 className="text-red-600 text-xl text-center mt-5">No available time slots for this shop.</h2>
         )}
       </div>
     </div>

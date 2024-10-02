@@ -119,11 +119,11 @@
 //     </>
 // };
 
-
+import React from "react"; 
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../utils/api";
-import '../CSS/Shops.css'
+// import '../CSS/Shops.css'
 
 export const Shops = () => {
   const stateDistrictCityData = {
@@ -233,7 +233,7 @@ export const Shops = () => {
 
   return (
     <>
-    <h3 className="form-title">Select Your Location</h3>
+    {/* <h3 className="form-title">Select Your Location</h3>
     <form className="location-form">
         <div className="form-group">
           <label>
@@ -279,11 +279,7 @@ export const Shops = () => {
       </form>
 
     <section className="users-section">
-      {/* <div className="container">
-        <h2 className="section-title">List of Shops</h2>
-        </div> */}
         <h2 className="section-title">List of available shops</h2>
-      {/* <div className="container"> */}
       <div className="cont">
         <table className="shop-table">
           <thead>
@@ -317,7 +313,89 @@ export const Shops = () => {
           </tbody>
         </table>
       </div>
+    </section> */}
+
+<h3 className=" text-center text-gray-800 mt-2">Select Your Location</h3>
+    <form className="bg-white p-3 shadow-md rounded-md">
+        <div className="flex flex-wrap justify-between">
+          <div className=" lg:w-1/3 mb-1">
+            <label className="block text-gray-600 text-lg mb-1">Select State:</label>
+            <select value={selectedState} onChange={handleStateChange} className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="">--Select State--</option>
+              {Object.keys(stateDistrictCityData).map((state) => (
+                <option key={state} value={state}>
+                  {state}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {districts.length > 0 && (
+            <div className="w-full lg:w-1/3 mb-4">
+              <label className="block text-gray-600 text-lg mb-2">Select District:</label>
+              <select value={selectedDistrict} onChange={handleDistrictChange} className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">--Select District--</option>
+                {districts.map((district) => (
+                  <option key={district} value={district}>
+                    {district}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {cities.length > 0 && (
+            <div className="w-full lg:w-1/3 mb-4">
+              <label className="block text-gray-600 text-lg mb-2">Select City:</label>
+              <select value={selectedCity} onChange={handleCityChange} className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">--Select City--</option>
+                {cities.map((city) => (
+                  <option key={city} value={city}>
+                    {city}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+        </div>
+    </form>
+
+    <section className="mt-5">
+      <h2 className="text-3xl text-center text-gray-800 mb-6">List of Available Shops</h2>
+      <div className="overflow-x-auto">
+        <table className="min-w-full table-auto bg-white shadow-md rounded-md">
+          <thead>
+            <tr>
+              <th className="px-4 py-2 bg-blue-600 text-white">Shop Name</th>
+              <th className="px-4 py-2 bg-blue-600 text-white">Phone</th>
+              <th className="px-4 py-2 bg-blue-600 text-white">State</th>
+              <th className="px-4 py-2 bg-blue-600 text-white">City</th>
+              <th className="px-4 py-2 bg-blue-600 text-white">Book Appointment</th>
+            </tr>
+          </thead>
+          <tbody>
+            {shop.length === 0 ? (
+              <tr>
+                <td colSpan="5" className="text-center py-4 text-red-600">No Shops Exist</td>
+              </tr>
+            ) : (
+              shop.map((curShop, index) => (
+                <tr key={index} className="border-t">
+                  <td className="px-4 py-2 text-gray-700">{curShop.shopname}</td>
+                  <td className="px-4 py-2 text-gray-700">{curShop.phone}</td>
+                  <td className="px-4 py-2 text-gray-700">{curShop.state}</td>
+                  <td className="px-4 py-2 text-gray-700">{curShop.city}</td>
+                  <td className="px-4 py-2">
+                    <Link to={`/nearbyShops/${curShop._id}/shopinfo`} className="bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition duration-300">Select</Link>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
     </section>
+
     </>
   );
 };
