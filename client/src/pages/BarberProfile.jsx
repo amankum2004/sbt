@@ -1,291 +1,3 @@
-// import { useLogin } from "../components/LoginContext";
-// import { useState, useEffect } from "react";
-// import axios from "axios";
-// import { api } from "../utils/api";
-
-// export const BarberProfile = () => {
-//     const [profile, setProfile] = useState({
-//         shop_owner_id: '',
-//         name: '',
-//         email: '',
-//         phone: '',
-//         date: '',
-//         showtimes: [{ time: '', is_booked: false }],
-//     });
-//     const [userData, setUserData] = useState(true);
-//     const { user } = useLogin();
-
-//     useEffect(() => {
-//         if (userData && user) {
-//             const fetchShopOwnerId = async () => {
-//                 try {
-//                     const response = await api.get(`/shop/by-email/${user.email}`);
-//                     const shopId = response.data._id;
-
-//                     setProfile({
-//                         shop_owner_id: shopId,
-//                         name: user.name,
-//                         email: user.email,
-//                         phone: user.phone,
-//                         date: '',
-//                         showtimes: [{ time: '', is_booked: false }],
-//                     });
-//                     setUserData(false);
-//                 } catch (error) {
-//                     console.error('Error fetching shop data:', error);
-//                 }
-//             };
-
-//             fetchShopOwnerId();
-//         }
-//     }, [user, userData]);
-
-//     const handleInput = (e) => {
-//         const { name, value } = e.target;
-//         setProfile({
-//             ...profile,
-//             [name]: value,
-//         });
-//     };
-
-//     const handleShowtimeChange = (index, e) => {
-//         const { name, value } = e.target;
-//         const newShowtimes = [...profile.showtimes];
-//         newShowtimes[index] = {
-//             ...newShowtimes[index],
-//             [name]: value,
-//         };
-//         setProfile({
-//             ...profile,
-//             showtimes: newShowtimes,
-//         });
-//     };
-
-//     const addShowtime = () => {
-//         setProfile({
-//             ...profile,
-//             showtimes: [...profile.showtimes, { time: '', is_booked: false }],
-//         });
-//     };
-
-//     const handleSubmit = async (e) => {
-//         e.preventDefault();
-//         try {
-//             // const response = await axios.post(`http://localhost:8000/api/time/timeslots`, profile);
-//             const response = await api.post(`/time/timeslots`, profile);
-//             console.log(response);
-//             alert('Time slot created successfully');
-//         } catch (error) {
-//             console.error('Error creating time slot', error);
-//             alert('Failed to create time slot');
-//         }
-//     };
-
-//     // Calculate the current date in the format YYYY-MM-DD for the min attribute
-//     const today = new Date().toISOString().split("T")[0];
-
-//     return (
-//         <>
-//             <main style={{ fontFamily: "'Arial', sans-serif", backgroundColor: "#f9f9f9", padding: "20px" }}>
-//                 <section className="section-hero" style={{ backgroundColor: "#ffffff", padding: "40px", borderRadius: "8px", boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)" }}>
-//                     <div className="container" style={{ maxWidth: "800px", margin: "0 auto" }}>
-//                         <div className="hero-content" style={{ textAlign: "center" }}>
-//                             <p style={{ fontSize: "20px", color: "#333" }}>
-//                                 Welcome, {user ? `${user.name} to our website` : `to our website`}
-//                             </p>
-//                             <h3 style={{ fontSize: "24px", color: "#555", marginBottom: "30px" }}>It is your profile page</h3>
-//                             <form onSubmit={handleSubmit}>
-//                                 <div className="input-box" style={{ marginBottom: "20px" }}>
-//                                     <label style={{ fontSize: "18px", color: "#333", display: "block", marginBottom: "8px" }}>
-//                                         Shop Owner Id:
-//                                         <input
-//                                             type="text"
-//                                             placeholder="Shop Owner Id"
-//                                             name="shop_owner_id"
-//                                             id="shop_owner_id"
-//                                             autoComplete="off"
-//                                             value={profile.shop_owner_id}
-//                                             onChange={handleInput}
-//                                             readOnly
-//                                             required
-//                                             style={{
-//                                                 width: "100%",
-//                                                 padding: "10px",
-//                                                 fontSize: "16px",
-//                                                 border: "1px solid #ccc",
-//                                                 borderRadius: "4px",
-//                                                 marginTop: "8px",
-//                                             }}
-//                                         />
-//                                     </label>
-//                                 </div>
-//                                 <div className="input-box" style={{ marginBottom: "20px" }}>
-//                                     <label style={{ fontSize: "18px", color: "#333", display: "block", marginBottom: "8px" }}>
-//                                         Name:
-//                                         <input
-//                                             type="text"
-//                                             placeholder="Name"
-//                                             name="name"
-//                                             id="name"
-//                                             autoComplete="off"
-//                                             value={profile.name}
-//                                             onChange={handleInput}
-//                                             readOnly
-//                                             required
-//                                             style={{
-//                                                 width: "100%",
-//                                                 padding: "10px",
-//                                                 fontSize: "16px",
-//                                                 border: "1px solid #ccc",
-//                                                 borderRadius: "4px",
-//                                                 marginTop: "8px",
-//                                             }}
-//                                         />
-//                                     </label>
-//                                 </div>
-//                                 <div className="input-box" style={{ marginBottom: "20px" }}>
-//                                     <label style={{ fontSize: "18px", color: "#333", display: "block", marginBottom: "8px" }}>
-//                                         Email:
-//                                         <input
-//                                             type="email"
-//                                             placeholder="Email"
-//                                             name="email"
-//                                             id="email"
-//                                             autoComplete="off"
-//                                             value={profile.email}
-//                                             onChange={handleInput}
-//                                             readOnly
-//                                             required
-//                                             style={{
-//                                                 width: "100%",
-//                                                 padding: "10px",
-//                                                 fontSize: "16px",
-//                                                 border: "1px solid #ccc",
-//                                                 borderRadius: "4px",
-//                                                 marginTop: "8px",
-//                                             }}
-//                                         />
-//                                     </label>
-//                                 </div>
-//                                 <div className="input-box" style={{ marginBottom: "20px" }}>
-//                                     <label style={{ fontSize: "18px", color: "#333", display: "block", marginBottom: "8px" }}>
-//                                         Phone:
-//                                         <input
-//                                             type="phone"
-//                                             placeholder="Phone"
-//                                             name="phone"
-//                                             id="phone"
-//                                             autoComplete="off"
-//                                             value={profile.phone}
-//                                             onChange={handleInput}
-//                                             readOnly
-//                                             required
-//                                             style={{
-//                                                 width: "100%",
-//                                                 padding: "10px",
-//                                                 fontSize: "16px",
-//                                                 border: "1px solid #ccc",
-//                                                 borderRadius: "4px",
-//                                                 marginTop: "8px",
-//                                             }}
-//                                         />
-//                                     </label>
-//                                 </div>
-
-//                                 <h2 style={{ fontSize: "22px", color: "#444", margin: "30px 0 20px" }}>Create Time Slot</h2>
-//                                 <div style={{ marginBottom: "20px" }}>
-//                                     <label style={{ fontSize: "18px", color: "#333", display: "block", marginBottom: "8px" }}>
-//                                         Date:
-//                                         <input
-//                                             type="date"
-//                                             name="date"
-//                                             value={profile.date}
-//                                             onChange={handleInput}
-//                                             required
-//                                             min={today}
-//                                             style={{
-//                                                 width: "100%",
-//                                                 padding: "10px",
-//                                                 fontSize: "16px",
-//                                                 border: "1px solid #ccc",
-//                                                 borderRadius: "4px",
-//                                                 marginTop: "8px",
-//                                             }}
-//                                         />
-//                                     </label>
-//                                 </div>
-//                                 {profile.date && (
-//                                     <div style={{ marginBottom: "20px" }}>
-//                                         <label style={{ fontSize: "18px", color: "#333", display: "block", marginBottom: "8px" }}>
-//                                             Showtimes:
-//                                         </label>
-//                                         {profile.showtimes.map((showtime, index) => (
-//                                             <div key={index} style={{ marginBottom: "10px" }}>
-//                                                 <label style={{ fontSize: "16px", color: "#555", display: "block", marginBottom: "4px" }}>
-//                                                     Time:
-//                                                     <input
-//                                                         type="time"
-//                                                         name="time"
-//                                                         value={showtime.time}
-//                                                         onChange={(e) => handleShowtimeChange(index, e)}
-//                                                         required
-//                                                         style={{
-//                                                             width: "100%",
-//                                                             padding: "8px",
-//                                                             fontSize: "16px",
-//                                                             border: "1px solid #ccc",
-//                                                             borderRadius: "4px",
-//                                                             marginTop: "4px",
-//                                                         }}
-//                                                     />
-//                                                 </label>
-//                                             </div>
-//                                         ))}
-//                                         <button
-//                                             type="button"
-//                                             onClick={addShowtime}
-//                                             style={{
-//                                                 backgroundColor: "#007bff",
-//                                                 color: "#fff",
-//                                                 padding: "10px 20px",
-//                                                 fontSize: "16px",
-//                                                 borderRadius: "4px",
-//                                                 border: "none",
-//                                                 cursor: "pointer",
-//                                             }}
-//                                         >
-//                                             Add Showtime
-//                                         </button>
-//                                     </div>
-//                                 )}
-//                                 <div>
-//                                     <button
-//                                         type="submit"
-//                                         style={{
-//                                             backgroundColor: "#28a745",
-//                                             color: "#fff",
-//                                             padding: "12px 30px",
-//                                             fontSize: "18px",
-//                                             borderRadius: "4px",
-//                                             border: "none",
-//                                             cursor: "pointer",
-//                                         }}
-//                                     >
-//                                         Submit
-//                                     </button>
-//                                 </div>
-//                             </form>
-//                         </div>
-//                     </div>
-//                 </section>
-//             </main>
-//         </>
-//     );
-// };
-
-
-
-
 import { useLogin } from "../components/LoginContext";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -377,196 +89,135 @@ export const BarberProfile = () => {
     const today = new Date().toISOString().split("T")[0];
 
     return (
-        <>
-            <main style={{ fontFamily: "'Arial', sans-serif", backgroundColor: "#f9f9f9", padding: "20px" }}>
-                <section className="section-hero" style={{ backgroundColor: "#ffffff", padding: "40px", borderRadius: "8px", boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)" }}>
-                    <div className="container" style={{ maxWidth: "800px", margin: "0 auto" }}>
-                        <div className="hero-content" style={{ textAlign: "center" }}>
-                            <p style={{ fontSize: "20px", color: "#333" }}>
-                                Welcome, {user ? `${user.name} to our website` : `to our website`}
+     <>
+        <main className="font-sans bg-gray-100 p-5">
+                <section className="bg-white p-10 rounded-lg shadow-lg max-w-2xl mx-auto">
+                    <div className="text-center">
+                    <p className="text-lg font-bold text-blue-500 mb-6">
+                                Welcome 
+                                {user ? (  
+                                <>
+                                    <span className="text-red-500 italic font-bold mx-1">{user.name}</span> to our website
+                                </>
+                                ) : ` to our website `}
                             </p>
-                            <h3 style={{ fontSize: "24px", color: "#555", marginBottom: "30px" }}>It is your profile page</h3>
-                            <form onSubmit={handleSubmit}>
-                                <div className="input-box" style={{ marginBottom: "20px" }}>
-                                    <label style={{ fontSize: "18px", color: "#333", display: "block", marginBottom: "8px" }}>
-                                        Shop Owner Id:
-                                        <input
-                                            type="text"
-                                            placeholder="Shop Owner Id"
-                                            name="shop_owner_id"
-                                            id="shop_owner_id"
-                                            autoComplete="off"
-                                            value={profile.shop_owner_id}
-                                            onChange={handleInput}
-                                            readOnly
-                                            required
-                                            style={{
-                                                width: "100%",
-                                                padding: "10px",
-                                                fontSize: "16px",
-                                                border: "1px solid #ccc",
-                                                borderRadius: "4px",
-                                                marginTop: "8px",
-                                            }}
-                                        />
-                                    </label>
-                                </div>
-                                <div className="input-box" style={{ marginBottom: "20px" }}>
-                                    <label style={{ fontSize: "18px", color: "#333", display: "block", marginBottom: "8px" }}>
-                                        Name:
-                                        <input
-                                            type="text"
-                                            placeholder="Name"
-                                            name="name"
-                                            id="name"
-                                            autoComplete="off"
-                                            value={profile.name}
-                                            onChange={handleInput}
-                                            readOnly
-                                            required
-                                            style={{
-                                                width: "100%",
-                                                padding: "10px",
-                                                fontSize: "16px",
-                                                border: "1px solid #ccc",
-                                                borderRadius: "4px",
-                                                marginTop: "8px",
-                                            }}
-                                        />
-                                    </label>
-                                </div>
-                                <div className="input-box" style={{ marginBottom: "20px" }}>
-                                    <label style={{ fontSize: "18px", color: "#333", display: "block", marginBottom: "8px" }}>
-                                        Email:
-                                        <input
-                                            type="email"
-                                            placeholder="Email"
-                                            name="email"
-                                            id="email"
-                                            autoComplete="off"
-                                            value={profile.email}
-                                            onChange={handleInput}
-                                            readOnly
-                                            required
-                                            style={{
-                                                width: "100%",
-                                                padding: "10px",
-                                                fontSize: "16px",
-                                                border: "1px solid #ccc",
-                                                borderRadius: "4px",
-                                                marginTop: "8px",
-                                            }}
-                                        />
-                                    </label>
-                                </div>
-                                <div className="input-box" style={{ marginBottom: "20px" }}>
-                                    <label style={{ fontSize: "18px", color: "#333", display: "block", marginBottom: "8px" }}>
-                                        Phone:
-                                        <input
-                                            type="phone"
-                                            placeholder="Phone"
-                                            name="phone"
-                                            id="phone"
-                                            autoComplete="off"
-                                            value={profile.phone}
-                                            onChange={handleInput}
-                                            readOnly
-                                            required
-                                            style={{
-                                                width: "100%",
-                                                padding: "10px",
-                                                fontSize: "16px",
-                                                border: "1px solid #ccc",
-                                                borderRadius: "4px",
-                                                marginTop: "8px",
-                                            }}
-                                        />
-                                    </label>
-                                </div>
+                        <h3 className="text-2xl text-gray-700 mb-6">It is your profile page</h3>
+                        <form onSubmit={handleSubmit}>
+                            <div className="mb-5">
+                                <label className="block text-lg text-gray-700 mb-2">
+                                    Shop Owner Id:
+                                    <input
+                                        type="text"
+                                        placeholder="Shop Owner Id"
+                                        name="shop_owner_id"
+                                        id="shop_owner_id"
+                                        value={profile.shop_owner_id}
+                                        onChange={handleInput}
+                                        readOnly
+                                        required
+                                        className="w-full p-3 border border-gray-300 rounded-lg mt-1"
+                                    />
+                                </label>
+                            </div>
+                            <div className="mb-5">
+                                <label className="block text-lg text-gray-700 mb-2">
+                                    Name:
+                                    <input
+                                        type="text"
+                                        placeholder="Name"
+                                        name="name"
+                                        id="name"
+                                        value={profile.name}
+                                        onChange={handleInput}
+                                        readOnly
+                                        required
+                                        className="w-full p-3 border border-gray-300 rounded-lg mt-1"
+                                    />
+                                </label>
+                            </div>
+                            <div className="mb-5">
+                                <label className="block text-lg text-gray-700 mb-2">
+                                    Email:
+                                    <input
+                                        type="email"
+                                        placeholder="Email"
+                                        name="email"
+                                        id="email"
+                                        value={profile.email}
+                                        onChange={handleInput}
+                                        readOnly
+                                        required
+                                        className="w-full p-3 border border-gray-300 rounded-lg mt-1"
+                                    />
+                                </label>
+                            </div>
+                            <div className="mb-5">
+                                <label className="block text-lg text-gray-700 mb-2">
+                                    Phone:
+                                    <input
+                                        type="phone"
+                                        placeholder="Phone"
+                                        name="phone"
+                                        id="phone"
+                                        value={profile.phone}
+                                        onChange={handleInput}
+                                        readOnly
+                                        required
+                                        className="w-full p-3 border border-gray-300 rounded-lg mt-1"
+                                    />
+                                </label>
+                            </div>
 
-                                <h2 style={{ fontSize: "22px", color: "#444", margin: "30px 0 20px" }}>Create Time Slot</h2>
-                                <div style={{ marginBottom: "20px" }}>
-                                    <label style={{ fontSize: "18px", color: "#333", display: "block", marginBottom: "8px" }}>
-                                        Date:
-                                        <input
-                                            type="date"
-                                            name="date"
-                                            value={profile.date}
-                                            onChange={handleInput}
-                                            required
-                                            min={today}
-                                            style={{
-                                                width: "100%",
-                                                padding: "10px",
-                                                fontSize: "16px",
-                                                border: "1px solid #ccc",
-                                                borderRadius: "4px",
-                                                marginTop: "8px",
-                                            }}
-                                        />
-                                    </label>
-                                </div>
-                                <div style={{ marginBottom: "20px" }}>
-                                    <label style={{ fontSize: "18px", color: "#333", display: "block", marginBottom: "8px" }}>
-                                        Showtimes:
-                                    </label>
-                                    {profile.showtimes.map((showtime, index) => (
-                                        <div key={index} style={{ marginBottom: "10px" }}>
-                                            <label style={{ fontSize: "16px", color: "#555", display: "block", marginBottom: "4px" }}>
-                                                Time:
-                                                <input
-                                                    type="datetime-local"
-                                                    name="date"
-                                                    value={showtime.date}
-                                                    onChange={(e) => handleShowtimeChange(index, e)}
-                                                    required
-                                                    min={today}
-                                                    style={{
-                                                        width: "100%",
-                                                        padding: "8px",
-                                                        fontSize: "16px",
-                                                        border: "1px solid #ccc",
-                                                        borderRadius: "4px",
-                                                        marginTop: "4px",
-                                                    }}
-                                                />
-                                            </label>
-                                        </div>
-                                    ))}
-                                    <button
-                                        type="button"
-                                        onClick={addShowtime}
-                                        style={{
-                                            backgroundColor: "#007bff",
-                                            color: "#fff",
-                                            padding: "10px 20px",
-                                            fontSize: "16px",
-                                            borderRadius: "4px",
-                                            border: "none",
-                                            cursor: "pointer",
-                                        }}
-                                    >
-                                        Add Showtime
-                                    </button>
-                                </div>
-                                <div>
-                                    <button
-                                        type="submit"
-                                        style={{
-                                            backgroundColor: "#28a745",
-                                            color: "#fff",
-                                            padding: "12px 30px",
-                                            fontSize: "18px",
-                                            borderRadius: "4px",
-                                            border: "none",
-                                            cursor: "pointer",
-                                        }}
-                                    >
-                                        Submit
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
+                            <h2 className="text-xl text-gray-700 my-5">Create Time Slot</h2>
+                            <div className="mb-5">
+                                <label className="block text-lg text-gray-700 mb-2">
+                                    Date:
+                                    <input
+                                        type="date"
+                                        name="date"
+                                        value={profile.date}
+                                        onChange={handleInput}
+                                        required
+                                        min={today}
+                                        className="w-full p-3 border border-gray-300 rounded-lg mt-1"
+                                    />
+                                </label>
+                            </div>
+                            <div className="mb-5">
+                                <label className="block text-lg text-gray-700 mb-2">Showtimes:</label>
+                                {profile.showtimes.map((showtime, index) => (
+                                    <div key={index} className="mb-4">
+                                        <label className="block text-md text-gray-600 mb-1">
+                                            Time:
+                                            <input
+                                                type="datetime-local"
+                                                name="date"
+                                                value={showtime.date}
+                                                onChange={(e) => handleShowtimeChange(index, e)}
+                                                required
+                                                min={today}
+                                                className="w-full p-2 border border-gray-300 rounded-lg mt-1"
+                                            />
+                                        </label>
+                                    </div>
+                                ))}
+                                <button
+                                    type="button"
+                                    onClick={addShowtime}
+                                    className="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition duration-300"
+                                >
+                                    Add Showtime
+                                </button>
+                            </div>
+                            <div>
+                                <button
+                                    type="submit"
+                                    className="bg-green-600 text-white px-8 py-3 rounded-lg hover:bg-green-700 transition duration-300"
+                                >
+                                    Submit
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </section>
             </main>

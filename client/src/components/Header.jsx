@@ -89,7 +89,6 @@ export const Header = () => {
                       fontWeight: 'bold',
                       fontSize: '19px',
                       transition: 'color 0.3s ease'
-                      // marginRight:'20px'
                     }}
                   >
                     {user.name}
@@ -103,8 +102,9 @@ export const Header = () => {
                   </>
                 ) : user.usertype === 'admin' ? (
                   <>
+                    <NavDropdown.Item href="/customerprofile" style={{ color: 'blue', fontWeight: 'bold' }}>My Profile</NavDropdown.Item>
                     <NavDropdown.Item href="/admin" style={{ color: 'green', fontWeight: 'bold' }}>Admin Dashboard</NavDropdown.Item>
-                    <NavDropdown.Item href="/registershop" style={{ color: 'blue', fontWeight: 'bold' }}>Register Salon</NavDropdown.Item>
+                    <NavDropdown.Item href="/registershop" style={{ color: 'blue', fontWeight: 'bold' }}>Register your Salon</NavDropdown.Item>
                   </>
                 ) : (
                   <>

@@ -1,5 +1,3 @@
-// import "../CSS/RegisterShop.css"
-// import { useAuth } from "../store/auth"
 import { useLogin } from "../components/LoginContext"
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"

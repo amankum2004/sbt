@@ -200,7 +200,7 @@ const Login = () => {
             </Link>
             <button
               className="w-full h-10 bg-gray-900 text-white font-bold rounded-lg hover:bg-gray-800 transition duration-300"
-              type="submit"
+              type="button"
               onClick={async () => {
                 setClicked(() => true);
                 await handleSubmit({ formData });

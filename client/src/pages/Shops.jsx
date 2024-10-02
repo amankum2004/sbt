@@ -1,124 +1,3 @@
-// import { useEffect, useState } from "react";
-// // import { useAuth } from "../store/auth";
-// import { Link } from "react-router-dom";
-// import { api } from "../utils/api";
-// // import "./states_districts.js" 
-// // const token = JSON.parse(localStorage.getItem('token'))
-
-// export const Shops = () => {
-//   const stateDistrictData = {
-//     "Andaman and Nicobar Islands": ["Nicobars", "North And Middle Andaman", "South Andamans"],
-//     "Arunachal Pradesh": ["DistrictA", "DistrictB", "DistrictC"],
-//     "Bihar": ["DistrictA", "DistrictB", "DistrictC"],
-//     "Chhattisgarh": ["DistrictA", "DistrictB", "DistrictC"],
-//     "Delhi": ["Central", "East", "New Delhi","North","North East","North West","Shahdara","South","South East","South West","West"],
-//     "Gujarat": ["DistrictA", "DistrictB", "DistrictC"],
-//     "Himachal Pradesh": ["Bilaspur", "Chamba", "Hamirpur","Kangra","Kinnaur","Kullu","Lahaul And Spiti","Mandi","Shimla","Sirmaur","Solan","Una"],
-//   };
-
-//     const [shop,setShop] = useState([]);
-//     const [selectedState, setSelectedState] = useState("");
-//     const [districts, setDistricts] = useState([]);
-  
-//     const handleStateChange = (event) => {
-//       const state = event.target.value;
-//       setSelectedState(state);
-//       setDistricts(stateDistrictData[state] || []);
-//     };
-
-//     const getAllShopsData = async() => {
-//         try {
-//             const response = await api.get(`/shop/shoplists`)
-//             // const response = await fetch(`http://localhost:8000/api/shop/shoplists`,{
-//             //     method:"GET",
-//             //     headers:{
-//             //         Authorization: `Bearer ${token}`,
-//             //     }
-//             // });
-//             // const data = await response.json();
-//             // setShop(Array.isArray(data) ? data : []);
-//             console.log(`shops ${response.data}`);
-//             setShop(response.data);
-//         }
-//         catch (error) {
-//             console.log(error);
-//         }
-//     }
-    
-//     useEffect(() => {
-//       getAllShopsData();
-//     },[])
-
-//   return <>
-//     <h3>Select your location manually</h3>
-//   <form>
-//     <div>
-//       <label>
-//         Select State:
-//         <select value={selectedState} onChange={handleStateChange}>
-//           <option value="">--Select State--</option>
-//           {Object.keys(stateDistrictData).map((state) => (
-//             <option key={state} value={state}>
-//               {state}
-//             </option>
-//           ))}
-//         </select>
-//       </label>
-
-//       {districts.length > 0 && (
-//         <label>
-//           Select District:
-//           <select>
-//             <option value="">--Select District--</option>
-//             {districts.map((district) => (
-//               <option key={district} value={district}>
-//                 {district}
-//               </option>
-//             ))}
-//           </select>
-//         </label>
-//       )}
-//     </div>
-
-//   </form>
-//     <section className="users-section">
-//         <div className="container">
-//             <h2>List of Shops</h2>
-//         </div>
-//         <div className="container shoplist">
-//             <table>
-//                 <thead>
-//                     <tr>
-//                         <th>Shop Name</th>
-//                         <th>Phone</th>
-//                         <th>Address</th>
-//                         <th>Location</th>
-//                         <th>Book appointment</th>
-//                     </tr>
-//                 </thead>
-//                 <tbody>
-//                     {shop.length === 0 ? (
-//                       <h2 style={{color:"red"}}>No Shops Exist</h2>
-//                       ) : (
-//                       shop.map((curShop, index) => (
-//                           <tr key={index}>
-//                               <td>{curShop.shopname}</td>
-//                               <td>{curShop.phone}</td>
-//                               <td>{curShop.state}</td>
-//                               <td>{curShop.city}</td>
-//                               <td>
-//                                   <Link to={`/nearbyShops/${curShop._id}/shopinfo`}>Select</Link>
-//                               </td>
-//                           </tr>
-//                           ))
-//                        )}
-//                 </tbody>
-//             </table>
-//         </div>
-//     </section>
-//     </>
-// };
-
 import React from "react"; 
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
@@ -233,95 +112,13 @@ export const Shops = () => {
 
   return (
     <>
-    {/* <h3 className="form-title">Select Your Location</h3>
-    <form className="location-form">
-        <div className="form-group">
-          <label>
-            Select State:
-            <select value={selectedState} onChange={handleStateChange} className="form-control">
-              <option value="">--Select State--</option>
-              {Object.keys(stateDistrictCityData).map((state) => (
-                <option key={state} value={state}>
-                  {state}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          {districts.length > 0 && (
-            <label>
-              Select District:
-              <select value={selectedDistrict} onChange={handleDistrictChange} className="form-control">
-                <option value="">--Select District--</option>
-                {districts.map((district) => (
-                  <option key={district} value={district}>
-                    {district}
-                  </option>
-                ))}
-              </select>
-            </label>
-          )}
-
-          {cities.length > 0 && (
-            <label>
-              Select City:
-              <select value={selectedCity} onChange={handleCityChange} className="form-control">
-                <option value="">--Select City--</option>
-                {cities.map((city) => (
-                  <option key={city} value={city}>
-                    {city}
-                  </option>
-                ))}
-              </select>
-            </label>
-          )}
-        </div>
-      </form>
-
-    <section className="users-section">
-        <h2 className="section-title">List of available shops</h2>
-      <div className="cont">
-        <table className="shop-table">
-          <thead>
-            <tr>
-              <th>Shop Name</th>
-              <th>Phone</th>
-              <th>Address</th>
-              <th>Location</th>
-              <th>Book Appointment</th>
-            </tr>
-          </thead>
-          <tbody>
-            {shop.length === 0 ? (
-            <div>
-              <h1>No Shops Exist</h1>
-            </div>
-              
-            ) : (
-              shop.map((curShop, index) => (
-                <tr key={index}>
-                  <td>{curShop.shopname}</td>
-                  <td>{curShop.phone}</td>
-                  <td>{curShop.state}</td>
-                  <td>{curShop.city}</td>
-                  <td>
-                    <Link to={`/nearbyShops/${curShop._id}/shopinfo`} className="select-button">Select</Link>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-    </section> */}
-
-<h3 className=" text-center text-gray-800 mt-2">Select Your Location</h3>
+    <h3 className=" text-center text-gray-800 mt-2">Select Your Location</h3>
     <form className="bg-white p-3 shadow-md rounded-md">
         <div className="flex flex-wrap justify-between">
           <div className=" lg:w-1/3 mb-1">
             <label className="block text-gray-600 text-lg mb-1">Select State:</label>
-            <select value={selectedState} onChange={handleStateChange} className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
-              <option value="">--Select State--</option>
+            <select value={selectedState} onChange={handleStateChange} className="w-80 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="" disabled>--Select State--</option>
               {Object.keys(stateDistrictCityData).map((state) => (
                 <option key={state} value={state}>
                   {state}
@@ -329,8 +126,26 @@ export const Shops = () => {
               ))}
             </select>
           </div>
+          <div className=" lg:w-1/3 mb-1">
+            <label className="block text-gray-600 text-lg mb-1">Select District:</label>
+            <select value={selectedDistrict} onChange={handleDistrictChange} className="w-80 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="" disabled>--Select District--</option>
+              {districts.map((district, index) => (
+                <option key={index} value={district}>{district}</option>
+              ))}
+            </select>
+          </div>
+          <div className=" lg:w-1/3 mb-1">
+            <label className="block text-gray-600 text-lg mb-1">Select City:</label>
+            <select value={selectedCity} onChange={handleCityChange} className="w-80 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="" disabled>--Select City--</option>
+              {cities.map((city, index) => (
+                <option key={index} value={city}>{city}</option>
+              ))}
+            </select>
+          </div>
 
-          {districts.length > 0 && (
+          {/* {districts.length > 0 && (
             <div className="w-full lg:w-1/3 mb-4">
               <label className="block text-gray-600 text-lg mb-2">Select District:</label>
               <select value={selectedDistrict} onChange={handleDistrictChange} className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -343,7 +158,6 @@ export const Shops = () => {
               </select>
             </div>
           )}
-
           {cities.length > 0 && (
             <div className="w-full lg:w-1/3 mb-4">
               <label className="block text-gray-600 text-lg mb-2">Select City:</label>
@@ -356,11 +170,11 @@ export const Shops = () => {
                 ))}
               </select>
             </div>
-          )}
+          )} */}
         </div>
     </form>
 
-    <section className="mt-5">
+    <section className="mt-4">
       <h2 className="text-3xl text-center text-gray-800 mb-6">List of Available Shops</h2>
       <div className="overflow-x-auto">
         <table className="min-w-full table-auto bg-white shadow-md rounded-md">

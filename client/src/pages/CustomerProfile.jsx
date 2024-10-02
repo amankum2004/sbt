@@ -67,249 +67,89 @@ export const CustomerProfile = () => {
     }
 
     return (
-        <>
-            {/* <main>
-                <section className="section-hero">
-                    <div className="container">
-                        <div className="hero-content">
-                            <p>Welcome,
-                                {user ? `${user.name} to our website` : `to our website`}
-                            </p>
-                            <h3>It is your profile page</h3>
-                            <form onSubmit={handleSubmit}>
-                                <div className="input-box">
-                                    <label>
-                                        Name :
-                                        <input type="text"
-                                            placeholder="Name"
-                                            name="username"
-                                            id="username"
-                                            autoComplete="off"
-                                            value={profile.username}
-                                            onChange={handleInput}
-                                            readOnly
-                                            required />
-                                    </label>
-                                </div>
-                                <div className="input-box">
-                                    <label>
-                                        Email :
-                                        <input type="email"
-                                            placeholder="Email"
-                                            name="email"
-                                            id="email"
-                                            autoComplete="off"
-                                            value={profile.email}
-                                            onChange={handleInput}
-                                            readOnly
-                                            required />
-                                    </label>
-                                </div>
-                                <div className="input-box">
-                                    <label>
-                                        Phone :
-                                        <input type="phone"
-                                            placeholder="Phone"
-                                            name="phone"
-                                            id="phone"
-                                            autoComplete="off"
-                                            value={profile.phone}
-                                            onChange={handleInput}
-                                            readOnly
-                                            required />
-                                    </label>
-                                </div>
+    <>
+    <main>
+      <section className="py-12 bg-gray-100">
+        <div className="container mx-auto flex flex-col items-center">
+          <div className="text-center">
+                <p className="text-lg font-bold text-blue-500 mb-6">
+                    Welcome 
+                                {user ? (  
+                                <>
+                                    <span className="text-red-500 italic font-bold mx-1">{user.name}</span> to our website
+                                </>
+                                ) : ` to our website `}
+                </p>
+            <h3 className="text-2xl text-gray-800 mb-6">It is your profile</h3>
 
-                                <div>
-                                    <button type="submit">Submit</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </section>
-            </main> */}
+            <form onSubmit={handleSubmit} className="w-full max-w-md bg-white p-6 shadow-md rounded-lg">
+              <div className="mb-4">
+                <label className="block text-gray-700 text-sm font-semibold mb-2">
+                  Name:
+                  <input
+                    type="text"
+                    placeholder="Name"
+                    name="username"
+                    id="username"
+                    autoComplete="off"
+                    value={profile.username}
+                    onChange={handleInput}
+                    readOnly
+                    required
+                    className="w-full mt-1 px-4 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-blue-500"
+                  />
+                </label>
+              </div>
 
-            <main
-                // style={{
-                //     padding: '20px',
-                //     backgroundColor: '#f4f4f4',
-                //     minHeight: '100vh',
-                // }}
-            >
-                <section
-                    // style={{
-                    //     backgroundColor: '#fff',
-                    //     borderRadius: '10px',
-                    //     padding: '30px',
-                    //     boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)',
-                    //     maxWidth: '600px',
-                    //     margin: '0 auto',
-                    // }}
-                    className="section-hero"
+              <div className="mb-4">
+                <label className="block text-gray-700 text-sm font-semibold mb-2">
+                  Email:
+                  <input
+                    type="email"
+                    placeholder="Email"
+                    name="email"
+                    id="email"
+                    autoComplete="off"
+                    value={profile.email}
+                    onChange={handleInput}
+                    readOnly
+                    required
+                    className="w-full mt-1 px-4 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-blue-500"
+                  />
+                </label>
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-gray-700 text-sm font-semibold mb-2">
+                  Phone:
+                  <input
+                    type="phone"
+                    placeholder="Phone"
+                    name="phone"
+                    id="phone"
+                    autoComplete="off"
+                    value={profile.phone}
+                    onChange={handleInput}
+                    readOnly
+                    required
+                    className="w-full mt-1 px-4 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-blue-500"
+                  />
+                </label>
+              </div>
+
+              <div className="text-center">
+                <button
+                  type="submit"
+                  className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-200 text-sm font-medium"
                 >
-                    <div className="container"
-                        style={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                        }}
-                    >
-                        <div
-                            className="hero-content"
-                            style={{
-                                textAlign: 'center',
-                            }}
-                        >
-                            <p
-                                style={{
-                                    fontSize: '18px',
-                                    color: '#333',
-                                    marginBottom: '10px',
-                                }}
-                            >
-                                Welcome, {user ? `${user.name} to our website` : ` to our website`}
-                            </p>
-                            <h3
-                                style={{
-                                    fontSize: '24px',
-                                    color: '#555',
-                                    marginBottom: '20px',
-                                }}
-                            >
-                                It is your profile
-                            </h3>
-                            <form onSubmit={handleSubmit}>
-                                <div className="input-box"
-                                    style={{
-                                        marginBottom: '15px',
-                                    }}
-                                >
-                                    <label
-                                        style={{
-                                            display: 'block',
-                                            marginBottom: '5px',
-                                            color: '#555',
-                                            fontSize: '16px',
-                                        }}
-                                    >
-                                        Name:
-                                        <input
-                                            type="text"
-                                            placeholder="Name"
-                                            name="username"
-                                            id="username"
-                                            autoComplete="off"
-                                            value={profile.username}
-                                            onChange={handleInput}
-                                            readOnly
-                                            required
-                                            style={{
-                                                width: '100%',
-                                                padding: '10px',
-                                                borderRadius: '5px',
-                                                border: '1px solid #ccc',
-                                                marginTop: '5px',
-                                                fontSize: '14px',
-                                            }}
-                                        />
-                                    </label>
-                                </div>
-                                <div className="input-box"
-                                    style={{
-                                        marginBottom: '15px',
-                                    }}
-                                >
-                                    <label
-                                        style={{
-                                            display: 'block',
-                                            marginBottom: '5px',
-                                            color: '#555',
-                                            fontSize: '16px',
-                                        }}
-                                    >
-                                        Email:
-                                        <input
-                                            type="email"
-                                            placeholder="Email"
-                                            name="email"
-                                            id="email"
-                                            autoComplete="off"
-                                            value={profile.email}
-                                            onChange={handleInput}
-                                            readOnly
-                                            required
-                                            style={{
-                                                width: '100%',
-                                                padding: '10px',
-                                                borderRadius: '5px',
-                                                border: '1px solid #ccc',
-                                                marginTop: '5px',
-                                                fontSize: '14px',
-                                            }}
-                                        />
-                                    </label>
-                                </div>
-                                <div className="input-box"
-                                    style={{
-                                        marginBottom: '15px',
-                                    }}
-                                >
-                                    <label
-                                        style={{
-                                            display: 'block',
-                                            marginBottom: '5px',
-                                            color: '#555',
-                                            fontSize: '16px',
-                                        }}
-                                    >
-                                        Phone:
-                                        <input
-                                            type="phone"
-                                            placeholder="Phone"
-                                            name="phone"
-                                            id="phone"
-                                            autoComplete="off"
-                                            value={profile.phone}
-                                            onChange={handleInput}
-                                            readOnly
-                                            required
-                                            style={{
-                                                width: '100%',
-                                                padding: '10px',
-                                                borderRadius: '5px',
-                                                border: '1px solid #ccc',
-                                                marginTop: '5px',
-                                                fontSize: '14px',
-                                            }}
-                                        />
-                                    </label>
-                                </div>
-                                <div
-                                    style={{
-                                        textAlign: 'center',
-                                    }}
-                                >
-                                    <button
-                                        type="submit"
-                                        style={{
-                                            padding: '10px 20px',
-                                            backgroundColor: '#007bff',
-                                            color: '#fff',
-                                            borderRadius: '5px',
-                                            border: 'none',
-                                            cursor: 'pointer',
-                                            fontSize: '16px',
-                                        }}
-                                    >
-                                        Submit
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </section>
-            </main>
-
-        </>
+                  Submit
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </section>
+    </main>
+    </>
     )
 }

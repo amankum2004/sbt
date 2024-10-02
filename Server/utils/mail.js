@@ -76,3 +76,19 @@ Salon Booking Team`,
   });
 };
 
+const mailOtp = async (otp, email, subject = 'OTP') => {
+  const mailOptions = {
+    from: process.env.EMAIL,
+    to: email,
+    subject: subject,
+    text: `Your OTP is ${otp}`
+  }
+  // const transporter = transporterSingleton.getTransporter()
+  await transporter.sendMail(mailOptions)
+}
+
+module.exports={
+  sendPaymentSuccessEmail,
+  mailOtp
+}
+

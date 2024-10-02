@@ -132,7 +132,7 @@ export default function Forget() {
 
             <Link
               to="/forget"
-              className="text-sm text-orange-400 hover:text-orange-500 block text-right"
+              className="text-sm text-orange-400 hover:text-orange-500 block text-right mr-20px"
             >
               Resend OTP
             </Link>
