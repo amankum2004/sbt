@@ -1,11 +1,11 @@
 import React from "react"; 
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { api } from '../utils/api';
-// import '../CSS/RegisterShop.css';
+import { useLogin } from "../components/LoginContext";
+import { useNavigate } from "react-router-dom";
+// import axios from "axios";
 
-// const token = JSON.parse(localStorage.getItem('token'));
 
 const stateDistrictCityData = {
     "Andaman and Nicobar Islands": {
@@ -63,7 +63,9 @@ const stateDistrictCityData = {
     
 };
 
-export const AdminShopUpdate = () => {
+export const BarberProfileUpdate = () => {
+    const navigate = useNavigate();
+    const { user } = useLogin();
     const [districts, setDistricts] = useState([]);
     const [cities, setCities] = useState([]);
     const [data, setData] = useState({
@@ -84,7 +86,6 @@ export const AdminShopUpdate = () => {
         services: [{ service: '', price: '' }]
     });
 
-    const params = useParams();
 
     const handleStateChange = (e) => {
         const selectedState = e.target.value;
@@ -128,7 +129,7 @@ export const AdminShopUpdate = () => {
 
     const getSingleUserData = async () => {
         try {
-            const response = await api.get(`/admin/shops/${params.id}`)
+            const response = await api.get(`/shop/by-email/${user.email}`)
             const shopData = await response.data;
             setData(shopData);
 
@@ -149,7 +150,7 @@ export const AdminShopUpdate = () => {
 
     useEffect(() => {
         getSingleUserData();
-    }, [params.id]);
+    }, [user.email]);
 
     const handleInput = (e) => {
         let name = e.target.name;
@@ -163,19 +164,11 @@ export const AdminShopUpdate = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
         try {
-            const response = await api.patch(`http://localhost:8000/api/admin/shops/update/${params.id}`)
-            // const response = await fetch(`http://localhost:8000/api/admin/shops/update/${params.id}`, {
-            //     method: "PATCH",
-            //     headers: {
-            //         "Content-Type": "application/json",
-            //         Authorization: `Bearer ${token}`,
-            //     },
-            //     body: JSON.stringify(data)
-            // });
+            const response = await api.patch(`/shop/update`,{email: data.email,...data})
             if (response) {
                 toast.success("Updated Successfully");
+                navigate('/barberprofile')
             } else {
                 toast.error("Error in Updation");
             }
@@ -192,17 +185,17 @@ export const AdminShopUpdate = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label htmlFor="name" className="block text-sm font-medium text-gray-700">Name</label>
-            <input type="text" name="name" id="name" value={data.name} onChange={handleInput} required className="mt-1 p-2 block w-full border border-gray-300 rounded-md"/>
+            <input type="text" name="name" id="name" readOnly value={data.name} onChange={handleInput} required className="mt-1 p-2 block w-full border border-gray-300 rounded-md"/>
           </div>
 
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
-            <input type="email" name="email" id="email" value={data.email} onChange={handleInput} required className="mt-1 p-2 block w-full border border-gray-300 rounded-md"/>
+            <input type="email" name="email" id="email" readOnly value={data.email} onChange={handleInput} required className="mt-1 p-2 block w-full border border-gray-300 rounded-md"/>
           </div>
 
           <div>
             <label htmlFor="phone" className="block text-sm font-medium text-gray-700">Phone</label>
-            <input type="phone" name="phone" id="phone" value={data.phone} onChange={handleInput} required className="mt-1 p-2 block w-full border border-gray-300 rounded-md"/>
+            <input type="phone" name="phone" id="phone" readOnly value={data.phone} onChange={handleInput} required className="mt-1 p-2 block w-full border border-gray-300 rounded-md"/>
           </div>
 
           <div>
@@ -298,3 +291,6 @@ export const AdminShopUpdate = () => {
 
     )
 }
+
+
+export default BarberProfileUpdate;

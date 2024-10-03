@@ -63,52 +63,13 @@ export const AdminUsers = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     },[])
     return <>
-    {/* <section className="admin-users-section">
-        <div className="container">
-            <h1>Users Data for Admin</h1>
-        </div>
-        <div className="container admin-users">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Phone</th>
-                        <th>Update</th>
-                        <th>Delete</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {users && users.length > 0 ? (
-                        users.map((curUser, index) => (
-                            <tr key={index}>
-                                <td>{curUser.name}</td>
-                                <td>{curUser.email}</td>
-                                <td>{curUser.phone}</td>
-                                <td>
-                                    <Link to={`/admin/users/${curUser._id}/edit`}>Edit</Link>
-                                </td>
-                                <td>
-                                    <button onClick={() => deleteUser(curUser._id)}>Delete</button>
-                                </td>
-                            </tr>
-                        ))
-                    ) : (
-                        <tr>
-                            <td colSpan="5">No users found.</td>
-                        </tr>
-                    )}
-                </tbody>
-            </table>
-        </div>
-    </section> */}
      <section className="flex flex-col items-center justify-center min-h-screen py-10 bg-gray-100">
             <div className="w-11/12 max-w-6xl p-8 bg-white shadow-lg rounded-lg">
                 <h1 className="text-2xl font-bold text-center text-gray-800 mb-6">Users Data for Admin</h1>
                 <div className="overflow-x-auto">
                     <table className="w-full border-collapse">
                         <thead>
-                            <tr className="bg-blue-500 text-white">
+                            <tr className="bg-gray-800 text-white">
                                 <th className="py-3 px-4 text-left uppercase text-sm font-semibold">Name</th>
                                 <th className="py-3 px-4 text-left uppercase text-sm font-semibold">Email</th>
                                 <th className="py-3 px-4 text-left uppercase text-sm font-semibold">Phone</th>
@@ -126,7 +87,7 @@ export const AdminUsers = () => {
                                         <td className="py-3 px-4">
                                             <Link
                                                 to={`/admin/users/${curUser._id}/edit`}
-                                                className="text-blue-500 hover:text-blue-700 font-semibold"
+                                                className="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 active:bg-blue-700 transition duration-300 transform hover:-translate-y-1"
                                             >
                                                 Edit
                                             </Link>

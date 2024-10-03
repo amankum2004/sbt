@@ -102,73 +102,73 @@ exports.registershop = async(req,res,next) => {
 }
 
 // Get all user services
-exports.getUserServices = async (req, res) => {
-    try {
-      // Retrieve all user service entries from the database
-      const userServices = await Shops.find();
-      // Send the retrieved entries as the response
-      res.status(200).send(userServices);
-    } catch (error) {
-      // Handle any errors during retrieval and send a 500 status with the error message
-      res.status(500).send(error);
-    }
-};
+// exports.getUserServices = async (req, res) => {
+//     try {
+//       // Retrieve all user service entries from the database
+//       const userServices = await Shops.find();
+//       // Send the retrieved entries as the response
+//       res.status(200).send(userServices);
+//     } catch (error) {
+//       // Handle any errors during retrieval and send a 500 status with the error message
+//       res.status(500).send(error);
+//     }
+// };
 
 // Get a user service by ID
-exports.getUserServiceById = async (req, res) => {
-    try {
-      // Retrieve the user service entry with the specified ID from the database
-      const userService = await Shops.findById(req.params.id);
-      if (!userService) {
-        return res.status(404).send();
-      }
-      res.status(200).send(userService);
-    } catch (error) {
-      res.status(500).send(error);
-    }
-};
+// exports.getUserServiceById = async (req, res) => {
+//     try {
+//       // Retrieve the user service entry with the specified ID from the database
+//       const userService = await Shops.findById(req.params.id);
+//       if (!userService) {
+//         return res.status(404).send();
+//       }
+//       res.status(200).send(userService);
+//     } catch (error) {
+//       res.status(500).send(error);
+//     }
+// };
 
 // Update a user service
-exports.updateUserService = async (req, res) => {
-    // Extract the required fields from the request body
-    const { name,email,phone,password,shopname,state,district,city,street,pin,bankname,bankbranch,ifsc,micr,account,services} = req.body;
+// exports.updateUserService = async (req, res) => {
+//     // Extract the required fields from the request body
+//     const { name,email,phone,password,shopname,state,district,city,street,pin,bankname,bankbranch,ifsc,micr,account,services} = req.body;
   
-    try {
-      // Find the user service entry with the specified ID and update it with the new data
-      const userService = await Shops.findByIdAndUpdate(
-        req.params.id,
-        { name,email,phone,password,shopname,state,district,city,street,pin,bankname,bankbranch,ifsc,micr,account,services},
-        { new: true, runValidators: true }
-      );
+//     try {
+//       // Find the user service entry with the specified ID and update it with the new data
+//       const userService = await Shops.findByIdAndUpdate(
+//         req.params.id,
+//         { name,email,phone,password,shopname,state,district,city,street,pin,bankname,bankbranch,ifsc,micr,account,services},
+//         { new: true, runValidators: true }
+//       );
   
-      // If the entry is not found, send a 404 status
-      if (!userService) {
-        return res.status(404).send();
-      }
-      // Send the updated entry as the response
-      res.status(200).send(userService);
-    } catch (error) {
-      // Handle any errors during update and send a 400 status with the error message
-      res.status(400).send(error);
-    }
-};
+//       // If the entry is not found, send a 404 status
+//       if (!userService) {
+//         return res.status(404).send();
+//       }
+//       // Send the updated entry as the response
+//       res.status(200).send(userService);
+//     } catch (error) {
+//       // Handle any errors during update and send a 400 status with the error message
+//       res.status(400).send(error);
+//     }
+// };
 
 // Delete a user service
-exports.deleteUserService = async (req, res) => {
-    try {
-      // Find the user service entry with the specified ID and delete it from the database
-      const userService = await Shops.findByIdAndDelete(req.params.id);
-      // If the entry is not found, send a 404 status
-      if (!userService) {
-        return res.status(404).send();
-      }
-      // Send the deleted entry as the response
-      res.status(200).send(userService);
-    } catch (error) {
-      // Handle any errors during deletion and send a 500 status with the error message
-      res.status(500).send(error);
-    }
-};
+// exports.deleteUserService = async (req, res) => {
+//     try {
+//       // Find the user service entry with the specified ID and delete it from the database
+//       const userService = await Shops.findByIdAndDelete(req.params.id);
+//       // If the entry is not found, send a 404 status
+//       if (!userService) {
+//         return res.status(404).send();
+//       }
+//       // Send the deleted entry as the response
+//       res.status(200).send(userService);
+//     } catch (error) {
+//       // Handle any errors during deletion and send a 500 status with the error message
+//       res.status(500).send(error);
+//     }
+// };
 
 // LOGIC TO GET ALL ShopList
 exports.getAllShops = async(req,res) => {
@@ -226,5 +226,25 @@ exports.getShopByEmail = async (req, res) => {
       res.status(500).json({ message: 'Error fetching shop data', error });
   }
 };
+
+// update barber Profile by email
+exports.updateBarberProfile = async (req, res) => {
+  try {
+    const { email } = req.body;  // Assuming the email is sent in the request body
+    const updatedData = req.body;
+
+    // Find and update the barber profile by email
+    const updatedProfile = await Shops.findOneAndUpdate({ email }, updatedData, { new: true });
+
+    if (!updatedProfile) {
+      return res.status(404).json({ message: "Profile not found" });
+    }
+
+    res.status(200).json(updatedProfile);
+  } catch (error) {
+    res.status(500).json({ message: "Error updating profile", error });
+  }
+};
+
 
 

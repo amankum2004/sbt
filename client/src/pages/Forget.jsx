@@ -46,64 +46,7 @@ export default function Forget() {
   };
   return (
     <>
-      {/* <div className="container-fluid">
-        <div className="row">
-          <div className="col-lg-6 col-md-6 form-container">
-            <div className="col-lg-8 col-md-12 col-sm-9 col-xs-12 form-box text-center">
-              <div className="logo mt-5 mb-3">
-                <img src="/images/sbt logo md.svg" />
-              </div>
-              <div className="heading mb-3">
-                <h4>Reset your password</h4>
-                <h6 style={{ color: "black" }}>Enter email to recieve OTP</h6>
-              </div>
-              <form onSubmit={handleSubmit}>
-                <div className="form-input">
-                  <span><i className="fa fa-envelope"></i></span>
-                  <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    className="border w-full rounded-2xl text-center max-sm:text-sm"
-                    placeholder="Enter your email"
-                    required
-                    value={email}
-                    onChange={handleChange}
-                    disabled={isSubmitting}
-                  />
-                </div>
-
-                <Link
-                  className="col-6 text-right"
-                  to="/forget" style={{marginLeft:"320px",fontSize:"16px",color:"orange"}}>
-                  resend otp
-                </Link>
-                <br />
-                <button
-                  onClick={handleSubmit}
-                  disabled={isSubmitting}
-                  className="btn btn-secondary "
-                  type="button"
-                >
-                  {isSubmitting ? "Submitting ..." : "Submit"}
-                </button>
-                <br />
-                <div style={{marginTop:"40px",fontSize:"16px",fontWeight:"bold"}}>
-                <span className="text-left mb-3">
-                  Already have an account --{" "}
-                  <Link className="text-blue-600" to="/login" style={{color:"white"}}>
-                    Login
-                  </Link>
-                </span>
-                </div>
-              </form>
-            </div>
-          </div>
-          <div className="col-lg-6 col-md-6 d-none d-md-block image-container"></div>
-        </div>
-      </div> */}
-
-<div className="h-screen flex">
+    <div className="h-screen flex">
       <div className="flex flex-col justify-center items-center w-full md:w-1/2 bg-gray-800">
         <div className="w-full max-w-md p-8 bg-gray-700 rounded-lg shadow-lg">
           <div className="logo mt-5 mb-3 text-center">

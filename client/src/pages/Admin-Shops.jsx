@@ -52,45 +52,9 @@ export const AdminShops = () => {
     
     useEffect(() => {
         getAllShopsData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     },[])
-    return <>
-        {/* <section className="admin-users-section">
-            <div className="container">
-                <h1>Shops Data for Admin</h1>
-            </div>
-            <div className="container admin-users">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Phone</th>
-                            <th>Update</th>
-                            <th>Delete</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {shop.map((curShop,index) => {
-                            return <tr key={index}>
-                                <td>{curShop.name}</td>
-                                <td>{curShop.email}</td>
-                                <td>{curShop.phone}</td>
-                                <td>
-                                    <Link to={`/admin/shops/${curShop._id}/edit`}>Edit</Link> 
-                                </td> 
-                                <td><button onClick={() => deleteShop(curShop._id)}>
-                                    {""}
-                                    Delete{""}
-                                    </button></td>
-                            </tr>
-                        })}
-                    </tbody>
-                </table>
-            </div>
-        </section> */}
-
-<section className="py-10 bg-gray-100">
+    return <> 
+            <section className="py-10 bg-gray-100">
             <div className="container mx-auto px-4">
                 <h1 className="text-3xl font-semibold mb-5">Shops Data for Admin</h1>
                 <div className="bg-white rounded-lg shadow-lg overflow-hidden">
@@ -111,10 +75,10 @@ export const AdminShops = () => {
                                     <td className="px-6 py-4 whitespace-nowrap">{curShop.email}</td>
                                     <td className="px-6 py-4 whitespace-nowrap">{curShop.phone}</td>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <Link to={`/admin/shops/${curShop._id}/edit`} className="text-blue-500 hover:text-blue-700">Edit</Link>
+                                        <Link to={`/admin/shops/${curShop._id}/edit`} className="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 active:bg-blue-700 transition duration-300 transform hover:-translate-y-1">Edit</Link>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <button onClick={() => deleteShop(curShop._id)} className="text-red-500 hover:text-red-700">Delete</button>
+                                        <button onClick={() => deleteShop(curShop._id)} className="bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 active:bg-red-700 transition duration-300 transform hover:-translate-y-1">Delete</button>
                                     </td>
                                 </tr>
                             ))}

@@ -1,6 +1,6 @@
 const mongoose = require("mongoose")
-const bcrypt = require("bcrypt")
-const jwt = require("jsonwebtoken")
+// const bcrypt = require("bcrypt")
+// const jwt = require("jsonwebtoken")
 
 const shopSchema = new mongoose.Schema({
     name:{
@@ -78,6 +78,9 @@ const shopSchema = new mongoose.Schema({
     
 })
 
+const Shop = new mongoose.model("Shop",shopSchema)
+
+module.exports = Shop;
 
 // shopSchema.pre('save',async function(next){
 //     const shop = this
@@ -109,8 +112,5 @@ const shopSchema = new mongoose.Schema({
 //     }
 // };
 
-const Shop = new mongoose.model("Shop",shopSchema)
-
-module.exports = Shop;
 
 

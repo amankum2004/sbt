@@ -118,7 +118,7 @@ export const Shops = () => {
           <div className=" lg:w-1/3 mb-1">
             <label className="block text-gray-600 text-lg mb-1">Select State:</label>
             <select value={selectedState} onChange={handleStateChange} className="w-80 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
-              <option value="" disabled>--Select State--</option>
+              <option value="">--Select State--</option>
               {Object.keys(stateDistrictCityData).map((state) => (
                 <option key={state} value={state}>
                   {state}
@@ -129,7 +129,7 @@ export const Shops = () => {
           <div className=" lg:w-1/3 mb-1">
             <label className="block text-gray-600 text-lg mb-1">Select District:</label>
             <select value={selectedDistrict} onChange={handleDistrictChange} className="w-80 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
-              <option value="" disabled>--Select District--</option>
+              <option value="">--Select District--</option>
               {districts.map((district, index) => (
                 <option key={index} value={district}>{district}</option>
               ))}
@@ -138,39 +138,12 @@ export const Shops = () => {
           <div className=" lg:w-1/3 mb-1">
             <label className="block text-gray-600 text-lg mb-1">Select City:</label>
             <select value={selectedCity} onChange={handleCityChange} className="w-80 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
-              <option value="" disabled>--Select City--</option>
+              <option value="">--Select City--</option>
               {cities.map((city, index) => (
                 <option key={index} value={city}>{city}</option>
               ))}
             </select>
           </div>
-
-          {/* {districts.length > 0 && (
-            <div className="w-full lg:w-1/3 mb-4">
-              <label className="block text-gray-600 text-lg mb-2">Select District:</label>
-              <select value={selectedDistrict} onChange={handleDistrictChange} className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="">--Select District--</option>
-                {districts.map((district) => (
-                  <option key={district} value={district}>
-                    {district}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-          {cities.length > 0 && (
-            <div className="w-full lg:w-1/3 mb-4">
-              <label className="block text-gray-600 text-lg mb-2">Select City:</label>
-              <select value={selectedCity} onChange={handleCityChange} className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="">--Select City--</option>
-                {cities.map((city) => (
-                  <option key={city} value={city}>
-                    {city}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )} */}
         </div>
     </form>
 

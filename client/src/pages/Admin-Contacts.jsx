@@ -94,11 +94,11 @@ export const AdminContacts = () => {
             <div className="bg-white rounded-lg p-6 shadow-md">
                 <table className="w-full border-collapse">
                     <thead>
-                        <tr className="bg-gray-100">
-                            <th className="text-left p-4 text-gray-600 font-semibold">Name</th>
-                            <th className="text-left p-4 text-gray-600 font-semibold">Email</th>
-                            <th className="text-left p-4 text-gray-600 font-semibold">Message</th>
-                            <th className="text-left p-4 text-gray-600 font-semibold">Action</th>
+                        <tr className="bg-gray-800 text-white">
+                            <th className="text-left p-4 font-semibold">Name</th>
+                            <th className="text-left p-4 font-semibold">Email</th>
+                            <th className="text-left p-4 font-semibold">Message</th>
+                            <th className="text-left p-4 font-semibold">Action</th>
                         </tr>
                     </thead>
                     <tbody>

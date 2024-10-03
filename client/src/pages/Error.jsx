@@ -1,93 +1,31 @@
-import { NavLink } from "react-router-dom"
-import React from "react"; 
+import React from "react";
+import { NavLink } from "react-router-dom";
 
 export const Error = () => {
     return (
         <>
-            <section
-                style={{
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    height: '100vh',
-                    backgroundColor: '#f8f9fa',
-                    textAlign: 'center'
-                }}
-            >
-                <div
-                    style={{
-                        maxWidth: '600px',
-                        margin: '0 auto',
-                        padding: '20px',
-                        backgroundColor: '#fff',
-                        borderRadius: '8px',
-                        boxShadow: '0 0 15px rgba(0, 0, 0, 0.1)'
-                    }}
-                >
-                    <h2
-                        style={{
-                            fontSize: '120px',
-                            fontWeight: 'bold',
-                            color: '#dc3545',
-                            margin: '0'
-                        }}
-                        className="header"
-                    >
-                        404
-                    </h2>
-                    <h2
-                        style={{
-                            fontSize: '24px',
-                            color: '#333',
-                            margin: '10px 0'
-                        }}
-                    >
-                        Sorry!! , page not found
-                    </h2>
+            <section className="flex justify-center items-center h-screen bg-gray-100 text-center">
+                <div className="max-w-lg mx-auto p-5 bg-white rounded-lg shadow-lg">
+                    <h2 className="text-9xl font-bold text-red-600 mb-4">404</h2>
+                    <h2 className="text-2xl text-gray-700 mb-6">Sorry!!, page not found</h2>
 
-                    <div
-                        style={{
-                            marginTop: '30px'
-                        }}
-                        className="btns"
-                    >
+                    <div className="mt-6">
                         <NavLink
                             to="/"
-                            style={{
-                                display: 'inline-block',
-                                padding: '10px 20px',
-                                margin: '5px',
-                                textDecoration: 'none',
-                                fontSize: '16px',
-                                borderRadius: '5px',
-                                color: '#fff',
-                                backgroundColor: '#007bff',
-                                transition: 'background-color 0.3s, color 0.3s'
-                            }}
+                            className="inline-block px-6 py-3 mb-4 text-white bg-blue-500 rounded-md transition duration-300 hover:bg-blue-600"
                         >
                             Return to home page
                         </NavLink>
                         <br />
                         <NavLink
                             to="/contact"
-                            style={{
-                                display: 'inline-block',
-                                padding: '10px 20px',
-                                margin: '5px',
-                                textDecoration: 'none',
-                                fontSize: '16px',
-                                borderRadius: '5px',
-                                color: '#fff',
-                                backgroundColor: '#dc3545',
-                                transition: 'background-color 0.3s, color 0.3s'
-                            }}
+                            className="inline-block px-6 py-3 text-white bg-red-500 rounded-md transition duration-300 hover:bg-red-600"
                         >
                             Report problem
                         </NavLink>
                     </div>
                 </div>
             </section>
-
         </>
-    )
-}
+    );
+};
