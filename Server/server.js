@@ -26,7 +26,6 @@ mongoose
 .then(() => console.log('Connected to MongoDB'))
 .catch((error) => console.error('MongoDB connection error:', error))
 
-<<<<<<< HEAD
 
 // const corsOptions = {
   //   origin: (origin, callback) => {
@@ -48,37 +47,55 @@ mongoose
             //   allowedHeaders: 'Content-Type, Authorization',
             // };
             
-            const corsOptions = {
-              origin: (origin, callback) => {
-                const allowedOrigins = ['http://localhost:5173', 'https://salonbookingtime.vercel.app'];
+//             const corsOptions = {
+//               origin: (origin, callback) => {
+//                 const allowedOrigins = ['http://localhost:5173', 'https://salonbookingtime.vercel.app'];
                 
-                // Allow requests with no origin (e.g., mobile apps or same-origin requests)
-                if (!origin) {
-=======
+//                 // Allow requests with no origin (e.g., mobile apps or same-origin requests)
+//                 if (!origin) {
+//       return callback(null, true);
+//     }
+    
+//     // Allow all origins in development
+//     if (process.env.NODE_ENV === 'development') {
+//       return callback(null, true);
+//     }
+    
+//     // Check if the request origin is in the allowedOrigins list
+//     if (allowedOrigins.includes(origin)) {
+//       callback(null, true);
+//     } else {
+//       callback(new Error('Not allowed by CORS'));
+//     }
+//   },
+//   credentials: true,
+//   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD'],
+//   allowedHeaders: ['Content-Type', 'Authorization'],
+// };
+
 const corsOptions = {
   origin: (origin, callback) => {
+    const allowedOrigins = ['https://salonbookingtime.vercel.app'];
+
     if (!origin) {
->>>>>>> 24481aa77d2db47e292e17c44271aff77f9c2bc4
-      return callback(null, true);
+      return callback(null, true); // Allow requests with no origin (like same-origin)
     }
-    
-    // Allow all origins in development
-    if (process.env.NODE_ENV === 'development') {
-      return callback(null, true);
-    }
-    
-    // Check if the request origin is in the allowedOrigins list
+
     if (allowedOrigins.includes(origin)) {
-      callback(null, true);
+      callback(null, true); // Allow requests from the specified origin
     } else {
-      callback(new Error('Not allowed by CORS'));
+      callback(new Error('Not allowed by CORS')); // Block other origins
     }
   },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'], // Include OPTIONS
   allowedHeaders: ['Content-Type', 'Authorization'],
 };
-<<<<<<< HEAD
+
+app.use(cors(corsOptions)); // Apply CORS middleware
+app.options('*', cors(corsOptions)); // Handle preflight requests
+
+
         app.use(cors(corsOptions));
         app.use('/api', apiRoute)
         app.use(bodyParser.json());
@@ -86,34 +103,6 @@ const corsOptions = {
         app.use(cookieParser())
         app.use(express.static(path.join(__dirname, '../frontend/dist')))
         
-=======
-
-  // const prodOrigins = [process.env.ORIGIN_1].filter(Boolean)
-  // const devOrigins = ['http://localhost:5173']
-  // const allowedOrigins = process.env.NODE_ENV === 'development' ? devOrigins : prodOrigins
-  // app.use(cors({
-  //   origin:(origin,callback) => {
-  //     if (!origin || allowedOrigins.includes(origin)) {
-  //       console.log(origin,allowedOrigins)
-  //       callback(null,true);
-  //     }else{
-  //       callback(new Error("Not allwed by CORS"));
-  //     }
-  //   },
-  //   credentials: true,
-  //   methods: ["GET,POST,PUT,DELETE,PATCH,HEAD"],
-  //   allowedHeaders: 'Content-Type, Authorization',
-  // }))
-
-
-    app.use(cors(corsOptions));
-    app.use('/api', apiRoute)
-    app.use(bodyParser.json());
-    app.use(bodyParser.urlencoded({ extended: true }))
-    app.use(cookieParser())
-    app.use(express.static(path.join(__dirname, '../frontend/dist')))
-
->>>>>>> 24481aa77d2db47e292e17c44271aff77f9c2bc4
     // Function to send email
     async function sendConfirmationEmail(customerEmail, customerName, shopName, location, selectedTimeSlot) {
       let transporter = nodemailer.createTransport({
