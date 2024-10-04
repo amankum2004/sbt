@@ -26,8 +26,6 @@ mongoose
 .then(() => console.log('Connected to MongoDB'))
 .catch((error) => console.error('MongoDB connection error:', error))
 
-app.use('/api', apiRoute)
-
 const corsOptions = {
   origin: (origin, callback) => {
     if (!origin) {
@@ -67,6 +65,7 @@ const corsOptions = {
 
 
     app.use(cors(corsOptions));
+    app.use('/api', apiRoute)
     app.use(bodyParser.json());
     app.use(bodyParser.urlencoded({ extended: true }))
     app.use(cookieParser())
