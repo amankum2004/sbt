@@ -15,19 +15,8 @@ const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const TimeSlot = require('../Server/models/timeSlot-model')
 const {bookAppointment} = require('../Server/controllers/appointment-controller')
+
 const apiRoute = require('@/routes')
-
-
-// const connectDB = require("../Server/utils/db")
-// const authRoute = require("./routes/auth-router")
-// const contactRoute = require("./routes/contact-router")
-// const serviceRoute = require("./routes/service-router")
-// const registerShopRoute = require("./routes/registerShop-router")
-// const adminRoute = require("./routes/admin-router")
-// const otpRouter = require("./routes/otp-router")
-// const timeSlotRoute = require("./routes/timeSlot-router")
-// const appointmentRoute = require("./routes/appointment-router")
-// const errorMiddleware = require("../Server/middlewares/error-middleware")
 
 // const PORT = import.meta.env.VITE_LOCAL_PORT;
 const PORT = process.env.PORT ?? 8000
@@ -37,40 +26,51 @@ mongoose
 .then(() => console.log('Connected to MongoDB'))
 .catch((error) => console.error('MongoDB connection error:', error))
 
-const corsOptions={
-  // origin:"http://localhost:5173",
+// const corsOptions={
+//   origin: (origin, callback) => {
+//     if (process.env.NODE_ENV === 'development' || true) {
+//       callback(null, true)
+//     }else{
+//           const allowedOrigins = ['https://salonbookingtime.vercel.app']
+//           if (allowedOrigins.indexOf(origin) !== -1) {
+//             callback(null, true)
+//           } else {
+//             callback(new Error('Not allowed by CORS'))
+//           }
+//         }
+//       },
+//       credentials:true,
+//       methods:"GET,POST,PUT,DELETE,PATCH,HEAD",
+//       allowedHeaders: 'Content-Type, Authorization'
+// }
+
+const corsOptions = {
   origin: (origin, callback) => {
-    if (process.env.NODE_ENV === 'development' || true) {
-      callback(null, true)
-    } else {
-          const allowedOrigins = ['https://chalchitra.iitmandi.ac.in']
-          if (allowedOrigins.indexOf(origin) !== -1) {
-            callback(null, true)
-          } else {
-            callback(new Error('Not allowed by CORS'))
-          }
-        }
-      },
-      credentials:true,
-      methods:"GET,POST,PUT,DELETE,PATCH,HEAD",
-      allowedHeaders: 'Content-Type, Authorization'
+    // Allow requests without origin (e.g., mobile apps or curl)
+    if (!origin) {
+      return callback(null, true);
     }
+    if (process.env.NODE_ENV === 'development') {
+      return callback(null, true);
+    }
+    const allowedOrigins = ['https://salonbookingtime.vercel.app'];
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: "GET,POST,PUT,DELETE,PATCH,HEAD",
+  allowedHeaders: 'Content-Type, Authorization',
+};
+
+
     app.use(cors(corsOptions));
     app.use(bodyParser.json());
     app.use(bodyParser.urlencoded({ extended: true }))
     app.use(cookieParser())
     app.use(express.static(path.join(__dirname, '../frontend/dist')))
-    
-    // app.use(express.json())
-    // app.use("/api/auth",authRoute)
-    // app.use("/api/form",contactRoute)
-    // app.use("/api/data",serviceRoute)
-    // app.use("/api/shop",registerShopRoute)
-    // app.use("/otp",otpRouter)
-    // app.use("/api",timeSlotRoute)
-    // app.use("/api",appointmentRoute)
-    // app.use("/api/admin",adminRoute)
-    // app.use(errorMiddleware)
 
     // Function to send email
     async function sendConfirmationEmail(customerEmail, customerName, shopName, location, selectedTimeSlot) {
