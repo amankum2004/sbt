@@ -73,30 +73,40 @@ mongoose
 //   allowedHeaders: ['Content-Type', 'Authorization'],
 // };
 
+// const corsOptions = {
+//   origin: (origin, callback) => {
+//     const allowedOrigins = ['https://salonbookingtime.vercel.app'];
+
+//     if (!origin) {
+//       return callback(null, true); // Allow requests with no origin (like same-origin)
+//     }
+
+//     if (allowedOrigins.includes(origin)) {
+//       callback(null, true); // Allow requests from the specified origin
+//     } else {
+//       callback(new Error('Not allowed by CORS')); // Block other origins
+//     }
+//   },
+//   credentials: true,
+//   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'], // Include OPTIONS
+//   allowedHeaders: ['Content-Type', 'Authorization'],
+// };
 const corsOptions = {
-  origin: (origin, callback) => {
-    const allowedOrigins = ['https://salonbookingtime.vercel.app'];
-
-    if (!origin) {
-      return callback(null, true); // Allow requests with no origin (like same-origin)
-    }
-
-    if (allowedOrigins.includes(origin)) {
-      callback(null, true); // Allow requests from the specified origin
-    } else {
-      callback(new Error('Not allowed by CORS')); // Block other origins
-    }
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'], // Include OPTIONS
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  origin: 'https://salonbookingtime.vercel.app',  // Allow production frontend
+  credentials: true,  // Allow credentials like cookies
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],  // HTTP methods
+  allowedHeaders: ['Content-Type', 'Authorization'],  // Allow headers
 };
 
-app.use(cors(corsOptions)); // Apply CORS middleware
-app.options('*', cors(corsOptions)); // Handle preflight requests
+      // app.use(cors(corsOptions)); 
+      app.use(cors(corsOptions), (req, res, next) => {
+        console.log('CORS Origin:', req.headers.origin);  // Log incoming request origin
+        next();
+      });
+      app.options('*', cors(corsOptions)); // Handle preflight requests
 
 
-        app.use(cors(corsOptions));
+        // app.use(cors(corsOptions));
         app.use('/api', apiRoute)
         app.use(bodyParser.json());
         app.use(bodyParser.urlencoded({ extended: true }))
