@@ -26,6 +26,7 @@ mongoose
 .then(() => console.log('Connected to MongoDB'))
 .catch((error) => console.error('MongoDB connection error:', error))
 
+app.use('/api', apiRoute)
 // const corsOptions={
 //   origin: (origin, callback) => {
 //     if (process.env.NODE_ENV === 'development' || true) {
@@ -120,7 +121,7 @@ const corsOptions = {
         if (!order) {
           return res.status(500).send("Error");
         }
-    
+        
         res.json(order);
       } catch (err) {
         console.log(err);
@@ -195,7 +196,6 @@ app.use((req, _, next) => {
   next()
 })
 
-app.use('/api', apiRoute)
 
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/dist', 'index.html'))
