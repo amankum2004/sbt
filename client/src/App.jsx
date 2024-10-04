@@ -10,7 +10,6 @@ import GetOTP from "./pages/GetOtp"
 import { Error } from "./pages/Error"
 import {Header }from "./components/Header"
 import { Footer } from "./components/Footer"
-// import { Logout } from "./pages/Logout"
 import Forget from "./pages/Forget"
 import UpdatePassword from "./pages/UpdatePassword"
 import { AdminLayout } from "./pages/Admin-Layout"
@@ -41,6 +40,7 @@ function App()  {
       {/* <div className="relative z-10 w-full grow py-10"> */}
 
         <Routes>
+          <Route index element={<Home />} />
           <Route path="/" element = {<Home />}/>
           <Route path="/about" element = {<About />}/>
           <Route path="/contact" element = {<Contact />}/>
@@ -48,7 +48,6 @@ function App()  {
           <Route path="/register" element = {<Register />}/>
           <Route path="/login" element = {<Login />}/>
           <Route path="/getOTP" element = {<GetOTP />}/>
-          {/* <Route path="/logout" element = {<Logout />}/> */}
           <Route path="/forget" element = {<Forget />}/>
           <Route path="/update" element = {<UpdatePassword />}/>
           <Route path="/nearbyShops" element = {<Shops/>}/>

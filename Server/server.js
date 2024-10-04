@@ -47,7 +47,6 @@ app.use('/api', apiRoute)
 
 const corsOptions = {
   origin: (origin, callback) => {
-    // Allow requests without origin (e.g., mobile apps or curl)
     if (!origin) {
       return callback(null, true);
     }
@@ -62,7 +61,7 @@ const corsOptions = {
     }
   },
   credentials: true,
-  methods: "GET,POST,PUT,DELETE,PATCH,HEAD",
+  methods: ["GET,POST,PUT,DELETE,PATCH,HEAD"],
   allowedHeaders: 'Content-Type, Authorization',
 };
 
