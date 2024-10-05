@@ -79,7 +79,7 @@ mongoose
             credentials:true
         }
 
-    app.options('*', cors(corsOptions)); // Handle preflight requests
+        app.options('*', cors(corsOptions)); // Handle preflight requests
 
 
         app.use(cors(corsOptions));
