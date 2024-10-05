@@ -23,7 +23,7 @@ router.use('/shop',registerShopRoute)
 router.use('/admin',adminRoute)
 router.use('/time',timeSlotRoute)
 router.use('/appoint',appointmentRoute)
-// router.use('/pay',paymentRoute)
+router.use('/pay',paymentRoute)
 
 
 module.exports = router
