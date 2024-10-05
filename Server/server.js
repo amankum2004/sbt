@@ -47,31 +47,31 @@ mongoose
             //   allowedHeaders: 'Content-Type, Authorization',
             // };
             
-//             const corsOptions = {
-//               origin: (origin, callback) => {
-//                 const allowedOrigins = ['http://localhost:5173', 'https://salonbookingtime.vercel.app'];
+            const corsOptions = {
+              origin: (origin, callback) => {
+                const allowedOrigins = ['http://localhost:5173', 'https://salonbookingtime.vercel.app','https://sbt-amankum2004s-projects.vercel.app','https://sbt-git-main-amankum2004s-projects.vercel.app'];
                 
-//                 // Allow requests with no origin (e.g., mobile apps or same-origin requests)
-//                 if (!origin) {
-//       return callback(null, true);
-//     }
+                // Allow requests with no origin (e.g., mobile apps or same-origin requests)
+                if (!origin) {
+                  return callback(null, true);
+                }
     
-//     // Allow all origins in development
-//     if (process.env.NODE_ENV === 'development') {
-//       return callback(null, true);
-//     }
+    // Allow all origins in development
+    if (process.env.NODE_ENV === 'development') {
+      return callback(null, true);
+    }
     
-//     // Check if the request origin is in the allowedOrigins list
-//     if (allowedOrigins.includes(origin)) {
-//       callback(null, true);
-//     } else {
-//       callback(new Error('Not allowed by CORS'));
-//     }
-//   },
-//   credentials: true,
-//   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD'],
-//   allowedHeaders: ['Content-Type', 'Authorization'],
-// };
+    // Check if the request origin is in the allowedOrigins list
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+};
 
 // const corsOptions = {
 //   origin: (origin, callback) => {
@@ -91,22 +91,24 @@ mongoose
 //   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'], // Include OPTIONS
 //   allowedHeaders: ['Content-Type', 'Authorization'],
 // };
-const corsOptions = {
-  origin: 'https://salonbookingtime.vercel.app',  // Allow production frontend
-  credentials: true,  // Allow credentials like cookies
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],  // HTTP methods
-  allowedHeaders: ['Content-Type', 'Authorization'],  // Allow headers
-};
-
-      // app.use(cors(corsOptions)); 
-      app.use(cors(corsOptions), (req, res, next) => {
-        console.log('CORS Origin:', req.headers.origin);  // Log incoming request origin
-        next();
-      });
-      app.options('*', cors(corsOptions)); // Handle preflight requests
 
 
-        // app.use(cors(corsOptions));
+// const corsOptions = {
+//   origin: 'https://salonbookingtime.vercel.app',  // Allow production frontend
+//   credentials: true,  // Allow credentials like cookies
+//   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],  // HTTP methods
+//   allowedHeaders: ['Content-Type', 'Authorization'],  // Allow headers
+// };
+
+//       // app.use(cors(corsOptions)); 
+//       app.use(cors(corsOptions), (req, res, next) => {
+//         console.log('CORS Origin:', req.headers.origin);  // Log incoming request origin
+//         next();
+//       });
+//       app.options('*', cors(corsOptions)); // Handle preflight requests
+
+
+        app.use(cors(corsOptions));
         app.use('/api', apiRoute)
         app.use(bodyParser.json());
         app.use(bodyParser.urlencoded({ extended: true }))
