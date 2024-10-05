@@ -75,7 +75,7 @@ export const Payment = () => {
         console.log(jsonRes);
         if (jsonRes.message === "Payment successful and email sent!") {
           // alert('Payment completed and email sent to customer!');
-          Swal.fire({ title: "Success", text: "Email sent to customer", icon: "success" })
+          Swal.fire({ title: "Success", text: "Email sent to you", icon: "success" })
           navigate('/');
         }
       },

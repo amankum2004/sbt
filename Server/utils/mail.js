@@ -59,8 +59,11 @@ async function sendConfirmationEmail(customerEmail, customerName, shopName, loca
 
   const selectedTimeSlotHTML = selectedTimeSlot && selectedTimeSlot.length > 0
     ? selectedTimeSlot.map(slot => `
-      Date: ${new Date(slot.showtimeDate).toLocaleDateString()}, 
-      Time: ${new Date(slot.showtimeDate).toLocaleTimeString()}
+      Date: ${new Date(slot.showtimeDate).toLocaleDateString()},
+                Time: ${new Date(slot.showtimeDate).toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+    })}
     `).join('') : "No time slot selected";
 
   const mailOptions = {
@@ -71,9 +74,7 @@ async function sendConfirmationEmail(customerEmail, customerName, shopName, loca
       Your payment for booking at ${shopName}, located at ${location}, has been successfully received.
       You have booked the following time slot:
       ${selectedTimeSlotHTML}
-
       Thank you for choosing us!
-      
       Best regards,
       Salon Booking Team`,
   };
