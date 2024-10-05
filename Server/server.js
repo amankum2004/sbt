@@ -47,66 +47,65 @@ mongoose
             //   allowedHeaders: 'Content-Type, Authorization',
             // };
             
-          //   const corsOptions = {
-          //     origin: (origin, callback) => {
-          //       const allowedOrigins = ['http://localhost:5173', 'https://salonbookingtime.vercel.app','https://sbt-amankum2004s-projects.vercel.app','https://sbt-git-main-amankum2004s-projects.vercel.app'];
+            const corsOptions = {
+              origin: (origin, callback) => {
+                const allowedOrigins = ['http://localhost:5173', 'https://salonbookingtime.vercel.app','https://sbt-amankum2004s-projects.vercel.app','https://sbt-git-main-amankum2004s-projects.vercel.app'];
                 
-          //       // Allow requests with no origin (e.g., mobile apps or same-origin requests)
-          //       if (!origin) {
-          //         return callback(null, true);
-          //       }
+                // Allow requests with no origin (e.g., mobile apps or same-origin requests)
+                if (!origin) {
+                  return callback(null, true);
+                }
     
-          //     // Allow all origins in development
-          //     if (process.env.NODE_ENV === 'development') {
-          //       return callback(null, true);
-          //     }
+              // Allow all origins in development
+              if (process.env.NODE_ENV === 'development') {
+                return callback(null, true);
+              }
               
-          //     // Check if the request origin is in the allowedOrigins list
-          //     if (allowedOrigins.includes(origin)) {
-          //       callback(null, true);
-          //     } else {
-          //       callback(new Error('Not allowed by CORS'));
-          //     }
-          //   },
-          //   credentials: true,
-          //   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD'],
-          //   allowedHeaders: ['Content-Type', 'Authorization'],
-          // };
+              // Check if the request origin is in the allowedOrigins list
+              if (allowedOrigins.includes(origin)) {
+                callback(null, true);
+              } else {
+                callback(new Error('Not allowed by CORS'));
+              }
+            },
+            credentials: true,
+            methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD'],
+            allowedHeaders: ['Content-Type', 'Authorization'],
+          };
 
-          const corsOptions={
-            origin:"https://salonbookingtime.vercel.app",
-            methods:"GET,POST,PUT,DELETE,PATCH,HEAD",
-            credentials:true
-        }
+        //   const corsOptions={
+        //     origin:"https://salonbookingtime.vercel.app",
+        //     methods:"GET,POST,PUT,DELETE,PATCH,HEAD",
+        //     credentials:true
+        // }
 
 //     app.options('*', cors(corsOptions)); // Handle preflight requests
 
 
         app.use(cors(corsOptions));
-        app.use('/api', apiRoute)
         app.use(bodyParser.json());
         app.use(bodyParser.urlencoded({ extended: true }))
         app.use(cookieParser())
         app.use(express.static(path.join(__dirname, '../frontend/dist')))
         
-    // Function to send email
-    async function sendConfirmationEmail(customerEmail, customerName, shopName, location, selectedTimeSlot) {
-      let transporter = nodemailer.createTransport({
-        service: 'gmail', // Use any other service if needed
-        auth: {
-          user: 'sbthelp123@gmail.com',
-          pass: 'cwpf ywjb qdrp dexv',
-        },
-      });
-      const selectedTimeSlotHTML = selectedTimeSlot && selectedTimeSlot.length > 0
-        ? selectedTimeSlot.map(slot => `
+        // Function to send email
+        async function sendConfirmationEmail(customerEmail, customerName, shopName, location, selectedTimeSlot) {
+          let transporter = nodemailer.createTransport({
+            service: 'gmail', // Use any other service if needed
+            auth: {
+              user: 'sbthelp123@gmail.com',
+              pass: 'cwpf ywjb qdrp dexv',
+            },
+          });
+          const selectedTimeSlotHTML = selectedTimeSlot && selectedTimeSlot.length > 0
+          ? selectedTimeSlot.map(slot => `
             Date: ${new Date(slot.showtimeDate).toLocaleDateString()}, 
             Time: ${new Date(slot.showtimeDate).toLocaleTimeString()}
-        `).join('')  // `.join('')` to combine all slots into a single string
-        : "No time slot selected";
-
-      const mailOptions = {
-        from: '"Salon Booking Time" sbthelp123@gmail.com', // Sender address
+            `).join('')  // `.join('')` to combine all slots into a single string
+            : "No time slot selected";
+            
+            const mailOptions = {
+              from: '"Salon Booking Time" sbthelp123@gmail.com', // Sender address
         to: customerEmail, // Recipient's email
         subject: 'Appointment Booking Confirmation',
         // text: `Your appointment at ${shopDetails.shopName}, ${shopDetails.location} is confirmed for the following time slot: ${selectedTimeSlot.showtimeDate}.`, // Plain text body
@@ -116,24 +115,24 @@ mongoose
         ${selectedTimeSlotHTML}
         
         Thank you for choosing us!
-  
+        
         Best regards,
         Salon Booking Team`,
       };
-
+      
       return transporter.sendMail(mailOptions);
     }
-
+    
     app.post("/order", async (req, res) => {
       try {
         const razorpay = new Razorpay({
           key_id: process.env.RAZORPAY_KEY_ID,
           key_secret: process.env.RAZORPAY_SECRET,
         });
-    
+        
         const options = req.body;
         const order = await razorpay.orders.create(options);
-    
+        
         if (!order) {
           return res.status(500).send("Error");
         }
@@ -169,33 +168,33 @@ mongoose
         // const { timeSlotId, showtimeId, showtimeDate } = selectedTimeSlot;
         const { selectedTimeSlot } = req.body; // Assuming this comes from the request body
         try {
-            // Iterate over each selected time slot
-            for (const slot of selectedTimeSlot) {
-                const { timeSlotId, showtimeId } = slot;
-
-                // Find the TimeSlot by ID
-                const timeSlot = await TimeSlot.findById(new mongoose.Types.ObjectId(timeSlotId));
-                if (!timeSlot) {
-                    throw new Error(`Invalid TimeSlot ID: ${timeSlotId}`);
-                }
-
-                // Find the specific showtime by showtimeId
-                const showtime = timeSlot.showtimes.find(s => s._id.equals(new mongoose.Types.ObjectId(showtimeId)));
-                if (!showtime || showtime.is_booked) {
-                    throw new Error(`Showtime is either booked or invalid for ID: ${showtimeId}`);
-                }
-
-                // Mark the showtime as booked
-                showtime.is_booked = true;
-                await timeSlot.save();
-
-                const shopOwnerId = timeSlot.shop_owner_id;
-                console.log("Shop Owner ID:", shopOwnerId);
-                const appointment = await bookAppointment(shopOwnerId, timeSlotId, showtimeId, timeSlotId.date);
-              }
-            console.log("Showtimes slot updated successfully");
+          // Iterate over each selected time slot
+          for (const slot of selectedTimeSlot) {
+            const { timeSlotId, showtimeId } = slot;
+            
+            // Find the TimeSlot by ID
+            const timeSlot = await TimeSlot.findById(new mongoose.Types.ObjectId(timeSlotId));
+            if (!timeSlot) {
+              throw new Error(`Invalid TimeSlot ID: ${timeSlotId}`);
+            }
+            
+            // Find the specific showtime by showtimeId
+            const showtime = timeSlot.showtimes.find(s => s._id.equals(new mongoose.Types.ObjectId(showtimeId)));
+            if (!showtime || showtime.is_booked) {
+              throw new Error(`Showtime is either booked or invalid for ID: ${showtimeId}`);
+            }
+            
+            // Mark the showtime as booked
+            showtime.is_booked = true;
+            await timeSlot.save();
+            
+            const shopOwnerId = timeSlot.shop_owner_id;
+            console.log("Shop Owner ID:", shopOwnerId);
+            const appointment = await bookAppointment(shopOwnerId, timeSlotId, showtimeId, timeSlotId.date);
+          }
+          console.log("Showtimes slot updated successfully");
         } catch (error) {
-            console.error(error);
+          console.error(error);
         }
         await sendConfirmationEmail(customerEmail, customerName, shopName, location, selectedTimeSlot);
         return res.status(200).json({ message: 'Payment successful and email sent!' })
@@ -204,20 +203,22 @@ mongoose
       }
     });
     
-
-app.use((req, _, next) => {
-  if (!req.url.match(/(assets|images|index\.html|.*\.(svg|png|jpg|jpeg))$/)) {
-    console.log(`${req.method} ${req.url}`)
-  }
-  next()
-})
-
+    
+    app.use((req, _, next) => {
+      if (!req.url.match(/(assets|images|index\.html|.*\.(svg|png|jpg|jpeg))$/)) {
+        console.log(`${req.method} ${req.url}`)
+      }
+      next()
+    })
+        
+app.use('/api', apiRoute)
 
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/dist', 'index.html'))
 }) 
-    https.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`)
-    })
+
+https.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`)
+})
     
     
