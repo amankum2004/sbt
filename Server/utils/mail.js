@@ -48,6 +48,40 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+async function sendConfirmationEmail(customerEmail, customerName, shopName, location, selectedTimeSlot) {
+  let transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: 'sbthelp123@gmail.com',
+      pass: 'cwpf ywjb qdrp dexv',
+    },
+  });
+
+  const selectedTimeSlotHTML = selectedTimeSlot && selectedTimeSlot.length > 0
+    ? selectedTimeSlot.map(slot => `
+      Date: ${new Date(slot.showtimeDate).toLocaleDateString()}, 
+      Time: ${new Date(slot.showtimeDate).toLocaleTimeString()}
+    `).join('') : "No time slot selected";
+
+  const mailOptions = {
+    from: '"Salon Booking Time" sbthelp123@gmail.com',
+    to: customerEmail,
+    subject: 'Appointment Booking Confirmation',
+    text: `Dear ${customerName},
+      Your payment for booking at ${shopName}, located at ${location}, has been successfully received.
+      You have booked the following time slot:
+      ${selectedTimeSlotHTML}
+
+      Thank you for choosing us!
+      
+      Best regards,
+      Salon Booking Team`,
+  };
+
+  return transporter.sendMail(mailOptions);
+}
+
+
 // Function to send email
 const sendPaymentSuccessEmail = (customerEmail, shopName, location, selectedTimeSlot) => {
   const mailOptions = {
@@ -60,7 +94,10 @@ Your payment for booking at ${shopName}, located at ${location}, has been succes
 
 You have booked the following time slot:
 Date: ${new Date(selectedTimeSlot.showtimeDate).toLocaleDateString()}
-Time: ${new Date(selectedTimeSlot.showtimeDate).toLocaleTimeString()}
+Time: ${new Date(slot.showtimeDate).toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+    })}
 
 Thank you for choosing us!
 
@@ -87,8 +124,9 @@ const mailOtp = async (otp, email, subject = 'OTP') => {
   await transporter.sendMail(mailOptions)
 }
 
-module.exports={
+module.exports = {
   sendPaymentSuccessEmail,
-  mailOtp
+  mailOtp,
+  sendConfirmationEmail
 }
 
