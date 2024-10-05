@@ -46,7 +46,8 @@ export const Payment = () => {
     console.log(order);
 
     var options = {
-      key: "rzp_test_34xCQafgf3IMYu", // Enter the Key ID generated from the Dashboard
+      // key: "rzp_test_34xCQafgf3IMYu", // Enter the Key ID generated from the Dashboard
+      key: import.meta.env.RAZORPAY_KEY_ID, // Enter the Key ID generated from the Dashboard
       amount: totalAmount * 100, // Amount in paise (hence multiplied by 100)
       currency: "INR",
       name: "Salon Booking Time", // Your business name
