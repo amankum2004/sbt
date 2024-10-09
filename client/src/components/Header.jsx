@@ -379,7 +379,7 @@ export const Header = () => {
 
   return (
     <>
-      <nav className="bg-black h-20 flex justify-center items-center text-lg fixed w-full z-50 shadow-lg">
+      <nav className="bg-black h-15 flex justify-center items-center text-lg fixed w-full z-50 shadow-lg">
         <div className="flex justify-between items-center w-full max-w-[1500px] px-5">
           {/* Brand Logo and Title */}
           <NavLink exact="true" to="/" className="text-[#f5b921] flex items-center text-xl lg:text-2xl">
