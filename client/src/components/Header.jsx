@@ -14,7 +14,6 @@ export const Header = () => {
   // const navigate = useNavigate();
   const [click, setClick] = useState(false);
 
-
   const handleClick = () => setClick(!click);
 
   return (
@@ -144,11 +143,11 @@ export const Header = () => {
             {/* <i className={click ? "fas fa-times" : "fas fa-bars"}></i> */}
             {click ? (
               <span className="icon">
-                <HamburgetMenuOpen />{" "}
+                <HamburgetMenuClose />{" "}
               </span>
             ) : (
               <span className="icon">
-                <HamburgetMenuClose />
+                <HamburgetMenuOpen />
               </span>
             )}
           </div>
@@ -159,10 +158,11 @@ export const Header = () => {
 }
 
 
+
 // import React, { useState } from "react";
 // import { NavLink } from "react-router-dom";
-// import { HamburgetMenuClose, HamburgetMenuOpen } from "./icons/Hamburget";
 // import { NavDropdown } from "react-bootstrap";
+// import { HamburgetMenuClose, HamburgetMenuOpen } from "./icons/Hamburget";
 // import { useLogin } from "./LoginContext";
 
 // export const Header = () => {
@@ -173,31 +173,61 @@ export const Header = () => {
 
 //   return (
 //     <>
-//       <nav className="bg-black h-20 flex justify-center items-center text-lg fixed z-1000">
-//         <div className="bg-black flex justify-cent items-center w-full max-w-[1500px] px-5 z-1000">
-//           <NavLink to="/" className="flex items-center text-[#f5b921] text-2xl font-bold">
+//       <nav className="bg-black h-20 flex justify-center items-center text-lg fixed w-full top-0 z-[20000]">
+//         <div className="flex justify-between items-center w-full max-w-[1500px] px-5">
+//           <NavLink
+//             exact="true"
+//             to="/"
+//             className="text-[#f5b921] text-2xl font-bold flex items-center"
+//           >
 //             <span>Salon Booking Time</span>
-//             <img src="/images/sbt logo sm.jpg" alt="logo" className="ml-4 w-12 h-12" />
+//             <img
+//               src="/images/sbt logo sm.jpg"
+//               alt="logo"
+//               className="ml-4 w-12 h-12"
+//             />
 //           </NavLink>
 
-//           <ul className={`flex list-none text-center transition-all duration-500 ${click ? "flex-col absolute bg-[#1f5156] left-0 w-full top-20 opacity-100 z-10" : "hidden md:flex"}`}>
+//           <ul
+//             className={`${
+//               click
+//                 ? "flex flex-col absolute bg-[#1f5156] left-0 w-full top-20 opacity-100 z-10"
+//                 : "hidden md:flex"
+//             } list-none text-center transition-all duration-500`}
+//           >
 //             <li className="nav-item">
-//               <NavLink to="/" className="text-white px-4 py-2 hover:text-[#ffdd40]" onClick={handleClick}>
+//               <NavLink
+//                 to="/"
+//                 className="text-white px-4 py-2 hover:text-[#ffdd40] transition-all"
+//                 onClick={handleClick}
+//               >
 //                 Home
 //               </NavLink>
 //             </li>
 //             <li className="nav-item">
-//               <NavLink to="/about" className="text-white px-4 py-2 hover:text-[#ffdd40]" onClick={handleClick}>
+//               <NavLink
+//                 to="/about"
+//                 className="text-white px-4 py-2 hover:text-[#ffdd40] transition-all"
+//                 onClick={handleClick}
+//               >
 //                 About
 //               </NavLink>
 //             </li>
 //             <li className="nav-item">
-//               <NavLink to="/services" className="text-white px-4 py-2 hover:text-[#ffdd40]" onClick={handleClick}>
+//               <NavLink
+//                 to="/services"
+//                 className="text-white px-4 py-2 hover:text-[#ffdd40] transition-all"
+//                 onClick={handleClick}
+//               >
 //                 Services
 //               </NavLink>
 //             </li>
 //             <li className="nav-item">
-//               <NavLink to="/contact" className="text-white px-4 py-2 hover:text-[#ffdd40]" onClick={handleClick}>
+//               <NavLink
+//                 to="/contact"
+//                 className="text-white px-4 py-2 hover:text-[#ffdd40] transition-all"
+//                 onClick={handleClick}
+//               >
 //                 Contact Us
 //               </NavLink>
 //             </li>
@@ -205,39 +235,70 @@ export const Header = () => {
 
 //           {loggedIn ? (
 //             <div className="flex items-center space-x-4">
-//               <img alt="profile" className="w-12 h-12" src="/images/dp_logo.jpg" />
-//               <NavDropdown title={<span className="text-yellow-500 font-bold text-lg">{user.name}</span>} id="collasible-nav-dropdown">
+//               <img
+//                 alt="profile"
+//                 className="w-12 h-12"
+//                 src="/images/dp_logo.jpg"
+//               />
+//               <NavDropdown
+//                 title={
+//                   <span className="text-yellow-500 font-bold text-lg">
+//                     {user.name}
+//                   </span>
+//                 }
+//                 id="collasible-nav-dropdown"
+//               >
 //                 {user.usertype === "shopOwner" ? (
 //                   <>
-//                     <NavDropdown.Item href="/barberprofile" className="text-blue-500 font-bold">My Profile</NavDropdown.Item>
-//                     <NavDropdown.Item href="/registershop" className="text-blue-500 font-bold">Register your Salon</NavDropdown.Item>
+//                     <NavDropdown.Item href="/barberprofile">
+//                       My Profile
+//                     </NavDropdown.Item>
+//                     <NavDropdown.Item href="/registershop">
+//                       Register your Salon
+//                     </NavDropdown.Item>
 //                   </>
 //                 ) : user.usertype === "admin" ? (
 //                   <>
-//                     <NavDropdown.Item href="/admin" className="text-green-500 font-bold">Admin Dashboard</NavDropdown.Item>
-//                     <NavDropdown.Item href="/registershop" className="text-blue-500 font-bold">Register Salon</NavDropdown.Item>
+//                     <NavDropdown.Item href="/admin">
+//                       Admin Dashboard
+//                     </NavDropdown.Item>
+//                     <NavDropdown.Item href="/registershop">
+//                       Register Salon
+//                     </NavDropdown.Item>
 //                   </>
 //                 ) : (
 //                   <>
-//                     <NavDropdown.Item href="/customerprofile" className="text-orange-500 font-bold">My Profile</NavDropdown.Item>
-//                     <NavDropdown.Item href="/nearbyShops" className="text-orange-500 font-bold">Book Appointment</NavDropdown.Item>
+//                     <NavDropdown.Item href="/customerprofile">
+//                       My Profile
+//                     </NavDropdown.Item>
+//                     <NavDropdown.Item href="/nearbyShops">
+//                       Book Appointment
+//                     </NavDropdown.Item>
 //                   </>
 //                 )}
 //                 <NavDropdown.Divider />
-//                 <NavDropdown.Item onClick={logout} className="text-red-500 font-bold">Logout</NavDropdown.Item>
+//                 <NavDropdown.Item onClick={logout}>Logout</NavDropdown.Item>
 //               </NavDropdown>
 //             </div>
 //           ) : (
 //             <div className="flex items-center space-x-4">
-//               <img alt="profile" className="w-12 h-12" src="/images/dp_logo.jpg" />
-//               <NavLink to="/login" className="text-yellow-500 font-bold" onClick={handleClick}>
+//               <img
+//                 alt="profile"
+//                 className="w-12 h-12"
+//                 src="/images/dp_logo.jpg"
+//               />
+//               <NavLink
+//                 to="/login"
+//                 className="text-yellow-500 font-bold"
+//                 onClick={handleClick}
+//               >
 //                 Login
 //               </NavLink>
 //             </div>
 //           )}
 
 //           <div className="md:hidden text-yellow-500" onClick={handleClick}>
-//             {click ? <HamburgetMenuOpen /> : <HamburgetMenuClose />}
+//             {click ? <HamburgetMenuClose /> : <HamburgetMenuOpen />}
 //           </div>
 //         </div>
 //       </nav>
