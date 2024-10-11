@@ -326,7 +326,7 @@ export const Header = () => {
                 src="/images/dp_logo.jpg"
                 width="50"
                 height="50"
-                style={{ marginRight: "4px", marginLeft: "-35px" }} />
+                style={{ marginRight: "4px", marginLeft: "-20px" }} />
               <NavDropdown
                 className="nav-dropdown mr-12 md:block"
                 title={
@@ -374,19 +374,19 @@ export const Header = () => {
                 width="50"
                 height="50"
                 style={{ marginRight: 10 }} />
-              <li className="nav-item  sm:block login-item">
+              <li className="nav-item login-item">
                 <NavLink
                   exact="true"
                   to="/login"
-                  style={{ color: "yellow" ,marginBottom:"30px",marginRight:"30px"}}
-                  className="nav-links md:block"
+                  style={{ color: "yellow" ,marginBottom:"30px",marginRight:"35px"}}
+                  className="nav-links"
                   onClick={handleClick}>
                   Login
                 </NavLink>
               </li>
             </>
           )}
-          <div className="nav-icon md:block px-3" onClick={handleClick}>
+          <div className="nav-icon" onClick={handleClick}>
             {click ? (
               <span className="icon"><HamburgetMenuClose /></span>
             ) : (
