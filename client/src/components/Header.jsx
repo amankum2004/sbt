@@ -158,6 +158,127 @@
 // }
 
 
+// import React from "react"; 
+// import "./Header.css"
+// import { NavLink } from "react-router-dom";
+// import { useState } from "react";
+// import { HamburgetMenuClose, HamburgetMenuOpen } from "./icons/Hamburget";
+// import { NavDropdown } from "react-bootstrap";
+// import { useLogin } from "./LoginContext";
+
+// export const Header = () => {
+//   const { loggedIn, user, logout } = useLogin();
+//   const [click, setClick] = useState(false);
+
+//   const handleClick = () => setClick(!click);
+
+//   return (
+//     <>
+//       <nav className="navbar">
+//         <div className="nav-container">
+//           <NavLink exact="true" to="/" className="nav-logo">
+//             <span style={{ fontSize: "28px" }}>SBT</span>
+//             <img src="/images/sbt logo sm.jpg" alt="logo" className="icon" />
+//           </NavLink>
+
+//           <ul className={click ? "nav-menu active" : "nav-menu"}>
+//             <li className="nav-item">
+//               <NavLink exact="true" to="/" className="nav-links" onClick={handleClick}>Home</NavLink>
+//             </li>
+//             <li className="nav-item">
+//               <NavLink exact="true" to="/about" className="nav-links" onClick={handleClick}>About</NavLink>
+//             </li>
+//             <li className="nav-item">
+//               <NavLink exact="true" to="/services" className="nav-links" onClick={handleClick}>Services</NavLink>
+//             </li>
+//             <li className="nav-item">
+//               <NavLink exact="true" to="/contact" className="nav-links" onClick={handleClick}>Contact Us</NavLink>
+//             </li>
+//           </ul>
+
+//           {loggedIn ? (
+//             <>
+//               {/* Hide profile image on small screens */}
+//               <img
+//                 alt="img"
+//                 className="img hidden md:block"
+//                 src="/images/dp_logo.jpg"
+//                 width="50"
+//                 height="50"
+//                 style={{ marginRight: "4px", marginLeft: "-35px" }} />
+//               <NavDropdown
+//                 className="nav-dropdown"
+//                 title={
+//                   <span
+//                     style={{
+//                       color: "yellow",
+//                       fontWeight: 'bold',
+//                       fontSize: '19px',
+//                       transition: 'color 0.3s ease'
+//                     }}
+//                   >
+//                     {user.name}
+//                   </span>
+//                 }
+//                 id="collasible-nav-dropdown">
+//                 {user.usertype === 'shopOwner' ? (
+//                   <>
+//                     <NavDropdown.Item href="/barberprofile" style={{ color: 'blue', fontWeight: 'bold' }}>My Profile</NavDropdown.Item>
+//                     <NavDropdown.Item href="/registershop" style={{ color: 'blue', fontWeight: 'bold' }}>Register your Salon</NavDropdown.Item>
+//                   </>
+//                 ) : user.usertype === 'admin' ? (
+//                   <>
+//                     <NavDropdown.Item href="/customerprofile" style={{ color: 'blue', fontWeight: 'bold' }}>My Profile</NavDropdown.Item>
+//                     <NavDropdown.Item href="/admin" style={{ color: 'green', fontWeight: 'bold' }}>Admin Dashboard</NavDropdown.Item>
+//                     <NavDropdown.Item href="/registershop" style={{ color: 'blue', fontWeight: 'bold' }}>Register your Salon</NavDropdown.Item>
+//                   </>
+//                 ) : (
+//                   <>
+//                     <NavDropdown.Item href="/customerprofile" style={{ color: 'orange', fontWeight: 'bold' }}>My Profile</NavDropdown.Item>
+//                     <NavDropdown.Item href="/nearbyShops" style={{ color: 'orange', fontWeight: 'bold' }}>Book Appointment</NavDropdown.Item>
+//                   </>
+//                 )}
+//                 <NavDropdown.Divider />
+//                 <NavDropdown.Item onClick={logout} style={{ color: 'red', fontWeight: 'bold' }}>Logout</NavDropdown.Item>
+//               </NavDropdown>
+//             </>
+//           ) : (
+//             <>
+//               {/* Hide profile image on small screens */}
+//               <img
+//                 alt="img"
+//                 className="img hidden md:block"
+//                 src="/images/dp_logo.jpg"
+//                 width="50"
+//                 height="50"
+//                 style={{ marginRight: 10 }} />
+//               <li className="nav-item">
+//                 <NavLink
+//                   exact="true"
+//                   to="/login"
+//                   style={{ color: "yellow" }}
+//                   className="nav-links"
+//                   onClick={handleClick}>
+//                   Login
+//                 </NavLink>
+//               </li>
+//             </>
+//           )}
+//           <div className="nav-icon" onClick={handleClick}>
+//             {click ? (
+//               <span className="icon"><HamburgetMenuClose /></span>
+//             ) : (
+//               <span className="icon"><HamburgetMenuOpen /></span>
+//             )}
+//           </div>
+//         </div>
+//       </nav>
+//     </>
+//   )
+// }
+
+
+
 import React from "react"; 
 import "./Header.css"
 import { NavLink } from "react-router-dom";
@@ -207,14 +328,15 @@ export const Header = () => {
                 height="50"
                 style={{ marginRight: "4px", marginLeft: "-35px" }} />
               <NavDropdown
-                className="nav-dropdown"
+                className="nav-dropdown mr-12 md:block"
                 title={
                   <span
                     style={{
                       color: "yellow",
                       fontWeight: 'bold',
                       fontSize: '19px',
-                      transition: 'color 0.3s ease'
+                      transition: 'color 0.3s ease',
+                      // marginBottom:"30px",marginRight:"30px"
                     }}
                   >
                     {user.name}
@@ -247,24 +369,24 @@ export const Header = () => {
               {/* Hide profile image on small screens */}
               <img
                 alt="img"
-                className="img hidden md:block"
+                className="img hidden sm:block"
                 src="/images/dp_logo.jpg"
                 width="50"
                 height="50"
                 style={{ marginRight: 10 }} />
-              <li className="nav-item">
+              <li className="nav-item  sm:block login-item">
                 <NavLink
                   exact="true"
                   to="/login"
-                  style={{ color: "yellow" }}
-                  className="nav-links"
+                  style={{ color: "yellow" ,marginBottom:"30px",marginRight:"30px"}}
+                  className="nav-links md:block"
                   onClick={handleClick}>
                   Login
                 </NavLink>
               </li>
             </>
           )}
-          <div className="nav-icon" onClick={handleClick}>
+          <div className="nav-icon md:block px-3" onClick={handleClick}>
             {click ? (
               <span className="icon"><HamburgetMenuClose /></span>
             ) : (
@@ -276,6 +398,7 @@ export const Header = () => {
     </>
   )
 }
+
 
 
 

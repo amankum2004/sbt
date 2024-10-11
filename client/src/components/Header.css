@@ -144,6 +144,19 @@
   }
 }
 
+/* Add this rule to center the login button */
+/* @media screen and (max-width: 960px) {
+  .login-item {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+  }
+
+  .nav-menu {
+    flex-direction: column;
+    align-items: center;
+  }
+} */
 
   
 
