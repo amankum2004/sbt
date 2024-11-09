@@ -116,14 +116,14 @@ const DateTimeSelection = () => {
         </div>
       )}
 
-      <h2 className="text-2xl font-bold mb-5 text-center">Book Your Time Slot</h2>
-      <div className="flex flex-col lg:flex-row gap-5">
+      <h2 className="text-2xl font-bold mb-4 text-center">Book Your Time Slot</h2>
+      <div className="flex flex-col lg:flex-row gap-3">
         {/* Time Slots Section */}
         <div className="space-y-5 w-full lg:w-2/3">
           {timeSlots.length > 0 ? (
             <>
               {timeSlots.map((timeSlot) => (
-                <div key={timeSlot._id} className="bg-gray-100 p-4 rounded-lg shadow-md">
+                <div key={timeSlot._id} className="bg-gray-100 p-2 rounded-lg shadow-md">
                   <h3 className="text-xl mb-2 text-gray-800">Date: {new Date(timeSlot.date).toLocaleDateString('en-IN')}</h3>
                   <div className="flex gap-2 flex-wrap">
                     {timeSlot.showtimes.map((showtime) => (
@@ -156,7 +156,7 @@ const DateTimeSelection = () => {
 
         {/* Service Selection Section */}
         <div className="w-full lg:w-1/3 mt-10 p-4 bg-gray-50 border-l-2 border-gray-200">
-          <h3 className="text-lg font-semibold mb-2 text-center">Select a Service for Showtime</h3>
+          <h3 className="text-lg font-semibold mb-2 text-center">Choose service for selected time</h3>
           {selectedShowtimes.map(({ showtimeId }) => (
             <div key={showtimeId} className="mb-4">
               {shopDetails.services ? (

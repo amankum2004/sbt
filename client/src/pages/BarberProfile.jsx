@@ -23,7 +23,7 @@ export const BarberProfile = () => {
             const fetchShopOwnerId = async () => {
                 try {
                     const response = await api.get(`/shop/by-email/${user.email}`);
-                    const shopId = response.data._id;
+                    const shopId = response.data._id || '';
 
                     setProfile({
                         shop_owner_id: shopId,
@@ -36,6 +36,14 @@ export const BarberProfile = () => {
                     setUserData(false);
                 } catch (error) {
                     console.error('Error fetching shop data:', error);
+                    setProfile((prevProfile) => ({
+                        ...prevProfile,
+                        name: user.name,
+                        email: user.email,
+                        phone: user.phone,
+                    }));
+                }finally {
+                    setUserData(false); // Ensure `setUserData` is called to avoid repeated fetches
                 }
             };
 

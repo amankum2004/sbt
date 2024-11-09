@@ -48,6 +48,11 @@ export const AdminLayout = () => {
                                     <FaRegListAlt /> <span>Shops</span>
                                 </NavLink>
                             </li>
+                            <li>
+                                <NavLink to="/admin/requests" className={({ isActive }) => `flex items-center space-x-2 p-2 rounded-md ${isActive ? 'bg-blue-600' : 'hover:bg-blue-500'} transition`}>
+                                    <FaRegListAlt /> <span>Requests</span>
+                                </NavLink>
+                            </li>
                         </ul>
                     </nav>
                 </div>

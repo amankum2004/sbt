@@ -65,16 +65,24 @@ const shopSchema = new mongoose.Schema({
     },
     services: [
         {
-          service: {
+            service: {
+              type: String,
+            required: true
+            },
+            price: {
             type: String,
             required: true
-          },
-          price: {
-            type: String,
-            required: true
-          }
+            }
         }
-    ]
+    ],
+    isApproved: {
+        type: Boolean,
+        default: false,
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now,
+    }
     
 })
 
