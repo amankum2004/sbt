@@ -27,6 +27,7 @@ import { CustomerProfile } from "./pages/CustomerProfile"
 import {BarberProfile} from "./pages/BarberProfile"
 import { LoginProvider } from "./components/LoginContext"
 import BarberProfileUpdate from "./pages/BarberProfile-Update";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
 
 
 function App()  {
@@ -54,6 +55,7 @@ function App()  {
           <Route path="/registershop" element = {<RegisterShop/>}/>
           <Route path="/customerprofile" element = {<CustomerProfile/>}/>
           <Route path="/barberprofile" element = {<BarberProfile/>}/>
+          <Route path="/privacy-policy" element = {<PrivacyPolicy/>}/>
           <Route path="/barber-profile-update" element = {<BarberProfileUpdate/>}/>
           <Route path="/payment" element = {<Payment/>}/>
           <Route path="/nearbyShops/:shopId/shopinfo" element = {<DateTimeSelection/>}/>

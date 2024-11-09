@@ -1,4 +1,5 @@
 import React from "react";
+// import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
 
 export const Footer = () => {
   return (
@@ -12,7 +13,7 @@ export const Footer = () => {
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css"
       />
 
-      <footer className="bg-gray-100 py-12 bg-cover" style={{ backgroundImage: 'url(https://arena.km.ua/wp-content/uploads/3538533.jpg)' }}>
+      <footer className="bg-gray-100 py-4 bg-cover" style={{ backgroundImage: 'url(https://arena.km.ua/wp-content/uploads/3538533.jpg)' }}>
         <div className="container mx-auto">
           <div className=" grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
@@ -38,7 +39,7 @@ export const Footer = () => {
                   <a href="/contact" className="text-gray-600 hover:text-black"><i className="fa-solid fa-angles-right pr-2"></i> Contact</a>
                 </li>
                 <li>
-                  <a href="/careers" className="text-gray-600 hover:text-black"><i className="fa-solid fa-angles-right pr-2"></i> Careers</a>
+                  <a href="/privacy-policy" className="text-gray-600 hover:text-black"><i className="fa-solid fa-angles-right pr-2"></i> Privacy-Policy</a>
                 </li>
               </ul>
             </div>
@@ -60,6 +61,12 @@ export const Footer = () => {
                 <li>
                   <a href="https://www.linkedin.com/" target="_blank" className="text-gray-600 hover:text-black flex items-center">
                     <i className="fa-brands fa-linkedin-in pr-2 text-pink-700"></i> Linkedin
+                  </a>
+                </li>
+                <li>
+                  <a href="https://x.com/" target="_blank" className="text-gray-600 hover:text-black flex items-center">
+                    <i className="fa-brands fa-twitter pr-2 text-pink-700"></i> Twitter
+                    {/* <FontAwesomeIcon icon="fa-brands fa-x-twitter" /> Twitter */}
                   </a>
                 </li>
               </ul>

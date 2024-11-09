@@ -13,8 +13,10 @@ const cookieParser = require('cookie-parser')
 const https = createServer(app);
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
-const TimeSlot = require('../Server/models/timeSlot-model')
+// const TimeSlot = require('../Server/models/timeSlot-model')
+// const cron = require('node-cron')
 const { bookAppointment } = require('../Server/controllers/appointment-controller')
+require('./utils/scheduler')  // for deleting expired timeslots and appointments
 
 const apiRoute = require('@/routes')
 
@@ -27,25 +29,25 @@ mongoose
   .catch((error) => console.error('MongoDB connection error:', error))
 
 
-// const corsOptions = {
-//   origin: (origin, callback) => {
-//     if (!origin) {
-//       return callback(null, true);
-//     }
-//     if (process.env.NODE_ENV === 'development') {
-//       return callback(null, true);
-//     }
-//     const allowedOrigins = ['https://salonbookingtime.vercel.app'];
-//     if (allowedOrigins.includes(origin)) {
-//       callback(null, true);
+  // Every Hour: 0 * * * *
+  // Every 30 Minutes: */30 * * * *
+  // Every 15 Minutes: */15 * * * *
+  // Every Minute: * * * * *
+// cron.schedule('0 0 * * *', async () => {
+//   try {
+//     const now = new Date();
+//     const result = await TimeSlot.deleteMany({ date: { $lt: now } });
+
+//     if (result.deletedCount > 0) {
+//       console.log(`${result.deletedCount} expired time slot(s) deleted.`);
 //     } else {
-//       callback(new Error('Not allowed by CORS'));
+//       console.log('No expired time slots found to delete.');
 //     }
-//   },
-//   credentials: true,
-//   methods: ["GET,POST,PUT,DELETE,PATCH,HEAD"],
-//   allowedHeaders: 'Content-Type, Authorization',
-// };
+//   } catch (error) {
+//     console.error('Error deleting expired time slots:', error);
+//   }
+// });
+
 
 const corsOptions = {
   origin: (origin, callback) => {
@@ -80,7 +82,6 @@ const corsOptions = {
 // }
 
 app.options('*', cors(corsOptions)); // Handle preflight requests
-
 
 app.use(cors(corsOptions));
 app.use(bodyParser.json());
