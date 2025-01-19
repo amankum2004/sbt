@@ -116,18 +116,18 @@ exports.sendOTPforgot = async (req, res) => {
     });
 
     await OTP.create({ email, otp });
-    
-    await mailOtp(otp, email.toLowerCase(), 'Password Reset')
+    console.log("fine till here");
+    await mailOtp(otp, email.toLowerCase())
     res.status(200).json({
       success: true,
       message: 'OTP sent successfully'
-    })
+    });
 
     // const transporter = nodemailer.createTransport({
     //   service: "gmail",
     //   auth: {
     //     user: 'sbthelp123@gmail.com',
-    //     pass: 'cwpf ywjb qdrp dexv',
+    //     pass: 'pigw wfcs pidv aibo',
     //   },
     // });
     // const mailOptions = {

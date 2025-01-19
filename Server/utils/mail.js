@@ -44,7 +44,7 @@ const transporter = nodemailer.createTransport({
   service: 'gmail', // or your preferred email service
   auth: {
     user: 'sbthelp123@gmail.com',
-    pass: 'cwpf ywjb qdrp dexv',
+    pass: 'pigw wfcs pidv aibo',
   },
 });
 
@@ -53,7 +53,7 @@ async function sendConfirmationEmail(customerEmail, customerName, shopName, loca
     service: 'gmail',
     auth: {
       user: 'sbthelp123@gmail.com',
-      pass: 'cwpf ywjb qdrp dexv',
+      pass: 'pigw wfcs pidv aibo',
     },
   });
 
