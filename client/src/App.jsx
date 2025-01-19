@@ -39,7 +39,6 @@ function App()  {
       <LoginProvider>
       <Header/>
       {/* <div className="relative z-10 w-full grow py-10"> */}
-
         <Routes>
           <Route index element={<Home />} />
           <Route path="/" element = {<Home />}/>
