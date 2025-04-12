@@ -7,11 +7,6 @@ import { api } from "../utils/api";
 import Swal from "sweetalert2";
 
 export default function GetOTP() {
-  // const [formData, setFormData] = useState({
-  //   email: "",
-  // });
-  // const { email } = formData;
-
   const [email, setEmail] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false); // State to track if form is submitting
   const navigate = useNavigate();
@@ -39,26 +34,11 @@ export default function GetOTP() {
     setIsSubmitting(true)
     try {
         // const res = await axios.post(`${SERVERIP}/otp/user-otp`, {
-        const res = await api.post(`/otp/user-otp`, {
-          email
-        });
+        const res = await api.post(`/otp/user-otp`, {email});
         if (res.status === 200) {
           setIsSubmitting(false)
           navigate('/register', { state: { email } })
         }
-        // if (res.status === 200) {
-        //   setIsSubmitting(false);
-        //   const sendOtpRes = await axios.post(`${SERVERIP}/otp/send-otp`, {
-        //     email,
-        //   });
-        //   if (sendOtpRes.data.success){
-        //     localStorage.setItem("getotpEmail", email); // Store email in local storage
-        //     // localStorage.setItem("token", email); // Store email in local storage
-        //     navigate("/register");
-        //   } else {
-        //     console.error("Failed to send");
-        //   }
-        // }
     } catch (err) {
         if (err.response.status === 401) {
           Swal.fire({

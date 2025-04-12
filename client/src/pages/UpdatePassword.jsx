@@ -129,6 +129,7 @@ import React, { useState } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import Swal from "sweetalert2";
 import { api } from "../utils/api";
+import {FaEye, FaEyeSlash} from "react-icons/fa";
 
 export default function UpdatePassword() {
   const location = useLocation();
@@ -217,7 +218,7 @@ export default function UpdatePassword() {
                   className="absolute right-3 top-2 cursor-pointer"
                   onClick={toggleOTPVisibility}
                 >
-                  {showOTP ? '👁️' : '🙈'}
+                  {showOTP ? <FaEye size={20} /> : <FaEyeSlash size={20} />}
                 </span>
               </div>
               <div className="mb-6 relative">
@@ -238,7 +239,7 @@ export default function UpdatePassword() {
                   className="absolute right-3 top-2 cursor-pointer"
                   onClick={togglePasswordVisibility}
                 >
-                  {showPassword ? '👁️' : '🙈'}
+                  {showPassword ? <FaEye size={20} /> : <FaEyeSlash size={20} />}
                 </span>
               </div>
               <button

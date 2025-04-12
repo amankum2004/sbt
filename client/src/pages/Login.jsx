@@ -4,6 +4,7 @@ import { api } from '../utils/api';
 import React from "react";
 import { useLogin } from "../components/LoginContext";
 import Swal from "sweetalert2";
+import {FaEye, FaEyeSlash} from "react-icons/fa";
 
 const Login = () => {
   const { loggedIn, login } = useLogin();
@@ -89,8 +90,8 @@ const Login = () => {
                   id="email"
                   required
                   disabled={isSubmitting}
-                  autoComplete="off"
                   value={formData.email}
+                  autoComplete="off"
                   onChange={handleInput} />
               </div>
               <div className="mb-4 relative">
@@ -111,7 +112,7 @@ const Login = () => {
                   className="absolute right-3 top-2 cursor-pointer"
                   onClick={togglePasswordVisibility}
                 >
-                  {showPassword ? '👁️' : '🙈'}
+                  {showPassword ? <FaEye size={20} /> : <FaEyeSlash size={20} />}
                 </span>
               </div>
               <Link to="/forget" className="text-orange-400 text-sm mb-3 block text-right">
