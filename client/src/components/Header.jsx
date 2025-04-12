@@ -286,6 +286,7 @@ import { useState } from "react";
 import { HamburgetMenuClose, HamburgetMenuOpen } from "./icons/Hamburget";
 import { NavDropdown } from "react-bootstrap";
 import { useLogin } from "./LoginContext";
+import {Link} from "react-router-dom";
 
 export const Header = () => {
   const { loggedIn, user, logout } = useLogin();
@@ -323,7 +324,7 @@ export const Header = () => {
               <img
                 alt="img"
                 className="img hidden md:block"
-                src="/images/dp_logo.jpg"
+                src="/images/dp_logo.png"
                 width="50"
                 height="50"
                 style={{ marginRight: "4px", marginLeft: "-20px" }} />
@@ -367,23 +368,31 @@ export const Header = () => {
           ) : (
             <>
               {/* Hide profile image on small screens */}
-              <img
+              {/* <img
                 alt="img"
                 className="img hidden sm:block"
-                src="/images/dp_logo.jpg"
+                src="/images/dp_logo.png"
                 width="50"
                 height="50"
-                style={{ marginRight: 10 }} />
-              <li className="nav-item login-item">
+                style={{ marginRight: 10 }} /> */}
+              {/* <li className="nav-item login-item">
                 <NavLink
                   exact="true"
                   to="/login"
-                  style={{ color: "yellow" ,marginBottom:"30px",marginRight:"35px"}}
+                  style={{ color: "yellow" ,marginBottom:"30px"}}
                   className="nav-links"
                   onClick={handleClick}>
                   Login
                 </NavLink>
-              </li>
+              </li> */}
+              <ul className="nav-item login-item">
+                  <Link
+                    to="/login"
+                    className="nav-links"
+                  >
+                    Login / Signup
+                  </Link>
+                </ul>
             </>
           )}
           <div className="nav-icon" onClick={handleClick}>

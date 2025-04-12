@@ -12,6 +12,7 @@ exports.userOTP=async (req, res) => {
     if (user) {
       return res.status(401).json({ error: "User already exists please login" });
     }
+    
     const otp = otpGenerator.generate(6, {
       upperCaseAlphabets: false,
       lowerCaseAlphabets: false,

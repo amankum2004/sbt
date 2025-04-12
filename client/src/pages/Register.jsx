@@ -4,6 +4,7 @@ import Swal from "sweetalert2";
 // import axios from "axios"
 import { api } from "../utils/api";
 import React from "react";
+import {FaEye, FaEyeSlash} from "react-icons/fa";
 
 export const Register = () => {
   const location = useLocation()
@@ -147,6 +148,7 @@ export const Register = () => {
                   <option value="shopOwner">Shop Owner</option>
                 </select>
               </div>
+
               <div className="mb-4 relative">
                 <span className="absolute inset-y-0 left-0 flex items-center pl-3">
                   <i className="fa fa-lock text-gray-400"></i>
@@ -165,9 +167,10 @@ export const Register = () => {
                   className="absolute right-3 top-2 cursor-pointer"
                   onClick={togglePasswordVisibility}
                 >
-                  {showPassword ? '👁️' : '🙈'}
+                  {showPassword ? <FaEye size={20} /> : <FaEyeSlash size={20} />}
                 </span>
               </div>
+
               <div className="mb-4 relative">
                 <span className="absolute inset-y-0 left-0 flex items-center pl-3">
                   <i className="fa fa-key text-gray-400"></i>
@@ -186,9 +189,10 @@ export const Register = () => {
                   className="absolute right-3 top-2 cursor-pointer"
                   onClick={toggleOTPVisibility}
                 >
-                  {showOTP ? '👁️' : '🙈'}
+                  {showOTP ? <FaEye size={20} /> : <FaEyeSlash size={20} />}
                 </span>
               </div>
+              
               <div className="mb-4">
                 <button
                   disabled={isSubmitting}

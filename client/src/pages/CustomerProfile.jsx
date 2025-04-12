@@ -13,7 +13,6 @@ const defaultContactFormData = {
 
 export const CustomerProfile = () => {
     const [profile, setProfile] = useState(defaultContactFormData);
-
     const [userData, setUserData] = useState(true);
     const { user } = useLogin();
     // const {user,API} = useAuth();

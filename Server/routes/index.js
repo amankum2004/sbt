@@ -1,7 +1,6 @@
 const express = require('express')
 const router = express.Router()
 
-
 const authRoute = require('@/routes/user/auth.route')
 const contactRoute = require('@/routes/contact.route')
 // const serviceRoute = require('@/routes/service.route')

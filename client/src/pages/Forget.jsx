@@ -46,7 +46,7 @@ export default function Forget() {
   };
   return (
     <>
-    <div className="h-screen flex">
+  <div className="h-screen flex">
   <div className="flex flex-col justify-center items-center w-full md:w-1/2 bg-gray-800">
     <div className="w-full max-w-md p-8 bg-gray-700 rounded-lg shadow-lg">
       <div className="logo mt-5 mb-3 text-center">

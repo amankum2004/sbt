@@ -237,7 +237,8 @@ export const Contact = () => {
                                 id="name"
                                 autoComplete="off"
                                 value={contact.name}
-                                onChange={handleInput}
+                                readOnly
+                                // onChange={handleInput}
                                 required
                                 className="w-full h-12 px-4 border-none bg-gray-100 rounded-md focus:ring-2 focus:ring-purple-500"
                             />
@@ -250,7 +251,8 @@ export const Contact = () => {
                                 id="email"
                                 autoComplete="off"
                                 value={contact.email}
-                                onChange={handleInput}
+                                readOnly
+                                // onChange={handleInput}
                                 required
                                 className="w-full h-12 px-4 border-none bg-gray-100 rounded-md focus:ring-2 focus:ring-purple-500"
                             />
