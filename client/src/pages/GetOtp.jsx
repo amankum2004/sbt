@@ -63,8 +63,8 @@ export default function GetOTP() {
   return (
     <>
     <div className="container-fluid h-1500 flex">
-      <div className="flex flex-col justify-center items-center w-full md:w-1/2 bg-gray-800">
-        <div className="w-full max-w-md p-8 bg-gray-700 rounded-lg shadow-lg">
+      <div className="flex flex-col justify-center items-center w-full md:w-1/2 bg-gray-800 p-4">
+        <div className="w-full max-w-md p-8 mt-10 bg-gray-700 rounded-lg shadow-lg">
           <div className="logo mb-3 text-center">
             <img src="/images/sbt logo md.svg" alt="Logo" className="mx-auto" />
           </div>

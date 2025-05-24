@@ -249,7 +249,7 @@ export const Shops = () => {
 
   return (
     <>
-      <h3 className=" text-center text-gray-800 mt-2">Select Your Location</h3>
+      <h3 className=" text-center text-gray-800 mt-10">Select Your Location</h3>
       <form className="bg-white p-3 shadow-md rounded-md">
         <div className="flex flex-wrap justify-between">
           <div className=" lg:w-1/3 mb-1">
