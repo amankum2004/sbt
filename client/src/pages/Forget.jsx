@@ -44,12 +44,14 @@ export default function Forget() {
       setIsSubmitting(false);
     }
   };
+
+  
   return (
     <>
   <div className="h-screen flex">
-  <div className="flex flex-col justify-center items-center w-full md:w-1/2 bg-gray-800">
-    <div className="w-full max-w-md p-8 bg-gray-700 rounded-lg shadow-lg">
-      <div className="logo mt-5 mb-3 text-center">
+  <div className="flex flex-col justify-center items-center w-full md:w-1/2 bg-gray-800 p-4">
+    <div className="w-full max-w-md p-8 mt-10 bg-gray-700 rounded-lg shadow-lg">
+      <div className="logo mt-3 mb-3 text-center">
         <img src="/images/sbt logo md.svg" alt="Logo" className="mx-auto" />
       </div>
 

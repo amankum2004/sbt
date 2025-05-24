@@ -221,6 +221,7 @@ export default function UpdatePassword() {
                   {showOTP ? <FaEye size={20} /> : <FaEyeSlash size={20} />}
                 </span>
               </div>
+
               <div className="mb-6 relative">
                 <span className="absolute inset-y-0 left-0 flex items-center pl-3">
                   <i className="fa fa-lock text-gray-400"></i>
@@ -242,6 +243,7 @@ export default function UpdatePassword() {
                   {showPassword ? <FaEye size={20} /> : <FaEyeSlash size={20} />}
                 </span>
               </div>
+              
               <button
                 className="w-full h-10 bg-gray-900 text-white font-bold rounded-lg hover:bg-gray-800 transition duration-300"
                 type="submit"
