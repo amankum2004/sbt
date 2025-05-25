@@ -18,7 +18,7 @@ export const Footer = () => {
           <div className=" grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
               <a href="/">
-                <img src="/images/sbt logo md.svg" alt="Salon Booking Time" />
+                <img src="/images/sbt logo md.svg" alt="Salon Booking Time" className="rounded-full"/>
               </a>
               <div className="mt-4">
                 <p className="text-black-600 font-bold">Salon Booking Time</p>
