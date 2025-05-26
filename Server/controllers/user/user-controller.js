@@ -57,4 +57,29 @@ const userType = async (req, res) => {
   }
 }
 
-module.exports = { fetchUsers, updateUserType, userType }
+
+const updateProfile = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const { name, email, phone } = req.body;
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { name: name, email: email, phone: phone },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json({ message: "Profile updated", user: updatedUser });
+  } catch (error) {
+    console.error("Update failed:", error);
+    res.status(500).json({ message: "Something went wrong" });
+  }
+};
+
+
+
+module.exports = { fetchUsers, updateUserType, userType, updateProfile }

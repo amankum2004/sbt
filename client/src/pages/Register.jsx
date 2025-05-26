@@ -1,10 +1,9 @@
+import React from "react";
 import { useState } from "react"
 import { useNavigate, useLocation } from "react-router-dom"
 import Swal from "sweetalert2";
-// import axios from "axios"
 import { api } from "../utils/api";
-import React from "react";
-import {FaEye, FaEyeSlash} from "react-icons/fa";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 export const Register = () => {
   const location = useLocation()
@@ -76,13 +75,11 @@ export const Register = () => {
 
   return (
     <>
-      <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" />
-      <link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet"></link>
-      <div className="container-fluid  flex">
-        <div className="flex flex-col justify-center items-center w-full md:w-1/2 bg-gray-800">
-          <div className="w-full max-w-md p-3 bg-gray-700 rounded-lg shadow-lg">
+      <div className="min-h-screen flex flex-col md:flex-row">
+        <div className="flex flex-col justify-center items-center w-full md:w-1/2 bg-gray-800 ">
+          <div className="w-full max-w-md p-8 mt-2  bg-gray-700 rounded-lg shadow-lg">
             <div className="logo mb-1 text-center">
-              <img src="/images/sbt logo md.svg" alt="Logo" className="mx-auto" />
+              <img src="/images/sbt logo md.svg" alt="Logo" className="mx-auto h-35 w-35" />
             </div>
             <h1 className="text-white text-2xl font-bold text-center mb-3">Create your account</h1>
             {/* <h4 className="text-gray-300 text-center mb-5">Create your account</h4> */}
@@ -135,19 +132,20 @@ export const Register = () => {
                   className="block w-full pl-10 h-10 border border-transparent rounded-lg bg-white focus:outline-none focus:border-red-600"
                 />
               </div>
-              <div className="mb-4">
-                <label className="block text-gray-400 mb-2">User Type:</label>
+              <div className="mb-4 flex items-center gap-1">
+                <label className="text-gray-400 font-bold w-20">User Type:</label>
                 <select
                   name="usertype"
                   value={usertype}
                   onChange={handleInput}
                   required
-                  className="block w-full h-10 border border-transparent rounded-lg bg-white focus:outline-none focus:border-red-600"
+                  className="flex-1 h-10 border border-gray-300 rounded-lg bg-white focus:outline-none focus:border-red-600 px-3"
                 >
                   <option value="customer">Customer</option>
                   <option value="shopOwner">Shop Owner</option>
                 </select>
               </div>
+
 
               <div className="mb-4 relative">
                 <span className="absolute inset-y-0 left-0 flex items-center pl-3">
@@ -192,7 +190,7 @@ export const Register = () => {
                   {showOTP ? <FaEye size={20} /> : <FaEyeSlash size={20} />}
                 </span>
               </div>
-              
+
               <div className="mb-4">
                 <button
                   disabled={isSubmitting}

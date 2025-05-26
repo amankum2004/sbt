@@ -1,7 +1,7 @@
+import React from "react"; 
 import { NavLink,Outlet,Navigate } from "react-router-dom";
 import { FaUser,FaHome,FaRegListAlt} from "react-icons/fa";
 import {FaMessage} from "react-icons/fa6";
-import React from "react"; 
 import { useLogin } from "../components/LoginContext";
 
 
@@ -57,9 +57,6 @@ export const AdminLayout = () => {
                     </nav>
                 </div>
             </header>
-            {/* <main className="container mx-auto p-4">
-                <Outlet />
-            </main> */}
     <Outlet/>
     </>
 }

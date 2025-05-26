@@ -39,5 +39,10 @@ router.route("/shops/update/:id").patch(adminController.updateShopById);
 // router.route("/shops/delete/:id").delete(authMiddleware,adminMiddleware,adminController.deleteShopById);
 router.route("/shops/delete/:id").delete(adminController.deleteShopById);
 
+router.get("/pending", adminController.getPendingShops);
+router.post("/approve/:id", adminController.approveShop);
+router.delete("/reject/:id", adminController.rejectShop);
+
+
 
 module.exports = router;

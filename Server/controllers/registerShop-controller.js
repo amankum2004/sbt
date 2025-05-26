@@ -2,104 +2,123 @@ const Shops = require("../models/registerShop-model")
 const User = require("../models/user/user-model")
 const bcrypt = require("bcrypt")
 
-exports.registershop = async(req,res,next) => {
-    try {
-          const {name,email,phone,password,shopname,state,district,city,street,pin,bankname,bankbranch,ifsc,micr,account,services} = req.body;
 
-          if (!name || !email || !password || !phone || !shopname|| !state || !district || !city || !street || !pin || !bankname || !bankbranch || !ifsc || !micr || !account || !services) {
-            return res.status(403).json({
-              success: false,
-              message: 'All fields are required',
-            });
-          }
+exports.registershop = async (req, res, next) => {
+  try {
+    const {
+      name,
+      email,
+      phone,
+      password,
+      shopname,
+      state,
+      district,
+      city,
+      street,
+      pin,
+      bankname,
+      bankbranch,
+      ifsc,
+      micr,
+      account,
+      services
+    } = req.body;
 
-          const userExi = await Shops.findOne({email}) 
-          if(userExi){
-              return res.status(400).json({message: "Email already exists"})
-          }
+    // Required fields for all cases
+    const requiredFields = [
+      'name', 'email', 'phone', 'shopname', 'state', 'district',
+      'city', 'street', 'pin', 'bankname', 'bankbranch',
+      'ifsc', 'micr', 'account', 'services'
+    ];
 
-          const saltRound = 10;
-          const hash_password = await bcrypt.hash(password,saltRound)
-
-          const userExist = await User.findOne({email});
-          if (!userExist) {
-            return res.status(404).json({
-              msg: "Invalid email"
-            })
-          }
-
-          try {
-            const user = await bcrypt.compare(password,userExist.password);
-            // const user = await userExist.comparePassword(password)
-            if (user) {
-              res.status(201).json({
-                    message: "Password is Correct",
-                    // token: await userExist.generateToken(),
-                    userId: userExist._id
-                  })
-              }else{
-                res.status(401).json({message: "Invalid email or password"})
-              }
-            } catch (error) {
-              console.log(error)
-            } 
-            
-            // try {
-              // Find the user by email
-              // const user = await User.findOne({ email });
-              // if (!user) {
-              //   return res.status(404).json({ error: 'User not found' });
-              // }
-              // Update the userType to 'shopOwner'
-              // user.usertype = 'shopOwner'; // Assuming this updates the userType field in User model
-              // await user.save();
-              // console.log("User type updated to shopOwner")
-              // res.status(200).json({ message: 'User type updated to shopOwner' });
-            // } catch (error) {
-            //   console.error('Error registering shop:', error);
-            //   res.status(500).json({ error: 'Internal server error' });
-            // }
-            
-          try {  
-            const user = await bcrypt.compare(password,userExist.password);
-            if (user) { 
-              const shopCreated =  await Shops.create({ 
-                name,
-                email,
-                phone,
-                password:hash_password,
-                shopname,
-                state,
-                district,
-                city,
-                street,
-                pin,
-                bankname,
-                bankbranch,
-                ifsc,
-                micr,
-                account,
-                services
-              });
-          console.log(req.body)
-          // console.log(req.body)
-          console.log("Shop registration successful")
-          // res.status(201).json({   
-            // message: " Shop registration successful",
-            // // token: await shopCreated1.generateToken(),
-            // userId: shopCreated1._id,
-            // })
-            // res.status(200).send(req.body)
-            // res.status(200).send("Welcome to registration page through Controllers new")
-          }
-          } catch (error) {
-            console.log(error);
-          }
-    } catch (err) {
-        // res.status(404).json({message: "Page not found"})
-        next(err)
+    // Check for missing required fields
+    for (const field of requiredFields) {
+      if (!req.body[field]) {
+        return res.status(400).json({
+          success: false,
+          message: `${field} is required`,
+          extraDetails: `Missing required field: ${field}`
+        });
+      }
     }
-}
+
+    // Check if shop with this email already exists
+    const shopExists = await Shops.findOne({ email });
+    if (shopExists) {
+      return res.status(400).json({
+        success: false,
+        message: "Shop with this email already exists"
+      });
+    }
+
+    // For non-admin registrations (regular shop owners)
+    if (password) {
+      // Verify user credentials only for shop owners (not for admin-created shops)
+      const userExist = await User.findOne({ email });
+      if (!userExist) {
+        return res.status(404).json({
+          success: false,
+          message: "No user found with this email"
+        });
+      }
+
+      // Verify password
+      const isPasswordValid = await bcrypt.compare(password, userExist.password);
+      if (!isPasswordValid) {
+        return res.status(401).json({
+          success: false,
+          message: "Invalid password"
+        });
+      }
+
+      // Hash the password before saving
+      const saltRound = 10;
+      var hash_password = await bcrypt.hash(password, saltRound);
+    }
+
+    // Create the shop (works for both admin and shop owner cases)
+    const newShop = await Shops.create({
+      name,
+      email,
+      phone,
+      password: hash_password || undefined, // Only store password for shop owners
+      shopname,
+      state,
+      district,
+      city,
+      street,
+      pin,
+      bankname,
+      bankbranch,
+      ifsc,
+      micr,
+      account,
+      services,
+      isApproved: !password // Auto-approve if created by admin (no password)
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: password 
+        ? "Shop registered successfully. Awaiting admin approval."
+        : "Shop created by admin successfully",
+      data: {
+        shopId: newShop._id,
+        name: newShop.name,
+        email: newShop.email,
+        isApproved: newShop.isApproved
+      }
+    });
+
+  } catch (err) {
+    console.error("Shop registration error:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: err.message
+    });
+  }
+};
 
 // Get all user services
 // exports.getUserServices = async (req, res) => {
@@ -170,34 +189,30 @@ exports.registershop = async(req,res,next) => {
 //     }
 // };
 
-// LOGIC TO GET ALL ShopList
-exports.getAllShops = async(req,res) => {
+// Get all approved shops (for customers)
+exports.getAllApprovedShops = async(req, res) => {
   try {
-      // const ShopLists = await Shops.find({},{password:0});
-      // if(!ShopLists || ShopLists.length===0){
-      //     return res.status(404).json({message:"No ShopLists found"});
-      // }
-      try {
-        const { state, district, city } = req.query;
-        const query = {};
-        if (state) {
-          query.state = { $regex: new RegExp(state, 'i') }; // Case-insensitive search for state
-        }
-        if (district) {
-          query.district = { $regex: new RegExp(district, 'i') }; // Case-insensitive search for district
-        }
-        if (city) {
-          query.city = { $regex: new RegExp(city, 'i') }; // Case-insensitive search for city
-        }
-        const shops = await Shops.find(query);
-        res.json(shops);
-      } catch (error) {
-        res.status(500).json({ message: 'Error fetching shops', error });
-      }
-      // return res.status(200).json(ShopLists);
+    const { state, district, city } = req.query;
+    const query = { isApproved: true }; // Only fetch approved shops
+    
+    if (state) {
+      query.state = { $regex: new RegExp(state, 'i') };
+    }
+    if (district) {
+      query.district = { $regex: new RegExp(district, 'i') };
+    }
+    if (city) {
+      query.city = { $regex: new RegExp(city, 'i') };
+    }
+    
+    const shops = await Shops.find(query);
+    res.json(shops);
   } catch (error) {
-      // next(error);
-      console.log("Error while getting all shops", error);
+    console.log("Error while getting all shops", error);
+    res.status(500).json({ 
+      message: 'Error fetching shops',
+      error: error.message // Better to send the error message
+    });
   }
 }
 

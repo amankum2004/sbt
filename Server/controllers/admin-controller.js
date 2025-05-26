@@ -84,7 +84,7 @@ const deleteContactById = async(req,res) => {
 // LOGIC TO GET ALL SHOPS IN ADMIN
 const getAllShops = async(req,res) => {
     try {
-        const shops = await Shop.find({},{password:0});
+        const shops = await Shop.find({isApproved:true},{password:0});
         console.log(shops);
         if(!shops || shops.length===0){
             return res.status(404).json({message:"No shops found"});
@@ -134,4 +134,40 @@ const deleteShopById = async(req,res) => {
     }
 }
 
-module.exports = {getAllUsers,getAllContacts,deleteUserById,getUserById,updateUserById,deleteContactById,getAllShops,deleteShopById,getShopById,updateShopById};
+// Admin: get all pending (unapproved) shops
+const getPendingShops = async (req, res) => {
+  try {
+    const pendingShops = await Shop.find({ isApproved: false });
+    res.json(pendingShops);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// Admin: approve a shop
+const approveShop = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const shop = await Shop.findByIdAndUpdate(id, { isApproved: true }, { new: true });
+    if (!shop) return res.status(404).json({ message: "Shop not found" });
+    res.json({ message: "Shop approved", shop });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// Admin: delete/reject a shop
+const rejectShop = async (req, res) => {
+  try {
+    const { id } = req.params;
+    await Shop.findByIdAndDelete(id);
+    res.json({ message: "Shop request rejected and deleted" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+module.exports = {getAllUsers,getAllContacts,deleteUserById,
+    getUserById,updateUserById,deleteContactById,getAllShops,
+    deleteShopById,getShopById,updateShopById,getPendingShops,
+    approveShop,rejectShop};

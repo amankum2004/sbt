@@ -14,7 +14,10 @@ router.route('/registershop').post( registershopController.registershop)
 // router.route('/shop-services/:id').put(registershopController.updateUserService)
 // router.route('/shop-services/:id').delete(registershopController.deleteUserService)
 
-router.route('/shoplists').get(registershopController.getAllShops);
+// Public route: Approved shops
+// router.route('/shoplists').get(registershopController.getAllShops);
+router.get("/approvedshops", registershopController.getAllApprovedShops);
+
 router.route("/shoplists/:id").get(registershopController.getShopById);
 router.get('/by-email/:email', registershopController.getShopByEmail);
 
