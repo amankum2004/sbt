@@ -29,6 +29,8 @@ import { LoginProvider } from "./components/LoginContext"
 import BarberProfileUpdate from "./pages/BarberProfile-Update";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import AdminPendingShops from "./pages/Admin-PendingShops";
+import Donate from "./pages/Donate";
+import LearningGuide from "./pages/learning-guide";
 
 
 function App()  {
@@ -51,6 +53,8 @@ function App()  {
           <Route path="/getOTP" element = {<GetOTP />}/>
           <Route path="/forget" element = {<Forget />}/>
           <Route path="/update" element = {<UpdatePassword />}/>
+          <Route path="/donate" element = {<Donate />}/>
+          <Route path="/learning" element = {<LearningGuide />}/>
           <Route path="/nearbyShops" element = {<Shops/>}/>
           <Route path="/registershop" element = {<RegisterShop/>}/>
           <Route path="/customerprofile" element = {<CustomerProfile/>}/>

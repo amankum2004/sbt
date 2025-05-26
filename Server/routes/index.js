@@ -11,11 +11,12 @@ const timeSlotRoute = require('@/routes/timeSlot.route')
 const appointmentRoute = require('@/routes/appointment.route')
 const userRouter = require('@/routes/user/user.route')
 const paymentRoute = require('@/routes/user/payment')
+const donationRoute = require('@/routes/donation-route')
 
 router.use('/auth',authRoute)
 router.use('/user',userRouter)
 router.use('/otp',otpRouter)
-
+router.use('/donation',donationRoute)
 router.use('/form',contactRoute)
 // router.use('/data',serviceRoute)
 router.use('/shop',registerShopRoute)
