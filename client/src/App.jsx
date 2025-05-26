@@ -28,6 +28,7 @@ import {BarberProfile} from "./pages/BarberProfile"
 import { LoginProvider } from "./components/LoginContext"
 import BarberProfileUpdate from "./pages/BarberProfile-Update";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
+import AdminPendingShops from "./pages/Admin-PendingShops";
 
 
 function App()  {
@@ -64,6 +65,7 @@ function App()  {
             <Route path="contacts" element={<AdminContacts/>}/>
             <Route path="services" element={<AdminServices/>}/>
             <Route path="shops" element={<AdminShops/>}/>
+            <Route path="requests" element={<AdminPendingShops/>}/>
             <Route path="users/:id/edit" element={<AdminUserUpdate/>}/>
             <Route path="shops/:id/edit" element={<AdminShopUpdate/>}/>
           </Route>

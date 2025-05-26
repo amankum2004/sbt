@@ -1,6 +1,5 @@
-import React from "react"; 
+import React, { useState, useEffect } from "react";
 import { useLogin } from "../components/LoginContext";
-import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../utils/api";
 import Swal from "sweetalert2";
@@ -33,7 +32,6 @@ export const BarberProfile = () => {
                         date: '',
                         showtimes: [{ date: '', is_booked: false }],
                     });
-                    setUserData(false);
                 } catch (error) {
                     console.error('Error fetching shop data:', error);
                     setProfile((prevProfile) => ({
@@ -42,8 +40,8 @@ export const BarberProfile = () => {
                         email: user.email,
                         phone: user.phone,
                     }));
-                }finally {
-                    setUserData(false); // Ensure `setUserData` is called to avoid repeated fetches
+                } finally {
+                    setUserData(false);
                 }
             };
 
@@ -83,7 +81,6 @@ export const BarberProfile = () => {
         e.preventDefault();
         try {
             const response = await api.post(`/time/timeslots`, profile);
-            console.log(response);
             Swal.fire({ title: "Success", text: "Time slot created successfully", icon: "success" });
             navigate('/');
         } catch (error) {
@@ -92,155 +89,103 @@ export const BarberProfile = () => {
         }
     };
 
-    // Calculate the current date in the format YYYY-MM-DD for the min attribute
     const today = new Date().toISOString().split("T")[0];
 
     return (
-        <>
-            <main className="font-sans bg-gray-100 p-5 relative">
-                <section className="bg-white p-10 rounded-lg shadow-lg max-w-2xl mx-auto relative">
-                    {/* Edit button on top right */}
+        <main className="font-sans bg-gray-100 p-6 min-h-screen">
+            <section className="bg-white p-10 rounded-xl shadow-lg max-w-3xl mx-auto">
+                <div className="flex justify-end mb-6">
                     <button 
-                        // onClick={() => navigate(`/barber-profile-update/${profile.shop_owner_id}`)} 
                         onClick={() => navigate(`/barber-profile-update`)} 
-                        className="bg-yellow-500 text-white px-4 py-2 rounded">
+                        className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 transition"
+                    >
                         Edit Profile
                     </button>
+                </div>
+
+                <div className="text-center mb-10">
+                    <p className="text-lg font-bold text-blue-500">
+                        Welcome <span className="text-red-500 italic">{user?.name}</span>
+                    </p>
+                    <h3 className="text-2xl text-gray-700 mt-2">Your profile</h3>
+                </div>
+
+                <form onSubmit={handleSubmit} className="space-y-5 font-semibold">
+                    {/* Input Group */}
+                    {[
+                        { label: "Shop Owner Id", name: "shop_owner_id", type: "text", readOnly: true },
+                        { label: "Name", name: "name", type: "text", readOnly: true },
+                        { label: "Email", name: "email", type: "email", readOnly: true },
+                        { label: "Phone", name: "phone", type: "text", readOnly: true },
+                    ].map(({ label, name, type, readOnly }) => (
+                        <div key={name} className="flex items-center space-x-4">
+                            <label htmlFor={name} className="w-40 text-gray-700 text-right">{label}:</label>
+                            <input
+                                type={type}
+                                name={name}
+                                id={name}
+                                value={profile[name]}
+                                onChange={handleInput}
+                                readOnly={readOnly}
+                                className="flex-1 p-2 border border-gray-300 rounded-lg bg-gray-100"
+                                required
+                            />
+                        </div>
+                    ))}
+
+                    {/* Time Slot Creation */}
+                    <div className="flex items-center space-x-4">
+                        <label htmlFor="date" className="w-40 text-gray-700 text-right">Date:</label>
+                        <input
+                            type="date"
+                            name="date"
+                            value={profile.date}
+                            onChange={handleInput}
+                            min={today}
+                            className="flex-1 p-2 border border-gray-300 rounded-lg"
+                            required
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-lg text-gray-700 mb-2">Time Slots:</label>
+                        {profile.showtimes.map((showtime, index) => (
+                            <div key={index} className="flex items-center space-x-4 mb-4">
+                                <label className="w-40 text-gray-700 text-right">Time {index + 1}:</label>
+                                <input
+                                    type="datetime-local"
+                                    name="date"
+                                    value={showtime.date}
+                                    onChange={(e) => handleShowtimeChange(index, e)}
+                                    min={today}
+                                    className="flex-1 p-2 border border-gray-300 rounded-lg"
+                                    required
+                                />
+                            </div>
+                        ))}
+                        <div className="text-center">
+                            <button
+                                type="button"
+                                onClick={addShowtime}
+                                className="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition duration-300"
+                            >
+                                Add Showtime
+                            </button>
+                        </div>
+                    </div>
 
                     <div className="text-center">
-                        <p className="text-lg font-bold text-blue-500 mb-6">
-                            Welcome {user ? (  
-                                <span className="text-red-500 italic font-bold mx-1">{user.name}</span> 
-                                ) : `to our website`}
-                        </p>
-                        <h3 className="text-2xl text-gray-700 mb-6">It is your profile page</h3>
-                        <form onSubmit={handleSubmit}>
-                            <div className="mb-3">
-                                <label className="block text-lg text-gray-700 mb-1">
-                                    Shop Owner Id:
-                                    <input
-                                        type="text"
-                                        placeholder="Shop Owner Id"
-                                        name="shop_owner_id"
-                                        id="shop_owner_id"
-                                        value={profile.shop_owner_id}
-                                        onChange={handleInput}
-                                        readOnly
-                                        required
-                                        className="w-full p-1.5 border border-gray-300 rounded-lg mt-1"
-                                    />
-                                </label>
-                            </div>
-                            <div className="mb-3">
-                                <label className="block text-lg text-gray-700 mb-1">
-                                    Name:
-                                    <input
-                                        type="text"
-                                        placeholder="Name"
-                                        name="name"
-                                        id="name"
-                                        value={profile.name}
-                                        onChange={handleInput}
-                                        readOnly
-                                        required
-                                        className="w-full p-1.5 border border-gray-300 rounded-lg mt-1"
-                                    />
-                                </label>
-                            </div>
-                            <div className="mb-3">
-                                <label className="block text-lg text-gray-700 mb-1">
-                                    Email:
-                                    <input
-                                        type="email"
-                                        placeholder="Email"
-                                        name="email"
-                                        id="email"
-                                        value={profile.email}
-                                        onChange={handleInput}
-                                        readOnly
-                                        required
-                                        className="w-full p-1.5 border border-gray-300 rounded-lg mt-1"
-                                    />
-                                </label>
-                            </div>
-                            <div className="mb-3">
-                                <label className="block text-lg text-gray-700 mb-1">
-                                    Phone:
-                                    <input
-                                        type="phone"
-                                        placeholder="Phone"
-                                        name="phone"
-                                        id="phone"
-                                        value={profile.phone}
-                                        onChange={handleInput}
-                                        readOnly
-                                        required
-                                        className="w-full p-1.5 border border-gray-300 rounded-lg mt-1"
-                                    />
-                                </label>
-                            </div>
-
-                            <h2 className="text-xl text-gray-700 my-3">Create Time Slot</h2>
-                            <div className="mb-3">
-                                <label className="block text-lg text-gray-700 mb-1">
-                                    Date:
-                                    <input
-                                        type="date"
-                                        name="date"
-                                        value={profile.date}
-                                        onChange={handleInput}
-                                        required
-                                        min={today}
-                                        className="w-full p-1.5 border border-gray-300 rounded-lg mt-1"
-                                    />
-                                </label>
-                            </div>
-                            <div className="mb-3">
-                                <label className="block text-lg text-gray-700 mb-1">Showtimes:</label>
-                                {profile.showtimes.map((showtime, index) => (
-                                    <div key={index} className="mb-4">
-                                        <label className="block text-md text-gray-600 mb-1">
-                                            Time:
-                                            <input
-                                                type="datetime-local"
-                                                name="date"
-                                                value={showtime.date}
-                                                onChange={(e) => handleShowtimeChange(index, e)}
-                                                required
-                                                min={today}
-                                                className="w-full p-2 border border-gray-300 rounded-lg mt-1"
-                                            />
-                                        </label>
-                                    </div>
-                                ))}
-                                <button
-                                    type="button"
-                                    onClick={addShowtime}
-                                    className="bg-blue-600 text-white px-5 py-2 mb-5 rounded-lg hover:bg-blue-700 transition duration-300"
-                                >
-                                    Add Showtime
-                                </button>
-                            </div>
-                            <div>
-                                <button
-                                    type="submit"
-                                    className="bg-green-600 text-white px-8 py-3 rounded-lg hover:bg-green-700 transition duration-300"
-                                >
-                                    Submit
-                                </button>
-                            </div>
-                        </form>
+                        <button
+                            type="submit"
+                            className="bg-green-600 text-white px-8 py-3 rounded-lg hover:bg-green-700 transition duration-300"
+                        >
+                            Submit
+                        </button>
                     </div>
-                </section>
-            </main>
-        </>
+                </form>
+            </section>
+        </main>
     );
 };
-
-
-
-
-
-
 
 

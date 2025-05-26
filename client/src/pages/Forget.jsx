@@ -1,7 +1,6 @@
 import React from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useState } from "react";
-// import axios from "axios";
 // import { SERVERIP } from "../config";
 import Swal from "sweetalert2";
 import { api } from "../utils/api";

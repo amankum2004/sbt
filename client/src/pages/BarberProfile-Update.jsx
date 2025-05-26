@@ -4,64 +4,8 @@ import { toast } from "react-toastify";
 import { api } from '../utils/api';
 import { useLogin } from "../components/LoginContext";
 import { useNavigate } from "react-router-dom";
-// import axios from "axios";
+import { stateDistrictCityData } from "../utils/locationData";
 
-
-const stateDistrictCityData = {
-    "Andaman and Nicobar Islands": {
-        "Nicobars": ["CityA", "CityB"],
-        "North And Middle Andaman": ["CityC", "CityD"],
-        "South Andamans": ["CityE", "CityF"]
-    },
-    "Arunachal Pradesh": {
-        "DistrictA": ["CityA", "CityB"],
-        "DistrictB": ["CityC", "CityD"],
-        "DistrictC": ["CityE", "CityF"]
-    },
-    "Bihar": {
-        "DistrictA": ["CityA", "CityB"],
-        "DistrictB": ["CityC", "CityD"],
-        "DistrictC": ["CityE", "CityF"]
-    },
-    "Chhattisgarh": {
-        "DistrictA": ["CityA", "CityB"],
-        "DistrictB": ["CityC", "CityD"],
-        "DistrictC": ["CityE", "CityF"]
-    },
-    "Delhi": {
-        "Central": ["Connaught Place", "Karol Bagh"],
-        "East": ["Preet Vihar", "Laxmi Nagar"],
-        "New Delhi": ["Chanakyapuri", "Sarojini Nagar"],
-        "North": ["Civil Lines", "Model Town"],
-        "North East": ["Seelampur", "Shahdara"],
-        "North West": ["Pitampura", "Rohini"],
-        "Shahdara": ["Dilshad Garden", "Karkardooma"],
-        "South": ["Greater Kailash", "Lajpat Nagar"],
-        "South East": ["Kalkaji", "Nehru Place"],
-        "South West": ["Dwarka", "Vasant Kunj"],
-        "West": ["Janakpuri", "Rajouri Garden"]
-    },
-    "Gujarat": {
-        "DistrictA": ["CityA", "CityB"],
-        "DistrictB": ["CityC", "CityD"],
-        "DistrictC": ["CityE", "CityF"]
-    },
-    "Himachal Pradesh": {
-        "Bilaspur": ["CityA", "CityB"],
-        "Chamba": ["CityC", "CityD"],
-        "Hamirpur": ["CityE", "CityF"],
-        "Kangra": ["CityG", "CityH"],
-        "Kinnaur": ["CityI", "CityJ"],
-        "Kullu": ["CityK", "CityL"],
-        "Lahaul And Spiti": ["CityM", "CityN"],
-        "Mandi": ["CityO", "CityP"],
-        "Shimla": ["CityQ", "CityR"],
-        "Sirmaur": ["CityS", "CityT"],
-        "Solan": ["CityU", "CityV"],
-        "Una": ["CityW", "CityX"]
-    },
-    
-};
 
 export const BarberProfileUpdate = () => {
     const navigate = useNavigate();

@@ -3,6 +3,16 @@ import { Link } from "react-router-dom";
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
 import PropTypes from "prop-types";
 import { useLogin } from "./LoginContext";
+import {
+  UserCircle,
+  Scissors,
+  LayoutDashboard,
+  Calendar,
+  BookOpen,
+  HeartHandshake,
+  LogOut,
+  LogIn,
+} from "lucide-react";
 
 export const Header = () => {
   const { loggedIn, user, logout } = useLogin();
@@ -19,7 +29,6 @@ export const Header = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Handle click outside of sidebars
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (
@@ -34,13 +43,14 @@ export const Header = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isOpenLeft, isOpenRight]);
 
-  const NavLink = ({ to, label, onClick, className = "" }) => (
+  const NavLink = ({ to, label, onClick, icon: Icon, className = "" }) => (
     <Link
       to={to}
       onClick={onClick}
-      className={`relative font-medium group py-2 no-underline transition duration-300 ${className}`}
+      className={`relative font-medium group py-2 flex items-center space-x-2 no-underline transition duration-300 ${className}`}
     >
-      {label}
+      {Icon && <Icon className="w-5 h-5 text-purple-600" />}
+      <span>{label}</span>
       <span className="absolute left-0 bottom-0 w-full h-0.5 bg-gradient-to-r from-purple-600 to-indigo-500 scale-x-0 group-hover:scale-x-100 origin-left transition-transform duration-300"></span>
     </Link>
   );
@@ -50,6 +60,7 @@ export const Header = () => {
     to: PropTypes.string.isRequired,
     onClick: PropTypes.func,
     className: PropTypes.string,
+    icon: PropTypes.elementType,
   };
 
   const toggleRightSidebar = () => {
@@ -60,8 +71,6 @@ export const Header = () => {
   return (
     <nav className={`w-full transition-all duration-300 bg-black py-2 z-50 shadow ${scrolled ? "shadow-lg" : ""}`}>
       <div className="max-w-7xl mx-auto px-6 lg:px-10 flex justify-between items-center">
-
-        {/* Left Hamburger */}
         <button
           className="md:hidden text-white"
           onClick={() => {
@@ -72,16 +81,14 @@ export const Header = () => {
           {isOpenLeft ? <XMarkIcon className="h-7 w-7" /> : <Bars3Icon className="h-7 w-7" />}
         </button>
 
-        {/* Brand (with logo in desktop mode) */}
         <Link
           to="/"
           className="hidden md:flex items-center text-3xl font-extrabold bg-gradient-to-r from-purple-600 to-indigo-600 text-transparent bg-clip-text hover:scale-105 transition-transform duration-300"
         >
-          <img src="/images/sbt logo.svg" alt="Salonify Logo" className="w-10 h-10 mr-2" /> {/* ✅ CHANGED */}
+          <img src="/images/sbt logo.svg" alt="Salonify Logo" className="w-10 h-10 mr-2" />
           Salonify
         </Link>
 
-        {/* Brand (for mobile center text) */}
         <Link
           to="/"
           className="md:hidden text-3xl font-extrabold bg-gradient-to-r from-purple-600 to-indigo-600 text-transparent bg-clip-text hover:scale-105 transition-transform duration-300"
@@ -89,14 +96,11 @@ export const Header = () => {
           Salonify
         </Link>
 
-
-        {/* Desktop Nav */}
         <div className="hidden md:flex items-center space-x-8">
           <NavLink to="/" label="Home" />
           <NavLink to="/about" label="About" />
           <NavLink to="/services" label="Services" />
           <NavLink to="/contact" label="Contact" />
-
           {loggedIn ? (
             <img
               alt="User Avatar"
@@ -116,7 +120,6 @@ export const Header = () => {
           )}
         </div>
 
-        {/* Mobile Avatar Button */}
         {loggedIn && (
           <button className="md:hidden" onClick={toggleRightSidebar}>
             <img
@@ -133,13 +136,12 @@ export const Header = () => {
       {/* Left Drawer */}
       <div
         ref={leftDrawerRef}
-        className={`fixed top-0 left-0 w-64 h-full bg-white z-40 transform transition-transform duration-300 ease-in-out ${isOpenLeft ? "translate-x-0" : "-translate-x-full"
-          }`}
+        className={`fixed top-0 left-0 w-64 h-full bg-white z-40 transform transition-transform duration-300 ease-in-out ${isOpenLeft ? "translate-x-0" : "-translate-x-full"}`}
       >
-        <div className="p-4 flex justify-between items-center"> {/* ✅ CHANGED */}
+        <div className="p-4 flex justify-between items-center">
           <div className="flex items-center space-x-2">
-            <img src="/images/sbt logo.svg" alt="Salonify Logo" className="w-8 h-8" /> {/* ✅ NEW */}
-            <span className="text-xl font-semibold text-purple-600">Salonify</span> {/* ✅ NEW */}
+            <img src="/images/sbt logo.svg" alt="Salonify Logo" className="w-8 h-8" />
+            <span className="text-xl font-semibold text-purple-600">Salonify</span>
           </div>
           <XMarkIcon className="h-6 w-6 text-black cursor-pointer" onClick={() => setIsOpenLeft(false)} />
         </div>
@@ -153,8 +155,7 @@ export const Header = () => {
       {/* Right Drawer */}
       <div
         ref={rightDrawerRef}
-        className={`fixed top-0 right-0 w-64 h-full bg-white z-40 transform transition-transform duration-300 ease-in-out ${isOpenRight ? "translate-x-0" : "translate-x-full"
-          }`}
+        className={`fixed top-0 right-0 w-64 h-full bg-white z-40 transform transition-transform duration-300 ease-in-out ${isOpenRight ? "translate-x-0" : "translate-x-full"}`}
       >
         <div className="p-4 flex items-center justify-between border-b border-gray-200">
           {loggedIn && (
@@ -164,36 +165,38 @@ export const Header = () => {
                 src="/images/dp_logo.png"
                 className="w-10 h-10 rounded-full"
               />
-              <span className="text-purple-600 font-semibold">{user.name}</span>
+              <span className="text-purple-600 font-bold">{user.name}</span>
             </div>
           )}
-          <XMarkIcon
-            className="h-6 w-6 text-black cursor-pointer"
-            onClick={() => setIsOpenRight(false)}
-          />
+          <XMarkIcon className="h-6 w-6 text-black cursor-pointer" onClick={() => setIsOpenRight(false)} />
         </div>
+
         <div className="px-6 flex flex-col space-y-4 text-black">
           {loggedIn ? (
             <>
-              {/* Remove duplicate name display from here */}
-              {user.userType === "shopOwner" ? (
+              {user.usertype === "shopOwner" ? (
                 <>
-                  <NavLink to="/barberprofile" label="Profile" onClick={toggleRightSidebar} />
-                  <NavLink to="/registershop" label="Register your Salon" onClick={toggleRightSidebar} />
+                  <NavLink to="/barberprofile" label="Profile" icon={UserCircle} onClick={toggleRightSidebar} />
+                  <NavLink to="/registershop" label="Register your Salon" icon={Scissors} onClick={toggleRightSidebar} />
                 </>
-              ) : user.userType === "admin" ? (
-                <NavLink to="/admin" label="Admin Dashboard" onClick={toggleRightSidebar} />
+              ) : user.usertype === "admin" ? (
+                <>
+                <NavLink to="/customerprofile" label="Profile" icon={UserCircle} onClick={toggleRightSidebar} />
+                <NavLink to="/admin" label="Admin Dashboard" icon={LayoutDashboard} onClick={toggleRightSidebar} />
+                <NavLink to="/registershop" label="Register Salon" icon={Scissors} onClick={toggleRightSidebar} />
+                </>
               ) : (
                 <>
-                  <NavLink to="/customerprofile" label="Profile" onClick={toggleRightSidebar} />
-                  <NavLink to="/nearbyShops" label="Book Appointment" onClick={toggleRightSidebar} />
+                  <NavLink to="/customerprofile" label="Profile" icon={UserCircle} onClick={toggleRightSidebar} />
+                  <NavLink to="/nearbyShops" label="Book Appointment" icon={Calendar} onClick={toggleRightSidebar} />
                 </>
               )}
-              <NavLink to="/learning" label="📘 Guide" onClick={toggleRightSidebar} />
-              <NavLink to="/donate" label="🌱 Donate for Environment" onClick={toggleRightSidebar} />
+              <NavLink to="/learning" label="Guide-Appointment Booking" icon={BookOpen} onClick={toggleRightSidebar} />
+              <NavLink to="/donate" label="Donate for Environment" icon={HeartHandshake} onClick={toggleRightSidebar} />
               <NavLink
                 to="/login"
                 label="Logout"
+                icon={LogOut}
                 onClick={() => {
                   logout();
                   toggleRightSidebar();
@@ -205,10 +208,11 @@ export const Header = () => {
               <p>Welcome to Salonify</p>
               <Link
                 to="/login"
-                className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-6 py-2 rounded-lg font-semibold shadow-lg hover:scale-105 transition-transform duration-300"
+                className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-6 py-2 rounded-lg font-semibold shadow-lg hover:scale-105 transition-transform duration-300 flex items-center space-x-2"
                 onClick={toggleRightSidebar}
               >
-                Login / Signup
+                <LogIn className="w-5 h-5" />
+                <span>Login / Signup</span>
               </Link>
             </>
           )}
@@ -217,6 +221,8 @@ export const Header = () => {
     </nav>
   );
 };
+
+
 
 
 

@@ -1,26 +1,24 @@
-import React from "react"; 
-import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import { useNavigate } from 'react-router-dom';
-import { useLogin } from '../components/LoginContext'
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from 'react-router-dom';
+import { useLogin } from '../components/LoginContext';
 import { api } from '../utils/api';
 
 const DateTimeSelection = () => {
   const { shopId } = useParams();
   const [timeSlots, setTimeSlots] = useState([]);
-  const [selectedShowtimes, setSelectedShowtimes] = useState([]); // Track selected time slots
-  const [showtimeServices, setShowtimeServices] = useState({}); // Track service selected for each time slot
-  const [totalAmount, setTotalAmount] = useState(0); // Total price
+  const [selectedShowtimes, setSelectedShowtimes] = useState([]);
+  const [showtimeServices, setShowtimeServices] = useState({});
+  const [totalAmount, setTotalAmount] = useState(0);
   const [shopDetails, setShopDetails] = useState({});
-  const [customerEmail, setCustomerEmail] = useState(''); 
-  const [customerName, setCustomerName] = useState(''); 
+  const [customerEmail, setCustomerEmail] = useState('');
+  const [customerName, setCustomerName] = useState('');
   const navigate = useNavigate();
   const { user } = useLogin();
 
   useEffect(() => {
     fetchTimeSlots();
     fetchShopDetails();
-    fetchCustomerEmail(); 
+    fetchCustomerEmail();
   }, [shopId]);
 
   const fetchTimeSlots = async () => {
@@ -47,13 +45,9 @@ const DateTimeSelection = () => {
   };
 
   const handleShowtimeSelect = (timeSlotId, showtimeId, showtimeDate) => {
-    const isAlreadySelected = selectedShowtimes.some(
-      (slot) => slot.showtimeId === showtimeId
-    );
+    const isAlreadySelected = selectedShowtimes.some(slot => slot.showtimeId === showtimeId);
     if (isAlreadySelected) {
-      const updatedShowtimes = selectedShowtimes.filter(
-        (slot) => slot.showtimeId !== showtimeId
-      );
+      const updatedShowtimes = selectedShowtimes.filter(slot => slot.showtimeId !== showtimeId);
       const { [showtimeId]: removedService, ...remainingServices } = showtimeServices;
       setSelectedShowtimes(updatedShowtimes);
       setShowtimeServices(remainingServices);
@@ -62,16 +56,15 @@ const DateTimeSelection = () => {
       setSelectedShowtimes([...selectedShowtimes, { timeSlotId, showtimeId, showtimeDate }]);
     }
   };
-  
+
   const handleServiceSelect = (showtimeId, service) => {
     const updatedServices = { ...showtimeServices, [showtimeId]: service };
     setShowtimeServices(updatedServices);
-    const servicePrices = Object.values(updatedServices).map((service) => parseInt(service.price));
+    const servicePrices = Object.values(updatedServices).map(service => parseInt(service.price));
     setTotalAmount(servicePrices.reduce((sum, price) => sum + price, 0));
   };
 
   const handleBookAppointment = () => {
-    // Check if a service is selected for each selected time slot
     const unselectedServices = selectedShowtimes.filter(
       ({ showtimeId }) => !showtimeServices[showtimeId]
     );
@@ -100,63 +93,66 @@ const DateTimeSelection = () => {
   };
 
   return (
-    <div className="p-5 mx-auto relative">
-      {/* Floating box for services on small screens */}
-      {shopDetails.services && (
-        <div className="lg:hidden mb-5">
-          <h3 className="text-lg font-bold mb-2 text-gray-700">Services Offered</h3>
-          <ul className="space-y-2">
-            {shopDetails.services.map((service) => (
-              <li key={service.service} className="flex justify-between">
-                <span>{service.service}</span>
-                <span>₹{service.price}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
+    <div className="p-5 mx-auto">
       <h2 className="text-2xl font-bold mb-4 text-center">Book Your Time Slot</h2>
-      <div className="flex flex-col lg:flex-row gap-3">
-        {/* Time Slots Section */}
-        <div className="space-y-5 w-full lg:w-2/3">
-          {timeSlots.length > 0 ? (
-            <>
-              {timeSlots.map((timeSlot) => (
-                <div key={timeSlot._id} className="bg-gray-100 p-2 rounded-lg shadow-md">
-                  <h3 className="text-xl mb-2 text-gray-800">Date: {new Date(timeSlot.date).toLocaleDateString('en-IN')}</h3>
-                  <div className="flex gap-2 flex-wrap">
-                    {timeSlot.showtimes.map((showtime) => (
-                      <button
-                        key={showtime._id}
-                        className={`px-4 py-2 rounded-lg text-white transition-colors duration-300 min-w-[80px] text-center ${
-                          showtime.is_booked
-                            ? 'bg-red-500 cursor-not-allowed'
-                            : selectedShowtimes.some(slot => slot.showtimeId === showtime._id)
-                            ? 'bg-orange-600'
-                            : 'bg-green-500 hover:bg-green-600'
-                        }`}
-                        disabled={showtime.is_booked}
-                        onClick={() => handleShowtimeSelect(timeSlot._id, showtime._id, showtime.date)}
-                      >
-                        {new Date(showtime.date).toLocaleTimeString('en-US', {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+
+      <div className="flex flex-col lg:flex-row gap-4">
+        {/* Left - Available Services */}
+        <div className="w-full lg:w-1/4 bg-white rounded-lg p-3 border border-gray-300 shadow-sm">
+          <h3 className="text-lg font-bold mb-2 text-gray-700 text-center">Available Services</h3>
+          {shopDetails.services ? (
+            <ul className="space-y-2">
+              {shopDetails.services.map((service) => (
+                <li key={service.service} className="flex justify-between text-sm">
+                  <span>{service.service}</span>
+                  <span>₹{service.price}</span>
+                </li>
               ))}
-            </>
+            </ul>
           ) : (
-            <h2 className="text-red-600 text-xl text-center mt-5">No available time slots for this shop.</h2>
+            <p>No services available.</p>
           )}
         </div>
 
-        {/* Service Selection Section */}
-        <div className="w-full lg:w-1/3 mt-10 p-4 bg-gray-50 border-l-2 border-gray-200">
-          <h3 className="text-lg font-semibold mb-2 text-center">Choose service for selected time</h3>
+        {/* Middle - Time Slots */}
+        <div className="w-full lg:w-2/4 space-y-5">
+          {timeSlots.length > 0 ? (
+            timeSlots.map((timeSlot) => (
+              <div key={timeSlot._id} className="bg-gray-100 p-4 rounded-lg shadow-sm">
+                <h3 className="text-md font-semibold text-gray-800 mb-2">
+                  Date: {new Date(timeSlot.date).toLocaleDateString('en-IN')}
+                </h3>
+                <div className="flex gap-2 flex-wrap">
+                  {timeSlot.showtimes.map((showtime) => (
+                    <button
+                      key={showtime._id}
+                      className={`px-4 py-2 rounded-lg text-white min-w-[80px] text-center text-sm transition-colors duration-300 ${
+                        showtime.is_booked
+                          ? 'bg-red-500 cursor-not-allowed'
+                          : selectedShowtimes.some(slot => slot.showtimeId === showtime._id)
+                          ? 'bg-orange-600'
+                          : 'bg-green-500 hover:bg-green-600'
+                      }`}
+                      disabled={showtime.is_booked}
+                      onClick={() => handleShowtimeSelect(timeSlot._id, showtime._id, showtime.date)}
+                    >
+                      {new Date(showtime.date).toLocaleTimeString('en-US', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))
+          ) : (
+            <h2 className="text-red-600 text-center text-xl mt-5">No available time slots for this shop.</h2>
+          )}
+        </div>
+
+        {/* Right - Choose Services */}
+        <div className="w-full lg:w-1/4 lg:mt-0 bg-white p-4 border border-gray-300 rounded-lg shadow-sm">
+          <h3 className="text-lg font-semibold mb-4 text-center">Choose service for selected time</h3>
           {selectedShowtimes.map(({ showtimeId }) => (
             <div key={showtimeId} className="mb-4">
               {shopDetails.services ? (
@@ -165,7 +161,7 @@ const DateTimeSelection = () => {
                     handleServiceSelect(showtimeId, shopDetails.services.find(service => service.service === e.target.value))
                   }
                   value={showtimeServices[showtimeId]?.service || ""}
-                  className="p-2 w-full border border-gray-300 rounded"
+                  className="p-2 w-full border border-gray-300 rounded text-sm"
                 >
                   <option value="">Select a Service</option>
                   {shopDetails.services.map((service) => (
@@ -175,14 +171,14 @@ const DateTimeSelection = () => {
                   ))}
                 </select>
               ) : (
-                <p>No services available for this shop.</p>
+                <p>No services available.</p>
               )}
             </div>
           ))}
 
-          <h3 className="text-lg font-semibold">Total Amount: ₹{totalAmount}</h3>
+          <h3 className="text-md font-semibold mt-3">Total Amount: ₹{totalAmount}</h3>
           <button
-            className="mt-5 px-5 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-300 w-full"
+            className="mt-4 px-4 py-2 w-full bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-300"
             onClick={handleBookAppointment}
             disabled={selectedShowtimes.length === 0 || Object.keys(showtimeServices).length !== selectedShowtimes.length}
           >
@@ -190,25 +186,8 @@ const DateTimeSelection = () => {
           </button>
         </div>
       </div>
-
-      {/* Floating box for services on large screens */}
-      {shopDetails.services && (
-        <div className="absolute top-5 right-5 w-64 p-4 bg-white rounded-lg border border-gray-900 hidden lg:block">
-          <h3 className="text-lg font-bold mb-2 text-gray-700">Services Offered</h3>
-          <ul className="space-y-2">
-            {shopDetails.services.map((service) => (
-              <li key={service.service} className="flex justify-between">
-                <span>{service.service}</span>
-                <span>₹{service.price}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
     </div>
   );
 };
 
 export default DateTimeSelection;
-
-

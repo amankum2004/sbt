@@ -1,70 +1,56 @@
-import  { useState } from "react";
+import React from "react";
+import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-// import axios from "axios";
-import React from "react"; 
 import { api } from "../utils/api";
-// import { SERVERIP } from "../config";
 import Swal from "sweetalert2";
 
 export default function GetOTP() {
-  const [email, setEmail] = useState('')
-  const [isSubmitting, setIsSubmitting] = useState(false); // State to track if form is submitting
+  const [email, setEmail] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
-
-  // const handleChange = (e) => {
-  //   setFormData({ 
-  //     ...formData, 
-  //     [e.target.name]: e.target.value 
-  //   });
-  // };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (
-      !/^[a-zA-Z0-9._%+-]+@(gmail.com|.*\.gmail.com)$/.test(email)
-    ) {
-      setEmail('')
+    if (!/^[a-zA-Z0-9._%+-]+@(gmail.com|.*\.gmail.com)$/.test(email)) {
+      setEmail('');
       Swal.fire({
         title: 'Error',
         text: 'Invalid email id. Use valid mail id.',
         icon: 'error'
-      })
-      return setIsSubmitting(false)
+      });
+      return setIsSubmitting(false);
     }
-    setIsSubmitting(true)
+
+    setIsSubmitting(true);
     try {
-        // const res = await axios.post(`${SERVERIP}/otp/user-otp`, {
-        const res = await api.post(`/otp/user-otp`, {email});
-        if (res.status === 200) {
-          setIsSubmitting(false)
-          navigate('/register', { state: { email } })
-        }
+      const res = await api.post(`/otp/user-otp`, { email });
+      if (res.status === 200) {
+        setIsSubmitting(false);
+        navigate('/register', { state: { email } });
+      }
     } catch (err) {
-        if (err.response.status === 401) {
-          Swal.fire({
-            title: "Error",
-            text: "User already exists please login",
-            icon: "error",
-          })
-          return setIsSubmitting(false)
-        } else{
-          Swal.fire({
-            title: "Error",
-            text: "Internal server error",
-            icon: "error",
-          });
-        }
+      if (err.response?.status === 401) {
+        Swal.fire({
+          title: "Error",
+          text: "User already exists please login",
+          icon: "error",
+        });
+      } else {
+        Swal.fire({
+          title: "Error",
+          text: "Internal server error",
+          icon: "error",
+        });
+      }
+      setIsSubmitting(false);
     }
-    setIsSubmitting(false);
-     
-    
   };
-  
+
   return (
-    <>
-    <div className="container-fluid h-1500 flex">
+    <div className="min-h-screen w-full flex flex-col md:flex-row m-0 p-0 overflow-hidden">
+      {/* Left Side: Form */}
       <div className="flex flex-col justify-center items-center w-full md:w-1/2 bg-gray-800 p-4">
-        <div className="w-full max-w-md p-8 mt-10 bg-gray-700 rounded-lg shadow-lg">
+        <div className="w-full max-w-md p-8 bg-gray-700 rounded-lg shadow-lg">
           <div className="logo mb-3 text-center">
             <img src="/images/sbt logo md.svg" alt="Logo" className="mx-auto" />
           </div>
@@ -108,9 +94,14 @@ export default function GetOTP() {
           </form>
         </div>
       </div>
-      <div className="hidden md:block w-1/2 bg-cover bg-center" style={{ backgroundImage: "url('/images/bg6.jpg')" }}></div>
-    </div>
-    </>
 
+      {/* Right Side: Background Image */}
+      <div
+        className="hidden md:block w-1/2 h-screen bg-cover bg-center"
+        style={{ backgroundImage: "url('/images/bg6.jpg')" }}
+      ></div>
+    </div>
   );
 }
+
+
