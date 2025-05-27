@@ -76,7 +76,7 @@ export const Contact = () => {
                 </div>
 
                 <div className="w-full md:w-2/3">
-                    <div className="text-2xl font-semibold text-purple-700">Contact Us/Review or Feedback</div>
+                    <div className="text-2xl font-semibold text-purple-700">Review or Feedback</div>
                     <p className="mt-4 text-gray-600">
                         Whether you have questions, need support, or just want to share your feedback, we’re here to help. Your experience is important to us, and we’re committed to providing you with the best service possible.
                     </p>

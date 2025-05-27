@@ -124,7 +124,7 @@ export const Register = () => {
                 <input
                   type="number"
                   name="phone"
-                  placeholder="Enter your number"
+                  placeholder="Enter your mobile number"
                   required
                   autoComplete="off"
                   value={phone}
