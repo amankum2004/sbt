@@ -14,17 +14,24 @@ router.post("/order", async (req, res) => {
             key_secret: process.env.RAZORPAY_SECRET,
         });
 
-        const options = req.body;
+        const { amount, currency, receipt } = req.body;
+
+        if (!amount || !currency || !receipt) {
+            return res.status(400).json({ error: "Missing required fields" });
+        }
+
+        const options = { amount, currency, receipt };
+
         const order = await razorpay.orders.create(options);
 
         if (!order) {
-            return res.status(500).send("Error");
+            return res.status(500).json({ error: "Order creation failed" });
         }
 
-        res.json(order);
+        res.status(200).json(order);
     } catch (err) {
-        console.log(err);
-        res.status(500).send("Error");
+        console.error("Error in /pay/order:", err);
+        res.status(500).json({ error: "Server error", details: err.message });
     }
 });
 

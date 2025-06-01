@@ -30,8 +30,8 @@ const corsOptions = {
     const allowedOrigins = [
       'http://localhost:5173', 
       'https://salonbookingtime.vercel.app', 
-      'https://sbt-amankum2004s-projects.vercel.app', 
-      'https://sbt-git-main-amankum2004s-projects.vercel.app'
+      // 'https://sbt-amankum2004s-projects.vercel.app', 
+      // 'https://sbt-git-main-amankum2004s-projects.vercel.app'
     ];
     
     // Allow requests with no origin (e.g., mobile apps or same-origin requests)

@@ -27,32 +27,42 @@ export const Payment = () => {
 
   const currency = "INR";
   const receiptId = "qwsaq1";
-
+  var order;
   const paymentHandler = async (e) => {
     e.preventDefault();
+    try {
+      const response = await api.post('/pay/order', {
+        amount: totalAmount * 100,
+        currency,
+        receipt: receiptId,
+      }, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      order = response.data;
+      console.log("Order created:", order);
+    } catch (error) {
+      console.error("Order creation failed:", error);
+      Swal.fire({
+        title: "Error",
+        text: "Payment order could not be created. Please try again.",
+        icon: "error",
+      });
+      return;
+    }
 
-    const response = await api.post('/pay/order', {
-      amount: totalAmount * 100,
-      currency,
-      receipt: receiptId,
-    }, {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-
-
-    const order = await response.data;
-    console.log(order);
 
     var options = {
       // key: "rzp_test_34xCQafgf3IMYu", // Enter the Key ID generated from the Dashboard
-      key: import.meta.env.RAZORPAY_KEY_ID, // Enter the Key ID generated from the Dashboard
+      // key: "rzp_live_ZfoO4ejkBHIuwM", // Enter the Key ID generated from the Dashboard
+      key: import.meta.env.VITE_RAZORPAY_KEY_ID, // Enter the Key ID generated from the Dashboard
       amount: totalAmount * 100, // Amount in paise (hence multiplied by 100)
       currency: "INR",
       name: "Salon Booking Time", // Your business name
       description: "Payment Transaction",
-      image: "/public/sbt logo.svg",
+      // image: "/sbt logo.svg",
+      image: `${window.location.origin}/sbt%20logo.svg`,
       order_id: order.id, // Order ID obtained in the response of Step 1
       handler: async function (response) {
         console.log("Razorpay Response: ", response);
@@ -94,13 +104,13 @@ export const Payment = () => {
 
     var rzp1 = new window.Razorpay(options);
     rzp1.on("payment.failed", function (response) {
-      alert(response.error.code);
-      alert(response.error.description);
-      alert(response.error.source);
-      alert(response.error.step);
-      alert(response.error.reason);
-      alert(response.error.metadata.order_id);
-      alert(response.error.metadata.payment_id);
+      alert(response.error.code,response.error.description,response.error.source,response.error.step,response.error.reason,response.error.metadata.order_id,response.error.metadata.payment_id);
+      // alert(response.error.description);
+      // alert(response.error.source);
+      // alert(response.error.step);
+      // alert(response.error.reason);
+      // alert(response.error.metadata.order_id);
+      // alert(response.error.metadata.payment_id);
     });
     rzp1.open();
   };
