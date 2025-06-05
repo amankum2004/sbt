@@ -23,10 +23,19 @@ Salonify is a web-based appointment booking system that allows users to easily d
 
 ---
 
-## 💡 Problem Solved
+## 💡 Problem
 
-Traditional salons often operate on a first-come, first-served basis, leading to long wait times. With Salonify:
-- Customers avoid waiting in queues.
+Traditional salons often operate on a first-come, first-served basis, leading to long wait times. With problems like:
+- Customers spend hours waiting at salons.
+- No easy way to check availability.
+- Inefficient management for salon owners.
+
+## 💡 Solution – Salonify
+
+With Salonify:
+- Customers avoid waiting in queues by booking appointments online.
+- View real-time availability.
+- Instant confirmation and time-saving experience.
 - Salon owners manage their schedules better.
 - Both enjoy a seamless, digitized experience.
 
