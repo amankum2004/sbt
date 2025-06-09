@@ -75,7 +75,7 @@ const corsOptions = {
   })
   
   app.use('/api', apiRoute);
-  app.use('/api/cron',cronRoutes);
+  app.use('/api/cron', cronRoutes);
   
   app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/dist', 'index.html'))
