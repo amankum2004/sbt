@@ -29,16 +29,16 @@ const Donate = () => {
   };
 
   return (
-    <div className="min-h-screen bg-green-50 flex flex-col items-center justify-center px-4 py-10">
-      <div className="max-w-2xl w-full bg-white shadow-xl rounded-2xl p-8">
-        <h2 className="text-3xl font-bold text-center text-green-700 mb-6">
-          Donate for the Environment 🌱
-        </h2>
-        <p className="text-gray-700 text-center mb-8">
-          Help us plant trees, reduce pollution, and build a sustainable future. Every rupee counts.
-        </p>
+    <div className="min-h-screen bg-gradient-to-br from-green-100 via-white to-green-200 flex items-center justify-center px-4 py-16">
+      <div className="w-full max-w-2xl bg-white shadow-2xl rounded-3xl p-10 border border-green-200">
+        <div className="text-center mb-8">
+          <h2 className="text-4xl font-extrabold text-green-700">Donate for the Environment 🌱</h2>
+          <p className="mt-4 text-gray-600 text-lg">
+            Help us plant trees, reduce pollution, and build a sustainable future.
+          </p>
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <input
             type="text"
             name="name"
@@ -46,7 +46,7 @@ const Donate = () => {
             onChange={handleChange}
             required
             placeholder="Your Name"
-            className="w-full px-4 py-3 border rounded-lg"
+            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400"
           />
           <input
             type="email"
@@ -55,7 +55,7 @@ const Donate = () => {
             onChange={handleChange}
             required
             placeholder="Your Email"
-            className="w-full px-4 py-3 border rounded-lg"
+            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400"
           />
           <input
             type="number"
@@ -64,25 +64,26 @@ const Donate = () => {
             onChange={handleChange}
             required
             placeholder="Amount (₹)"
-            className="w-full px-4 py-3 border rounded-lg"
+            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400"
           />
           <textarea
             name="message"
             value={form.message}
             onChange={handleChange}
-            rows="3"
+            rows="4"
             placeholder="Your Message (Optional)"
-            className="w-full px-4 py-3 border rounded-lg"
+            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400"
           />
+
           <button
             type="submit"
-            className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg"
+            className="w-full bg-green-600 hover:bg-green-700 text-white text-lg font-semibold py-3 rounded-xl transition duration-300 shadow-md hover:shadow-lg"
           >
-            Donate Now
+            🌍 Donate Now
           </button>
         </form>
 
-        <p className="text-xs text-center text-gray-400 mt-6">
+        <p className="mt-6 text-sm text-center text-gray-400">
           100% of your donation will go towards environmental initiatives.
         </p>
       </div>

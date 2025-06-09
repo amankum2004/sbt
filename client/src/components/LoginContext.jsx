@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Loading } from '../components/icons/Loading';
+import { LoadingProvider } from './Loading';
 
 const LoginContext = createContext();
 
@@ -48,7 +48,7 @@ export const LoginProvider = ({ children }) => {
   if (loggedIn && !user) {
     return (
       <div className="flex h-screen w-full items-center justify-center">
-        <Loading />
+        <LoadingProvider />
       </div>
     );
   }

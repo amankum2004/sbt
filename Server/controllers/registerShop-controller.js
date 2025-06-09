@@ -221,7 +221,6 @@ exports.getShopById = async(req,res) => {
   try {
       const id = req.params.id;
       const data = await Shops.findOne({_id: id}, {password: 0});
-      // const data = await ShopList.findOne({_id: id}, {password: 0});
       return res.status(200).json(data);
       // return res.status(200).json({message:"User updated successfully"});
   } catch (error) {
@@ -231,16 +230,19 @@ exports.getShopById = async(req,res) => {
 
 // Function to get shopId from user's email
 exports.getShopByEmail = async (req, res) => {
-  try {
-      const shop = await Shops.findOne({ email: req.params.email });
-      if (!shop) {
-          return res.status(404).json({ message: 'Shop not found' });
-      }
-      res.status(200).json(shop);
-  } catch (error) {
-      res.status(500).json({ message: 'Error fetching shop data', error });
-  }
+    try {
+        const email = req.params.email;
+        const shop = await Shops.findOne({ email: { $regex: new RegExp(`^${email}$`, 'i') } });
+        
+        if (!shop) {
+            return res.status(404).json({ message: 'Shop not found' });
+        }
+        res.status(200).json(shop);
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching shop data', error });
+    }
 };
+
 
 // update barber Profile by email
 exports.updateBarberProfile = async (req, res) => {
