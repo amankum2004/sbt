@@ -5,8 +5,7 @@ const Appointment = require('../models/appointment-model');
 
 router.post('/cleanup', async (req, res) => {
   try {
-    const secret = req.headers['x-cron-secret'];
-    if (secret !== process.env.CRON_SECRET) {
+    if (req.headers['x-cron-secret'] !== process.env.CRON_SECRET) {
       return res.status(403).json({ message: 'Forbidden' });
     }
     const now = new Date();
