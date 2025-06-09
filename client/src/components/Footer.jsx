@@ -1,5 +1,15 @@
 import React from "react";
-import { FaFacebook, FaTwitter, FaInstagram, FaLinkedin } from "react-icons/fa";
+import { 
+  FaFacebook, 
+  FaTwitter, 
+  FaInstagram, 
+  FaLinkedin,
+  FaChevronRight,
+  FaMapMarkerAlt,
+  FaPhoneAlt,
+  FaEnvelope,
+  FaCopyright
+} from "react-icons/fa";
 
 export const Footer = () => {
   return (
@@ -29,22 +39,22 @@ export const Footer = () => {
               <ul className="space-y-3">
                 <li>
                   <a href="/about" className="text-pink-200 hover:text-white flex items-center transition-colors">
-                    <i className="fas fa-chevron-right text-xs mr-2"></i> About Us
+                    <FaChevronRight className="text-xs mr-2" /> About Us
                   </a>
                 </li>
                 <li>
                   <a href="/services" className="text-pink-200 hover:text-white flex items-center transition-colors">
-                    <i className="fas fa-chevron-right text-xs mr-2"></i> Services
+                    <FaChevronRight className="text-xs mr-2" /> Services
                   </a>
                 </li>
                 <li>
                   <a href="/contact" className="text-pink-200 hover:text-white flex items-center transition-colors">
-                    <i className="fas fa-chevron-right text-xs mr-2"></i> Contact
+                    <FaChevronRight className="text-xs mr-2" /> Contact
                   </a>
                 </li>
                 <li>
                   <a href="/privacy-policy" className="text-pink-200 hover:text-white flex items-center transition-colors">
-                    <i className="fas fa-chevron-right text-xs mr-2"></i> Privacy Policy
+                    <FaChevronRight className="text-xs mr-2" /> Privacy Policy
                   </a>
                 </li>
               </ul>
@@ -55,20 +65,20 @@ export const Footer = () => {
               <h3 className="text-lg font-semibold mb-4 pb-2 border-b border-pink-600">Contact Us</h3>
               <ul className="space-y-3">
                 <li className="flex items-start">
-                  <i className="fas fa-map-marker-alt mt-1 mr-3 text-pink-300"></i>
+                  <FaMapMarkerAlt className="mt-1 mr-3 text-pink-300" />
                   <span className="text-pink-200">
                     Indian Institute of Technology Mandi,<br />
                     Kamand, Himachal Pradesh-175005
                   </span>
                 </li>
                 <li className="flex items-center">
-                  <i className="fas fa-phone-alt mr-3 text-pink-300"></i>
+                  <FaPhoneAlt className="mr-3 text-pink-300" />
                   <a href="tel:+918810269376" className="text-pink-200 hover:text-white transition-colors">
                     +91 8810269376
                   </a>
                 </li>
                 <li className="flex items-center">
-                  <i className="fas fa-envelope mr-3 text-pink-300"></i>
+                  <FaEnvelope className="mr-3 text-pink-300" />
                   <a href="mailto:sbthelp123@gmail.com" className="text-pink-200 hover:text-white transition-colors">
                     sbthelp123@gmail.com
                   </a>
@@ -76,38 +86,28 @@ export const Footer = () => {
               </ul>
             </div>
 
-            {/* Newsletter */}
+            {/* Newsletter and Social */}
             <div>
               <h3 className="text-lg font-semibold mb-4 pb-2 border-b border-pink-600">Newsletter</h3>
               <p className="text-pink-200 mb-4">
                 Subscribe to get updates on special offers
               </p>
-              {/* <div className="flex mb-4">
-                <input 
-                  type="email" 
-                  placeholder="Your email" 
-                  className="px-4 py-2 w-full rounded-l-lg focus:outline-none text-gray-800"
-                />
-                <button className="bg-pink-600 hover:bg-pink-700 px-4 rounded-r-lg transition-colors">
-                  <i className="fas fa-paper-plane"></i>
-                </button>
-              </div> */}
               
               {/* Social Media Icons */}
               <div className="mt-6">
                 <h4 className="text-md font-medium mb-3 text-pink-200">Follow Us</h4>
                 <div className="flex space-x-4">
-                  <a href="https://www.facebook.com/" target="_blank" className="bg-pink-700 hover:bg-pink-600 w-10 h-10 rounded-full flex items-center justify-center transition-colors">
-                    <FaFacebook size={24} />
+                  <a href="https://www.facebook.com/" target="_blank" rel="noopener noreferrer" className="bg-pink-700 hover:bg-pink-600 w-10 h-10 rounded-full flex items-center justify-center transition-colors">
+                    <FaFacebook size={18} />
                   </a>
-                  <a href="https://x.com/" target="_blank" className="bg-pink-700 hover:bg-pink-600 w-10 h-10 rounded-full flex items-center justify-center transition-colors">
-                    <FaTwitter size={24} />
+                  <a href="https://x.com/" target="_blank" rel="noopener noreferrer" className="bg-pink-700 hover:bg-pink-600 w-10 h-10 rounded-full flex items-center justify-center transition-colors">
+                    <FaTwitter size={18} />
                   </a>
-                  <a href="https://www.instagram.com/" target="_blank" className="bg-pink-700 hover:bg-pink-600 w-10 h-10 rounded-full flex items-center justify-center transition-colors">
-                    <FaInstagram size={24} />
+                  <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer" className="bg-pink-700 hover:bg-pink-600 w-10 h-10 rounded-full flex items-center justify-center transition-colors">
+                    <FaInstagram size={18} />
                   </a>
-                  <a href="https://www.linkedin.com/" target="_blank" className="bg-pink-700 hover:bg-pink-600 w-10 h-10 rounded-full flex items-center justify-center transition-colors">
-                    <FaLinkedin size={24} />
+                  <a href="https://www.linkedin.com/" target="_blank" rel="noopener noreferrer" className="bg-pink-700 hover:bg-pink-600 w-10 h-10 rounded-full flex items-center justify-center transition-colors">
+                    <FaLinkedin size={18} />
                   </a>
                 </div>
               </div>
@@ -121,7 +121,7 @@ export const Footer = () => {
         <div className="container mx-auto max-w-7xl px-4">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-pink-200 text-sm mb-2 md:mb-0">
-              <i className="far fa-copyright mr-1"></i> {new Date().getFullYear()} Salon Booking Time. All rights reserved.
+              <FaCopyright className="inline mr-1" /> {new Date().getFullYear()} Salon Booking Time. All rights reserved.
             </p>
             <div className="flex space-x-4">
               <a href="#" className="text-pink-200 hover:text-white text-sm transition-colors">
@@ -140,5 +140,3 @@ export const Footer = () => {
     </div>
   );
 };
-
-
