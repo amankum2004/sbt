@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useLogin } from "../components/LoginContext";
 import { api } from "../utils/api";
+import { FaUserEdit, FaEnvelope, FaPhoneAlt } from "react-icons/fa";
+import { MdEdit, MdCancel } from "react-icons/md";
+import { FiSave } from "react-icons/fi";
 
 const defaultContactFormData = {
   username: "",
@@ -11,7 +14,7 @@ const defaultContactFormData = {
 export const CustomerProfile = () => {
   const [profile, setProfile] = useState(defaultContactFormData);
   const [isEditable, setIsEditable] = useState(false);
-  const { user, setUser } = useLogin(); // include setUser
+  const { user, setUser } = useLogin();
 
   useEffect(() => {
     if (user) {
@@ -43,7 +46,7 @@ export const CustomerProfile = () => {
           phone: profile.phone,
         };
         setUser(updatedUser);
-        localStorage.setItem("token", JSON.stringify(updatedUser)); // update storage
+        localStorage.setItem("token", JSON.stringify(updatedUser));
         setIsEditable(false);
       }
     } catch (error) {
@@ -52,48 +55,120 @@ export const CustomerProfile = () => {
   };
 
   return (
-    <main className="bg-gray-100 min-h-screen py-10">
-      <section className="max-w-xl mx-auto bg-white p-6 shadow-md rounded-lg">
-        <h2 className="text-center text-2xl font-semibold text-blue-600 mb-6">
-          Hello <span className="text-red-500">{user?.name}</span>, this is your profile
+    <main className="min-h-screen py-10 bg-gradient-to-br from-blue-100 to-indigo-200 flex items-center justify-center">
+      <section className="w-full max-w-xl bg-white p-8 shadow-2xl rounded-xl border border-blue-100">
+        <h2 className="text-center text-3xl font-bold text-blue-700 mb-6 flex items-center justify-center gap-2">
+          <FaUserEdit className="text-red-500" />
+          Hello <span className="text-red-500">{user?.name}</span>
         </h2>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {["username", "email", "phone"].map((field) => (
-            <div key={field} className="flex items-center gap-4">
-              <label htmlFor={field} className="w-20 text-gray-700 font-medium">
-                {field.charAt(0).toUpperCase() + field.slice(1)}:
-              </label>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Username */}
+          <div className="relative">
+            <label
+              htmlFor="username"
+              className="text-gray-700 font-medium text-sm block mb-1"
+            >
+              Name
+            </label>
+            <div className="flex items-center gap-2">
+              <FaUserEdit className="text-gray-500" />
               <input
-                type={field === "email" ? "email" : "text"}
-                id={field}
-                name={field}
-                value={profile[field]}
+                type="text"
+                name="username"
+                id="username"
+                value={profile.username}
                 onChange={handleInput}
                 readOnly={!isEditable}
-                className={`flex-1 px-3 py-2 border rounded-md text-sm focus:outline-none ${
+                className={`w-full px-4 py-2 rounded-md text-sm shadow-sm focus:outline-none ${
                   isEditable
-                    ? "border-blue-400 focus:border-blue-600"
-                    : "bg-gray-100 border-gray-300"
+                    ? "border border-blue-400 focus:border-blue-600"
+                    : "bg-gray-100 border border-gray-300"
                 }`}
               />
             </div>
-          ))}
+          </div>
 
-          <div className="text-center mt-6 flex justify-center gap-4">
+          {/* Email */}
+          <div className="relative">
+            <label
+              htmlFor="email"
+              className="text-gray-700 font-medium text-sm block mb-1"
+            >
+              Email
+            </label>
+            <div className="flex items-center gap-2">
+              <FaEnvelope className="text-gray-500" />
+              <input
+                type="email"
+                name="email"
+                id="email"
+                value={profile.email}
+                onChange={handleInput}
+                readOnly={!isEditable}
+                className={`w-full px-4 py-2 rounded-md text-sm shadow-sm focus:outline-none ${
+                  isEditable
+                    ? "border border-blue-400 focus:border-blue-600"
+                    : "bg-gray-100 border border-gray-300"
+                }`}
+              />
+            </div>
+          </div>
+
+          {/* Phone */}
+          <div className="relative">
+            <label
+              htmlFor="phone"
+              className="text-gray-700 font-medium text-sm block mb-1"
+            >
+              Phone
+            </label>
+            <div className="flex items-center gap-2">
+              <FaPhoneAlt className="text-gray-500" />
+              <input
+                type="text"
+                name="phone"
+                id="phone"
+                value={profile.phone}
+                onChange={handleInput}
+                readOnly={!isEditable}
+                className={`w-full px-4 py-2 rounded-md text-sm shadow-sm focus:outline-none ${
+                  isEditable
+                    ? "border border-blue-400 focus:border-blue-600"
+                    : "bg-gray-100 border border-gray-300"
+                }`}
+              />
+            </div>
+          </div>
+
+          {/* Buttons */}
+          <div className="flex justify-center items-center gap-4 mt-6">
             <button
               type="button"
               onClick={toggleEdit}
-              className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600"
+              className={`flex items-center gap-2 px-4 py-2 rounded-md font-semibold transition ${
+                isEditable
+                  ? "bg-gray-500 text-white hover:bg-gray-600"
+                  : "bg-yellow-400 hover:bg-yellow-500 text-white"
+              }`}
             >
-              {isEditable ? "Cancel" : "Edit"}
+              {isEditable ? (
+                <>
+                  <MdCancel /> Cancel
+                </>
+              ) : (
+                <>
+                  <MdEdit /> Edit
+                </>
+              )}
             </button>
+
             {isEditable && (
               <button
                 type="submit"
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                className="flex items-center gap-2 px-4 py-2 rounded-md bg-blue-600 text-white font-semibold hover:bg-blue-700"
               >
-                Update
+                <FiSave /> Save Changes
               </button>
             )}
           </div>
@@ -102,5 +177,3 @@ export const CustomerProfile = () => {
     </main>
   );
 };
-
-

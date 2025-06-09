@@ -38,10 +38,8 @@ function App()  {
   return (
     <>
     <BrowserRouter>
-    {/* <div className="relative flex h-screen w-full flex-col overflow-x-hidden bg-[#e5e8f0]  font-monts text-black "> */}
       <LoginProvider>
       <Header/>
-      {/* <div className="relative z-10 w-full grow py-10"> */}
         <Routes>
           <Route index element={<Home />} />
           <Route path="/" element = {<Home />}/>
@@ -74,10 +72,8 @@ function App()  {
             <Route path="shops/:id/edit" element={<AdminShopUpdate/>}/>
           </Route>
         </Routes>
-      {/* </div> */}
       </LoginProvider>
       <Footer/>
-    {/* </div> */}
     </BrowserRouter>
     </>
   )

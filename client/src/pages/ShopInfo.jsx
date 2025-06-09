@@ -2,8 +2,10 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from 'react-router-dom';
 import { useLogin } from '../components/LoginContext';
 import { api } from '../utils/api';
+import { useLoading } from "../components/Loading";
 
 const DateTimeSelection = () => {
+  const { showLoading, hideLoading } = useLoading();
   const { shopId } = useParams();
   const [timeSlots, setTimeSlots] = useState([]);
   const [selectedShowtimes, setSelectedShowtimes] = useState([]);
@@ -22,8 +24,10 @@ const DateTimeSelection = () => {
   }, [shopId]);
 
   const fetchTimeSlots = async () => {
+    showLoading('Fetching details...')
     try {
       const response = await api.get(`/time/shops/${shopId}/available`);
+      hideLoading();
       setTimeSlots(response.data);
     } catch (error) {
       console.error('Failed to fetch time slots:', error.response ? error.response.data : error.message);

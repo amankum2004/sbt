@@ -5,17 +5,19 @@ import { useLogin } from "../components/LoginContext";
 import Swal from "sweetalert2";
 import { FaEye, FaEyeSlash, FaCut } from "react-icons/fa";
 import { GiComb } from "react-icons/gi";
+import { useLoading } from "../components/Loading";
 
 const Login = () => {
+  const { showLoading, hideLoading } = useLoading();
   const { loggedIn, login } = useLogin();
   const [, setClicked] = useState("");
+  const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     email: localStorage.getItem("signupEmail") || "",
     password: "",
   });
-  const navigate = useNavigate();
-  const [showPassword, setShowPassword] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const togglePasswordVisibility = () => {
     setShowPassword((prevState) => !prevState);
@@ -39,12 +41,26 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
+    showLoading('Verifying your credentials');
+  //   Swal.fire({
+  //   title: 'Please wait...',
+  //   text: 'Verifying your credentials',
+  //   allowOutsideClick: false,
+  //   didOpen: () => {
+  //     Swal.showLoading();
+  //   }
+  // });
+
     try {
       const response = await api.post('/auth/login', formData);
+      hideLoading();
       if (response.status === 200) {
+        // Swal.close();
         login(response.data);
       }
     } catch (err) {
+      hideLoading();
+      // Swal.close();
       if (err.response?.status === 404) {
         Swal.fire({ title: "Error", text: "User not found", icon: "error" });
       } else if (err.response?.status === 401) {

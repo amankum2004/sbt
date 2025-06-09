@@ -2,7 +2,6 @@ require('module-alias/register')
 const { config } = require('dotenv')
 config({ path: './.env' })
 const express = require("express")
-const Razorpay = require("razorpay")
 const app = express();
 const mongoose = require('mongoose')
 const bodyParser = require("body-parser")
@@ -11,9 +10,11 @@ const { createServer } = require("http");
 const path = require('path')
 const cookieParser = require('cookie-parser')
 const https = createServer(app);
-const crypto = require('crypto');
-const nodemailer = require('nodemailer');
-const { bookAppointment } = require('../Server/controllers/appointment-controller')
+const cronRoutes = require("./utils/scheduler");
+// const Razorpay = require("razorpay")
+// const crypto = require('crypto');
+// const nodemailer = require('nodemailer');
+// const { bookAppointment } = require('../Server/controllers/appointment-controller')
 
 const apiRoute = require('@/routes')
 
@@ -64,7 +65,7 @@ const corsOptions = {
   app.use(cookieParser())
   app.use(express.static(path.join(__dirname, '../frontend/dist')))
   
-  require('./utils/scheduler')  // for deleting expired timeslots and appointments
+  // require('./utils/scheduler')  // for deleting expired timeslots and appointments
   
   app.use((req, _, next) => {
     if (!req.url.match(/(assets|images|index\.html|.*\.(svg|png|jpg|jpeg))$/)) {
@@ -73,7 +74,8 @@ const corsOptions = {
     next()
   })
   
-  app.use('/api', apiRoute)
+  app.use('/api', apiRoute);
+  app.use('/api/cron',cronRoutes);
   
   app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/dist', 'index.html'))
