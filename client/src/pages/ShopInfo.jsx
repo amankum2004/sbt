@@ -23,23 +23,30 @@ const DateTimeSelection = () => {
     fetchCustomerEmail();
   }, [shopId]);
 
-  const fetchTimeSlots = async () => {
-    showLoading('Fetching details...')
-    try {
-      const response = await api.get(`/time/shops/${shopId}/available`);
-      hideLoading();
-      setTimeSlots(response.data);
-    } catch (error) {
-      console.error('Failed to fetch time slots:', error.response ? error.response.data : error.message);
-    }
-  };
+ const fetchTimeSlots = async () => {
+  showLoading('Fetching details...');
+  try {
+    const response = await api.get(`/time/shops/${shopId}/available`);
+    setTimeSlots(response.data || []);
+  } catch (error) {
+    // console.error('Failed to fetch time slots:', error.response ? error.response.data : error.message);
+    setTimeSlots([]); // Ensure it's set to an empty array to avoid errors in rendering
+  } finally {
+    hideLoading(); // Always hide loading
+  }
+};
 
   const fetchShopDetails = async () => {
+    showLoading('Fetching details...')
     try {
       const response = await api.get(`/shop/shoplists/${shopId}`);
+      hideLoading();
       setShopDetails(response.data);
     } catch (error) {
+      hideLoading();
       console.error('Failed to fetch shop details:', error.response ? error.response.data : error.message);
+    }finally{
+      hideLoading();
     }
   };
 
