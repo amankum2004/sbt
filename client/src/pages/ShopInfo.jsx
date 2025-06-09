@@ -37,18 +37,18 @@ const DateTimeSelection = () => {
 };
 
   const fetchShopDetails = async () => {
-    showLoading('Fetching details...')
-    try {
-      const response = await api.get(`/shop/shoplists/${shopId}`);
-      hideLoading();
-      setShopDetails(response.data);
-    } catch (error) {
-      hideLoading();
-      console.error('Failed to fetch shop details:', error.response ? error.response.data : error.message);
-    }finally{
-      hideLoading();
-    }
-  };
+  showLoading('Fetching details...');
+  try {
+    const response = await api.get(`/shop/shoplists/${shopId}`);
+    setShopDetails(response.data || {});
+  } catch (error) {
+    console.error('Failed to fetch shop details:', error.response ? error.response.data : error.message);
+    setShopDetails({});
+  } finally {
+    hideLoading();
+  }
+};
+
 
   const fetchCustomerEmail = async () => {
     setCustomerEmail(user.email);
