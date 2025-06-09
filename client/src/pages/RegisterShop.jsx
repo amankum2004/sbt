@@ -6,9 +6,8 @@ import { stateDistrictCityData } from "../utils/locationData";
 import Swal from "sweetalert2"
 import { api } from "../utils/api"
 
-const token = JSON.parse(localStorage.getItem('token'))
+// const token = JSON.parse(localStorage.getItem('token'))
 
-// Single default data object
 const defaultFormData = {
     name: "",
     email: "",
@@ -34,6 +33,33 @@ export const RegisterShop = () => {
     const [formData, setFormData] = useState(defaultFormData);
     const [districts, setDistricts] = useState([]);
     const [cities, setCities] = useState([]);
+    const [token, setToken] = useState(null);
+
+    useEffect(() => {
+        const getToken = () => {
+            try {
+                const tokenString = localStorage.getItem('token');
+                if (!tokenString) {
+                    console.error("No token found in localStorage");
+                    return null;
+                }
+                const parsedToken = JSON.parse(tokenString);
+                setToken(parsedToken);
+                return parsedToken;
+            } catch (error) {
+                console.error("Error parsing token:", error);
+                Swal.fire({
+                    title: "Error",
+                    text: "Authentication error. Please login again.",
+                    icon: "error"
+                });
+                navigate('/login');
+                return null;
+            }
+        };
+        getToken();
+    }, [navigate]);
+
 
     // Check if admin
     const isAdmin = user?.usertype === 'admin';
@@ -106,6 +132,15 @@ export const RegisterShop = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         
+        if (!token) {
+            Swal.fire({
+                title: "Error",
+                text: "Authentication token missing. Please login again.",
+                icon: "error"
+            });
+            return;
+        }
+        
         const requiredFields = [
             'name', 'email', 'phone', 'shopname', 'state', 'district', 
             'city', 'street', 'pin', 'bankname', 'bankbranch', 
@@ -130,7 +165,7 @@ export const RegisterShop = () => {
         }
 
         try {
-            const response = await api.post(`/shop/registershop`, formData, {
+            const response = await api.post(`/shop/registershop`,formData, {
                 headers: {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,

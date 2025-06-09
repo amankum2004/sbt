@@ -1,42 +1,57 @@
-// import { NavLink } from "react-router-dom"
-// import { useLogin } from "../components/LoginContext";
 import React from "react";
+import { motion } from "framer-motion";
 
 export const About = () => {
-    // const { user } = useLogin();
+  return (
+    <main className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 py-16 px-4 sm:px-6 lg:px-8">
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="max-w-4xl mx-auto bg-white p-10 rounded-2xl shadow-xl"
+      >
+        <h1 className="text-4xl font-bold text-center text-purple-800 mb-8">
+          About SBT
+        </h1>
+        <p className="text-lg text-gray-600 leading-relaxed text-center mb-10">
+          At SBT, we believe in making beauty accessible to everyone, anytime. Our platform connects you with top-rated salons and makes booking simple and stress-free.
+        </p>
 
-    return (
-        <>
-        <section className=" py-16 bg-gray-100">
-          <div className=" max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h1 className=" text-4xl font-bold text-center text-black-700 mb-10">About SBT</h1>
-            <p className=" text-lg leading-relaxed text-gray-700 mb-8 text-center">
-              At SBT, we believe in making beauty accessible to everyone, at any time. Our platform was created with a simple mission: to connect customers with top-rated salons and make the booking process as seamless as possible.
-            </p>
-
-            <h2 className="about-subheading text-3xl font-semibold text-purple-600 mt-8 mb-6">Our Story</h2>
-            <p className="about-text text-lg leading-relaxed text-gray-700 mb-8">
-              We started with a vision to revolutionize the way people book their salon appointments. Frustrated with the traditional methods of booking over the phone or walking in without knowing if a slot was available, we set out to create a platform where users can easily find and book their desired services at their convenience.
-            </p>
-
-            <h2 className="about-subheading text-3xl font-semibold text-purple-600 mt-8 mb-6">What We Offer</h2>
-            <ul className="about-list list-disc pl-6 mb-8 text-gray-700 text-lg leading-relaxed">
-              <li><strong>Comprehensive Salon Listings:</strong> From haircuts to spa treatments, we feature a wide range of salons that cater to all your beauty needs.</li>
-              <li className="mt-4"><strong>User-Friendly Interface:</strong> Our platform is designed to be simple and intuitive, making it easy for you to find and book appointments in minutes.</li>
-              <li className="mt-4"><strong>Verified Reviews:</strong> Read genuine reviews from other users to help you choose the right salon and service.</li>
-              <li className="mt-4"><strong>Personalized Experience:</strong> Save your favorite salons, track your bookings, and receive personalized recommendations.</li>
-            </ul>
-
-            <h2 className="about-subheading text-3xl font-semibold text-purple-600 mt-8 mb-6">Our Commitment</h2>
-            <p className="about-text text-lg leading-relaxed text-gray-700 mb-8">
-              We are committed to providing a platform that is not only easy to use but also trustworthy and reliable. We work closely with salons to ensure that you receive the best service possible, every time. Your beauty journey should be stress-free, and we’re here to make that happen.
-            </p>
-
-            <p className="about-text text-lg leading-relaxed text-gray-700 mb-8">
-              Thank you for choosing SBT. We look forward to helping you look and feel your best!
-            </p>
-          </div>
+        <section className="mb-10">
+          <h2 className="text-2xl font-semibold text-purple-600 mb-4">Our Story</h2>
+          <p className="text-gray-700 text-lg leading-relaxed">
+            We started with a vision to revolutionize salon bookings. Tired of making phone calls or walking in blindly, we created a digital space where users could easily find available time slots and book their services with confidence and convenience.
+          </p>
         </section>
-        </>
-    )
-}
+
+        <section className="mb-10">
+          <h2 className="text-2xl font-semibold text-purple-600 mb-4">What We Offer</h2>
+          <ul className="list-disc pl-6 text-gray-700 text-lg space-y-4">
+            <li>
+              <strong>Comprehensive Salon Listings:</strong> From haircuts to spa treatments, we feature a wide variety of beauty services.
+            </li>
+            <li>
+              <strong>User-Friendly Interface:</strong> Simple and intuitive design to help you find and book appointments within minutes.
+            </li>
+            <li>
+              <strong>Verified Reviews:</strong> Read honest feedback from customers to choose the best salon and service.
+            </li>
+            <li>
+              <strong>Personalized Experience:</strong> Save favorites, track appointments, and get tailored recommendations.
+            </li>
+          </ul>
+        </section>
+
+        <section className="mb-10">
+          <h2 className="text-2xl font-semibold text-purple-600 mb-4">Our Commitment</h2>
+          <p className="text-gray-700 text-lg leading-relaxed mb-4">
+            We're dedicated to providing a platform that's trustworthy, reliable, and easy to use. We partner with salons to guarantee top-notch service, every time you book.
+          </p>
+          <p className="text-gray-700 text-lg leading-relaxed">
+            Thank you for choosing SBT. We look forward to helping you look and feel your best!
+          </p>
+        </section>
+      </motion.div>
+    </main>
+  );
+};

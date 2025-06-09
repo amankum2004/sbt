@@ -1,108 +1,102 @@
-import React from "react"; 
+import React from "react";
 
 export const Service = () => {
+  const services = [
+    {
+      title: "Hair Cut",
+      img: "images/hair_cut.jpg",
+      desc: "A variety of haircut styles from classic to modern. Includes washing, trimming, and shaping.",
+    },
+    {
+      title: "Shaving (Clean/Traditional)",
+      img: "images/clean_shave.jpg",
+      desc: "Close shave using razors or blades, with hot towel treatment and oils.",
+    },
+    {
+      title: "Hair Coloring",
+      img: "images/hair color.jpg",
+      desc: "Full coloring or highlights to change style or cover grays.",
+    },
+    {
+      title: "Beard Grooming",
+      img: "images/Beard_grooming.jpg",
+      desc: "Trimming, shaping, and conditioning for a stylish beard.",
+    },
+    {
+      title: "Facial",
+      img: "images/facial.jpg",
+      desc: "Cleansing, exfoliation, and moisturizing for skin rejuvenation.",
+    },
+    {
+      title: "Head Massage",
+      img: "images/head_massage.jpg",
+      desc: "Relieves stress, improves scalp health, and boosts circulation.",
+    },
+    {
+      title: "Hair Spa",
+      img: "images/hair spa.jpg",
+      desc: "Deep conditioning to nourish hair, control frizz, and repair damage.",
+    },
+    {
+      title: "Hair Straightening/Perming",
+      img: "images/hair_straight.jpg",
+      desc: "Long-lasting chemical treatments for styling hair.",
+    },
+    {
+      title: "Waxing",
+      img: "images/waxing.jpg",
+      desc: "Removes unwanted body hair for smooth skin.",
+    },
+    {
+      title: "Scalp Treatments",
+      img: "images/scalp_treatment.jpg",
+      desc: "Targets dandruff, dryness, and hair thinning for a healthier scalp.",
+    },
+    {
+      title: "Eyebrow Shaping",
+      img: "images/eye_brow.jpg",
+      desc: "Trimming and shaping for a clean, well-groomed look.",
+    },
+    {
+      title: "Hair Loss Treatment",
+      img: "images/hair_loss_treatment.jpg",
+      desc: "Treatments to reduce thinning and promote new growth.",
+    },
+  ];
 
-    return (
-    <div className="bg-gray-100 py-16 px-4">
-            <div className="max-w-7xl mx-auto">
-                <div className="text-center mb-10">
-                    <h2 className="text-4xl font-bold text-gray-800 mb-4">Our Salon Services</h2>
-                    <h3 className="text-2xl text-gray-600">Best Salon and Barber Services for You</h3>
-                </div>
-                <div className="flex flex-wrap gap-6">
-                    <div className="flex-1 min-w-[300px] max-w-[33.333%] bg-white rounded-lg shadow-lg text-center p-4">
-                        <div className="relative overflow-hidden rounded-lg">
-                            <img src="images/hair_cut.jpg" alt="Hair Cutting" className="w-full h-auto" />
-                        </div>
-                        <h3 className="text-xl font-semibold text-gray-800 mt-4">Hair Cut</h3>
-                        <p className="text-gray-600 text-base mt-2">A variety of haircut styles ranging from classic to modern trends.Includes hair washing, trimming, and shaping to suit the client’s face and preference.</p>
-                    </div>
-
-                    <div className="flex-1 min-w-[300px] max-w-[33.333%] bg-white rounded-lg shadow-lg text-center p-4">
-                        <div className="relative overflow-hidden rounded-lg">
-                            <img src="images/clean_shave.jpg" alt="Smooth Shave" className="w-full h-auto" />
-                        </div>
-                        <h3 className="text-xl font-semibold text-gray-800 mt-4">Shaving-Clean Shave/Traditional Shave)</h3>
-                        <p className="text-gray-600 text-base mt-2">A close shave using razors or straight blades for a smooth finish. Traditional methods may include hot towel treatments and pre-shave oils for comfort.</p>
-                    </div>
-
-                    <div className="flex-1 min-w-[300px] max-w-[33.333%] bg-white rounded-lg shadow-lg text-center p-4">
-                        <div className="relative overflow-hidden rounded-lg">
-                            <img src="images/hair color.jpg" alt="Hair Coloring" className="w-full h-auto" />
-                        </div>
-                        <h3 className="text-xl font-semibold text-gray-800 mt-4">Hair Coloring</h3>
-                        <p className="text-gray-600 text-base mt-2">From full hair coloring to highlights, this service offers men the option to change their hair color or cover grays.</p>
-                    </div>
-
-                    <div className="flex-1 min-w-[300px] max-w-[33.333%] bg-white rounded-lg shadow-lg text-center p-4">
-                        <div className="relative overflow-hidden rounded-lg">
-                            <img src="images/Beard_grooming.jpg" alt="Beard Grooming" className="w-full h-auto" />
-                        </div>
-                        <h3 className="text-xl font-semibold text-gray-800 mt-4">Beard Grooming</h3>
-                        <p className="text-gray-600 text-base mt-2">Includes trimming, shaping, and styling the beard or mustache. Some salons offer beard conditioning treatments to soften and hydrate the facial hair.</p>
-                    </div>
-
-                    <div className="flex-1 min-w-[300px] max-w-[33.333%] bg-white rounded-lg shadow-lg text-center p-4">
-                        <div className="relative overflow-hidden rounded-lg">
-                            <img src="images/facial.jpg" alt="Facial" className="w-full h-auto" />
-                        </div>
-                        <h3 className="text-xl font-semibold text-gray-800 mt-4">Facial</h3>
-                        <p className="text-gray-600 text-base mt-2">A cleansing, exfoliating, and moisturizing treatment that rejuvenates the skin. Facials for men often focus on hydration, soothing irritation from shaving, and reducing skin oiliness.</p>
-                    </div>
-
-                    <div className="flex-1 min-w-[300px] max-w-[33.333%] bg-white rounded-lg shadow-lg text-center p-4">
-                        <div className="relative overflow-hidden rounded-lg">
-                            <img src="images/head_massage.jpg" alt="Head Massage" className="w-full h-auto" />
-                        </div>
-                        <h3 className="text-xl font-semibold text-gray-800 mt-4">Head Massage</h3>
-                        <p className="text-gray-600 text-base mt-2">A relaxing service aimed at reducing stress, promoting scalp health, and improving blood circulation. Often done with essential oils.</p>
-                    </div>
-                    <div className="flex-1 min-w-[300px] max-w-[33.333%] bg-white rounded-lg shadow-lg text-center p-4">
-                        <div className="relative overflow-hidden rounded-lg">
-                            <img src="images/hair spa.jpg" alt="Hair Spa" className="w-full h-auto" />
-                        </div>
-                        <h3 className="text-xl font-semibold text-gray-800 mt-4">Hair Spa</h3>
-                        <p className="text-gray-600 text-base mt-2"> A deep-conditioning treatment that nourishes the hair and scalp, leaving it softer, healthier, and more manageable. Great for repairing damage or controlling frizz.</p>
-                    </div>
-                    <div className="flex-1 min-w-[300px] max-w-[33.333%] bg-white rounded-lg shadow-lg text-center p-4">
-                        <div className="relative overflow-hidden rounded-lg">
-                            <img src="images/hair_straight.jpg" alt="Hair Straightening" className="w-full h-auto" />
-                        </div>
-                        <h3 className="text-xl font-semibold text-gray-800 mt-4">Hair Straightening/Perming</h3>
-                        <p className="text-gray-600 text-base mt-2"> Chemical treatments to permanently straighten or curl hair, offering long-lasting styling options.</p>
-                    </div>
-                    <div className="flex-1 min-w-[300px] max-w-[33.333%] bg-white rounded-lg shadow-lg text-center p-4">
-                        <div className="relative overflow-hidden rounded-lg">
-                            <img src="images/waxing.jpg" alt="Waxing" className="w-full h-auto" />
-                        </div>
-                        <h3 className="text-xl font-semibold text-gray-800 mt-4">Waxing</h3>
-                        <p className="text-gray-600 text-base mt-2"> Removal of unwanted body hair from areas like the chest, arms, or legs for smooth skin.</p>
-                    </div>
-                    <div className="flex-1 min-w-[300px] max-w-[33.333%] bg-white rounded-lg shadow-lg text-center p-4">
-                        <div className="relative overflow-hidden rounded-lg">
-                            <img src="images/scalp_treatment.jpg" alt="Scalp Treatment" className="w-full h-auto" />
-                        </div>
-                        <h3 className="text-xl font-semibold text-gray-800 mt-4"> Scalp Treatments</h3>
-                        <p className="text-gray-600 text-base mt-2">Targeted treatments for issues like dandruff, hair thinning, or dryness to improve scalp health.</p>
-                    </div>
-                    <div className="flex-1 min-w-[300px] max-w-[33.333%] bg-white rounded-lg shadow-lg text-center p-4">
-                        <div className="relative overflow-hidden rounded-lg">
-                            <img src="images/eye_brow.jpg" alt="Eyebrow Shaping" className="w-full h-auto" />
-                        </div>
-                        <h3 className="text-xl font-semibold text-gray-800 mt-4">Eyebrow Shaping</h3>
-                        <p className="text-gray-600 text-base mt-2">Trimming and shaping the eyebrows to create a clean, well-groomed appearance.</p>
-                    </div>
-                    <div className="flex-1 min-w-[300px] max-w-[33.333%] bg-white rounded-lg shadow-lg text-center p-4">
-                        <div className="relative overflow-hidden rounded-lg">
-                            <img src="images/hair_loss_treatment.jpg" alt="Hair Loss Treatment" className="w-full h-auto" />
-                        </div>
-                        <h3 className="text-xl font-semibold text-gray-800 mt-4">Hair Loss Treatment</h3>
-                        <p className="text-gray-600 text-base mt-2">Specialized treatments to reduce hair thinning and promote new hair growth using topical solutions or laser therapy.</p>
-                    </div>
-                </div>
-            </div>
+  return (
+    <section className="bg-gradient-to-br from-gray-100 to-white py-16 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center mb-14">
+          <h2 className="text-4xl font-bold text-purple-700 mb-3">
+            Our Salon Services
+          </h2>
+          <p className="text-xl text-gray-600">
+            Best Salon and Barber Services for You
+          </p>
         </div>
-    
 
-    )
-}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          {services.map((service, idx) => (
+            <div
+              key={idx}
+              className="bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition duration-300"
+            >
+              <img
+                src={service.img}
+                alt={service.title}
+                className="w-full h-56 object-cover"
+              />
+              <div className="p-6 text-center">
+                <h3 className="text-xl font-semibold text-purple-800 mb-2">
+                  {service.title}
+                </h3>
+                <p className="text-gray-600 text-base">{service.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
