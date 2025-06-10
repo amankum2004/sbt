@@ -30,6 +30,7 @@
     "jsqr": "^1.4.0",
     "jwt-decode": "^4.0.0",
     "lucide-react": "^0.511.0",
+    "moment": "^2.30.1",
     "node": "^21.7.1",
     "prettier-plugin-organize-imports": "^4.0.0",
     "prop-types": "^15.8.1",

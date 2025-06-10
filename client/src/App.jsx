@@ -31,6 +31,8 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import AdminPendingShops from "./pages/Admin-PendingShops";
 import Donate from "./pages/Donate";
 import LearningGuide from "./pages/learning-guide";
+import { TemplateForm } from "./pages/TimeSlot-Creater";
+// import { TimeSlotManager } from "./pages/TimeSlot-Manager";
 
 
 function App()  {
@@ -58,6 +60,8 @@ function App()  {
           <Route path="/customerprofile" element = {<CustomerProfile/>}/>
           <Route path="/barberprofile" element = {<BarberProfile/>}/>
           <Route path="/privacy-policy" element = {<PrivacyPolicy/>}/>
+          <Route path="/timeSlot-create" element = {<TemplateForm/>}/>
+          {/* <Route path="/timeSlot-manager" element = {<TimeSlotManager/>}/> */}
           <Route path="/barber-profile-update" element = {<BarberProfileUpdate/>}/>
           <Route path="/payment" element = {<Payment/>}/>
           <Route path="/nearbyShops/:shopId/shopinfo" element = {<DateTimeSelection/>}/>

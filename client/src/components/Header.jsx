@@ -192,6 +192,7 @@ export const Header = () => {
               {user.usertype === "shopOwner" ? (
                 <>
                   <NavLink to="/barberprofile" label="Profile" icon={UserCircle} onClick={toggleRightSidebar} />
+                  <NavLink to="/timeSlot-create" label="Create Slots" icon={Calendar} onClick={toggleRightSidebar} />
                   <NavLink to="/registershop" label="Register your Salon" icon={Scissors} onClick={toggleRightSidebar} />
                 </>
               ) : user.usertype === "admin" ? (
