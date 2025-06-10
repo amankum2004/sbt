@@ -11,6 +11,7 @@ const path = require('path')
 const cookieParser = require('cookie-parser')
 const https = createServer(app);
 const cronRoutes = require("./utils/scheduler");
+require('./utils/slot-creation');
 // const Razorpay = require("razorpay")
 // const crypto = require('crypto');
 // const nodemailer = require('nodemailer');

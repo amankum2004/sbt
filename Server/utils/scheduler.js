@@ -59,7 +59,6 @@ module.exports = router;
 //   }
 // });
 
-
 // // Schedule the cron job to run every day at midnight (or adjust as needed)
 // cron.schedule('0 0 * * *', async () => {
 //     try {

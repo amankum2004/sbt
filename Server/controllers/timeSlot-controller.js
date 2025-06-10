@@ -1,4 +1,7 @@
 const TimeSlot = require('../models/timeSlot-model');
+const Template = require('../models/timeSlotTemplate-model');
+const moment = require("moment");
+
 // const Shops = require('../models/timeSlot-model')
 // const {getShopByEmail} = require('../controllers/registerShop-controller')
 
@@ -109,6 +112,84 @@ exports.getTimeSlots = async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch time slots', error: error.message });
   }
 };
+
+
+// AUTOMATIC TIMESLOT CREATION  
+const generateShowtimes = (date, startTime, endTime, slotInterval) => {
+  const showtimes = [];
+  const start = moment(`${date} ${startTime}`);
+  const end = moment(`${date} ${endTime}`);
+
+  while (start < end) {
+    showtimes.push({ date: new Date(start) });
+    start.add(slotInterval, "minutes");
+  }
+
+  return showtimes;
+};
+
+exports.createTemplate = async (req, res) => {
+  try {
+    const template = await Template.create(req.body);
+
+    // Trigger immediate generation for next 7 days
+    await exports.generateSlotsFor7Days(template);
+
+    res.status(201).json(template);
+  } catch (err) {
+    console.error("Template creation failed:", err);
+    res.status(500).json({ error: "Failed to create template" });
+  }
+};
+
+exports.generateSlotsFor7Days = async (singleTemplate = null) => {
+  const templates = singleTemplate ? [singleTemplate] : await Template.find();
+  const today = moment().startOf("day");
+
+  for (let template of templates) {
+    for (let i = 0; i < 7; i++) {
+      const targetDate = today.clone().add(i, "days");
+      const dayName = targetDate.format("dddd");
+
+      if (!template.workingDays.includes(dayName)) continue;
+
+      const dateISO = targetDate.toDate();
+
+      let timeslotDoc = await TimeSlot.findOne({
+        shop_owner_id: template.shop_owner_id,
+        date: dateISO
+      });
+
+      const newShowtimes = generateShowtimes(
+        targetDate.format("YYYY-MM-DD"),
+        template.startTime,
+        template.endTime,
+        template.slotInterval
+      );
+
+      if (!timeslotDoc) {
+        await TimeSlot.create({
+          shop_owner_id: template.shop_owner_id,
+          name: template.name,
+          email: template.email,
+          phone: template.phone,
+          date: dateISO,
+          showtimes: newShowtimes
+        });
+      } else {
+        const newSlots = newShowtimes.filter(slot => {
+          return !timeslotDoc.showtimes.some(existing =>
+            moment(existing.date).isSame(moment(slot.date))
+          );
+        });
+        timeslotDoc.showtimes.push(...newSlots);
+        await timeslotDoc.save();
+      }
+    }
+  }
+};
+
+// 
 
 
 // exports.getTimeSlots = async (req, res) => {
