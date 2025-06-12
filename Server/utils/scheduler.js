@@ -2,21 +2,32 @@ const express = require('express');
 const router = express.Router();
 const TimeSlot = require('../models/timeSlot-model');
 const Appointment = require('../models/appointment-model');
+const moment = require('moment-timezone');
 
 router.post('/cleanup', async (req, res) => {
   try {
     if (req.headers['x-cron-secret'] !== process.env.CRON_SECRET) {
       return res.status(403).json({ message: 'Forbidden' });
     }
-    const now = new Date();
+    // Security check for cron
 
-    const timeSlotResult = await TimeSlot.deleteMany({ date: { $lt: now } });
+    // Set timezone explicitly (e.g., Asia/Kolkata for IST)
+    const TIMEZONE = 'Asia/Kolkata';
 
+    // ✅ Get today's local midnight in UTC (e.g., IST → UTC)
+    const todayLocalMidnightUtc = moment.tz(TIMEZONE).startOf('day').utc().toDate();
+
+    // ✅ Delete TimeSlots where `date` is before today's local midnight (in UTC)
+    const timeSlotResult = await TimeSlot.deleteMany({
+      date: { $lt: todayLocalMidnightUtc }
+    });
+
+    // ✅ Delete Appointments where all showtimes are before today's local midnight
     const appointmentResult = await Appointment.deleteMany({
       showtimes: {
         $not: {
           $elemMatch: {
-            date: { $gte: now },
+            date: { $gte: todayLocalMidnightUtc },
           },
         },
       },
@@ -27,12 +38,22 @@ router.post('/cleanup', async (req, res) => {
       timeSlotsDeleted: timeSlotResult.deletedCount,
       appointmentsDeleted: appointmentResult.deletedCount,
     });
+
   } catch (error) {
+    console.error("Cleanup error:", error);
     return res.status(500).json({ message: 'Cleanup failed', error });
   }
 });
 
 module.exports = router;
+
+
+
+
+
+
+
+
 
 
 
