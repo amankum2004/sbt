@@ -23,31 +23,44 @@ const DateTimeSelection = () => {
     fetchCustomerEmail();
   }, [shopId]);
 
- const fetchTimeSlots = async () => {
-  showLoading('Fetching details...');
-  try {
-    const response = await api.get(`/time/shops/${shopId}/available`);
-    setTimeSlots(response.data || []);
-  } catch (error) {
-    // console.error('Failed to fetch time slots:', error.response ? error.response.data : error.message);
-    setTimeSlots([]); // Ensure it's set to an empty array to avoid errors in rendering
-  } finally {
-    hideLoading(); // Always hide loading
-  }
-};
+  const fetchTimeSlots = async () => {
+    showLoading('Fetching details...');
+    try {
+      const response = await api.get(`/time/shops/${shopId}/available`);
+      const slots = response.data || [];
+
+      // Sort timeSlots by date (ascending)
+      slots.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+      // Then, for each timeSlot, sort its showtimes by time
+      const sortedSlots = slots.map(slot => ({
+        ...slot,
+        showtimes: slot.showtimes.sort(
+          (a, b) => new Date(a.date) - new Date(b.date)
+        ),
+      }));
+
+      setTimeSlots(sortedSlots);
+    } catch (error) {
+      setTimeSlots([]);
+    } finally {
+      hideLoading();
+    }
+  };
+
 
   const fetchShopDetails = async () => {
-  showLoading('Fetching details...');
-  try {
-    const response = await api.get(`/shop/shoplists/${shopId}`);
-    setShopDetails(response.data || {});
-  } catch (error) {
-    console.error('Failed to fetch shop details:', error.response ? error.response.data : error.message);
-    setShopDetails({});
-  } finally {
-    hideLoading();
-  }
-};
+    showLoading('Fetching details...');
+    try {
+      const response = await api.get(`/shop/shoplists/${shopId}`);
+      setShopDetails(response.data || {});
+    } catch (error) {
+      console.error('Failed to fetch shop details:', error.response ? error.response.data : error.message);
+      setShopDetails({});
+    } finally {
+      hideLoading();
+    }
+  };
 
 
   const fetchCustomerEmail = async () => {
@@ -137,13 +150,12 @@ const DateTimeSelection = () => {
                   {timeSlot.showtimes.map((showtime) => (
                     <button
                       key={showtime._id}
-                      className={`px-4 py-2 rounded-lg text-white min-w-[80px] text-center text-sm transition-colors duration-300 ${
-                        showtime.is_booked
+                      className={`px-4 py-2 rounded-lg text-white min-w-[80px] text-center text-sm transition-colors duration-300 ${showtime.is_booked
                           ? 'bg-red-500 cursor-not-allowed'
                           : selectedShowtimes.some(slot => slot.showtimeId === showtime._id)
-                          ? 'bg-orange-600'
-                          : 'bg-green-500 hover:bg-green-600'
-                      }`}
+                            ? 'bg-orange-600'
+                            : 'bg-green-500 hover:bg-green-600'
+                        }`}
                       disabled={showtime.is_booked}
                       onClick={() => handleShowtimeSelect(timeSlot._id, showtime._id, showtime.date)}
                     >

@@ -1,9 +1,8 @@
-// import '../CSS/Admin.css'
+import React from "react";
 import { useEffect, useState } from "react"
 // import { useAuth } from "../store/auth";
 import { toast } from "react-toastify"
 import { api } from '../utils/api'
-import React from "react";
 // const token = JSON.parse(localStorage.getItem('token'))
 
 export const AdminContacts = () => {

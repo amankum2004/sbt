@@ -153,7 +153,7 @@ exports.generateSlotsFor7Days = async (singleTemplate = null) => {
 
       if (!template.workingDays.includes(dayName)) continue;
 
-      const dateISO = targetDate.toDate();
+      const dateISO = targetDate.clone().startOf("day").toDate(); // fixed
 
       let timeslotDoc = await TimeSlot.findOne({
         shop_owner_id: template.shop_owner_id,
