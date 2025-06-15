@@ -3,6 +3,7 @@ const router = express.Router();
 const TimeSlot = require('../models/timeSlot-model');
 const Appointment = require('../models/appointment-model');
 const moment = require('moment-timezone');
+const { generateSlotsFor7Days } = require("../controllers/timeSlot-controller");
 
 router.post('/cleanup', async (req, res) => {
   try {
@@ -45,6 +46,23 @@ router.post('/cleanup', async (req, res) => {
   }
 });
 
+
+router.post('/generate-timeslots', async (req, res) => {
+  try {
+    if (req.headers['x-cron-secret'] !== process.env.CRON_SECRET) {
+      return res.status(403).json({ message: 'Forbidden' });
+    }
+
+    await generateSlotsFor7Days();
+    res.status(200).json({ message: 'Time slots generated for 7 days.' });
+  } catch (error) {
+    console.error('Time slot generation error:', error);
+    res.status(500).json({ message: 'Slot generation failed', error });
+  }
+});
+
+
+
 module.exports = router;
 
 
@@ -57,9 +75,9 @@ module.exports = router;
 
 
 
-// const cron = require("node-cron");
-// const TimeSlot = require("../models/timeSlot-model"); // Adjust the path as needed
-// const Appointment = require("../models/appointment-model")
+
+
+
 
 //   // Every Hour: 0 * * * *
 //   // Every 30 Minutes: */30 * * * *
