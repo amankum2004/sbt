@@ -133,6 +133,10 @@ const generateShowtimes = (date, startTime, endTime, slotInterval) => {
   const start = moment(`${date} ${startTime}`);
   const end = moment(`${date} ${endTime}`);
 
+  if (!start.isValid() || !end.isValid()) {
+  throw new Error("Invalid startTime or endTime format");
+}
+
   while (start < end) {
     showtimes.push({ date: new Date(start) });
     start.add(slotInterval, "minutes");
@@ -144,7 +148,8 @@ const generateShowtimes = (date, startTime, endTime, slotInterval) => {
 
 exports.generateSlotsFor7Days = async (singleTemplate = null) => {
   try {
-    const templates = singleTemplate ? [singleTemplate] : await Template.find();
+    // const templates = singleTemplate ? [singleTemplate] : await Template.find();
+    const templates = await Template.find();
     const today = moment().startOf("day");
     const cutoffFuture = today.clone().add(7, "days").endOf("day");
   
@@ -201,9 +206,15 @@ exports.generateSlotsFor7Days = async (singleTemplate = null) => {
         message: "Timeslot cleanup and generation completed",
         deletedOldOrExtraSlots: deleteResult.deletedCount
       });
-  } catch (err) {
-    console.error("Timeslot maintenance failed:", err);
-    res.status(500).json({ error: "Timeslot maintenance failed" });
+  } catch (error) {
+    console.error("Slot generation failed:", error); // already present
+
+    // Log more error detail
+    res.status(500).json({
+      message: "Slot generation failed",
+      error: error.message || "Unknown error",
+      stack: error.stack || null
+    });
   }
 };
 
