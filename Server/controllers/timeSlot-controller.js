@@ -207,7 +207,7 @@ exports.generateSlotsFor7Days = async (singleTemplate = null) => {
         deletedOldOrExtraSlots: deleteResult.deletedCount
       });
   } catch (error) {
-    console.error("Slot generation failed:", error); // already present
+    console.error("Slot generation failed from generateslotsfor7days:", error); // already present
 
     // Log more error detail
     res.status(500).json({
