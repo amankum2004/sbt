@@ -201,7 +201,6 @@ exports.generateSlotsFor7Days = async (singleTemplate = null) => {
         }
       }
     }
-
     return {
       success: true,
       deletedOldOrExtraSlots: deleteResult.deletedCount,
