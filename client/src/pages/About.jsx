@@ -11,10 +11,10 @@ export const About = () => {
         className="max-w-4xl mx-auto bg-white p-10 rounded-2xl shadow-xl"
       >
         <h1 className="text-4xl font-bold text-center text-purple-800 mb-8">
-          About SBT
+          About Salonify
         </h1>
         <p className="text-lg text-gray-600 leading-relaxed text-center mb-10">
-          At SBT, we believe in making beauty accessible to everyone, anytime. Our platform connects you with top-rated salons and makes booking simple and stress-free.
+          At Salonify, we believe in making beauty accessible to everyone, anytime. Our platform connects you with top-rated salons and makes booking simple and stress-free.
         </p>
 
         <section className="mb-10">
@@ -48,7 +48,7 @@ export const About = () => {
             We're dedicated to providing a platform that's trustworthy, reliable, and easy to use. We partner with salons to guarantee top-notch service, every time you book.
           </p>
           <p className="text-gray-700 text-lg leading-relaxed">
-            Thank you for choosing SBT. We look forward to helping you look and feel your best!
+            Thank you for choosing Salonify. We look forward to helping you look and feel your best!
           </p>
         </section>
       </motion.div>
