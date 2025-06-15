@@ -124,13 +124,13 @@ export const Footer = () => {
               <FaCopyright className="inline mr-1" /> {new Date().getFullYear()} Salon Booking Time. All rights reserved.
             </p>
             <div className="flex space-x-4">
-              <a href="#" className="text-pink-200 hover:text-white text-sm transition-colors">
+              <a href="/privacy-policy" className="text-pink-200 hover:text-white text-sm transition-colors">
                 Terms of Service
               </a>
-              <a href="#" className="text-pink-200 hover:text-white text-sm transition-colors">
+              <a href="/privacy-policy" className="text-pink-200 hover:text-white text-sm transition-colors">
                 Privacy Policy
               </a>
-              <a href="#" className="text-pink-200 hover:text-white text-sm transition-colors">
+              <a href="/privacy-policy" className="text-pink-200 hover:text-white text-sm transition-colors">
                 Cookie Policy
               </a>
             </div>
