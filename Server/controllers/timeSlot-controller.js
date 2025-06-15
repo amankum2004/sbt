@@ -148,40 +148,39 @@ const generateShowtimes = (date, startTime, endTime, slotInterval) => {
 
 exports.generateSlotsFor7Days = async (singleTemplate = null) => {
   try {
-    // const templates = singleTemplate ? [singleTemplate] : await Template.find();
     const templates = await Template.find();
     const today = moment().startOf("day");
     const cutoffFuture = today.clone().add(7, "days").endOf("day");
-  
-     // ❌ Delete TimeSlots before today or beyond next 7 days
+
+    // Delete outdated or extra future slots
     const deleteResult = await TimeSlot.deleteMany({
-        $or: [
-          { date: { $lt: today.toDate() } },
-          { date: { $gt: cutoffFuture.toDate() } }
-        ]
-      });
-  
+      $or: [
+        { date: { $lt: today.toDate() } },
+        { date: { $gt: cutoffFuture.toDate() } }
+      ]
+    });
+
     for (let template of templates) {
       for (let i = 0; i < 7; i++) {
         const targetDate = today.clone().add(i, "days");
         const dayName = targetDate.format("dddd");
-  
+
         if (!template.workingDays.includes(dayName)) continue;
-  
-        const dateISO = targetDate.clone().startOf("day").toDate(); // fixed
-  
+
+        const dateISO = targetDate.clone().startOf("day").toDate();
+
         let timeslotDoc = await TimeSlot.findOne({
           shop_owner_id: template.shop_owner_id,
           date: dateISO
         });
-  
+
         const newShowtimes = generateShowtimes(
           targetDate.format("YYYY-MM-DD"),
           template.startTime,
           template.endTime,
           template.slotInterval
         );
-  
+
         if (!timeslotDoc) {
           await TimeSlot.create({
             shop_owner_id: template.shop_owner_id,
@@ -202,21 +201,17 @@ exports.generateSlotsFor7Days = async (singleTemplate = null) => {
         }
       }
     }
-    res.status(200).json({
-        message: "Timeslot cleanup and generation completed",
-        deletedOldOrExtraSlots: deleteResult.deletedCount
-      });
-  } catch (error) {
-    console.error("Slot generation failed from generateslotsfor7days:", error); // already present
 
-    // Log more error detail
-    res.status(500).json({
-      message: "Slot generation failed from generateslotsfor7days",
-      error: error.message || "Unknown error",
-      stack: error.stack || null
-    });
+    return {
+      success: true,
+      deletedOldOrExtraSlots: deleteResult.deletedCount,
+    };
+  } catch (error) {
+    console.error("Slot generation failed from generateSlotsFor7Days:", error);
+    throw error;
   }
 };
+
 
 
 

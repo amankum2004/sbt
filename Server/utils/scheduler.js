@@ -53,13 +53,21 @@ router.post('/generate-timeslots', async (req, res) => {
       return res.status(403).json({ message: 'Forbidden' });
     }
 
-    await generateSlotsFor7Days();
-    res.status(200).json({ message: 'Time slots generated for 7 days.' });
+    const result = await generateSlotsFor7Days();
+    res.status(200).json({
+      message: 'Time slots generated for 7 days.',
+      deletedOldOrExtraSlots: result.deletedOldOrExtraSlots
+    });
   } catch (error) {
     console.error('Time slot generation error from scheduler:', error);
-    res.status(500).json({ message: 'Slot generation failed from scheduler', error });
+    res.status(500).json({
+      message: 'Slot generation failed from scheduler',
+      error: error.message || "Unknown error",
+      stack: error.stack || null
+    });
   }
 });
+
 
 
 
