@@ -113,6 +113,19 @@ exports.getTimeSlots = async (req, res) => {
   }
 };
 
+exports.createTemplate = async (req, res) => {
+  try {
+    const template = await Template.create(req.body);
+
+    // Trigger immediate generation for next 7 days
+    await exports.generateSlotsFor7Days(template);
+
+    res.status(201).json(template);
+  } catch (err) {
+    console.error("Template creation failed:", err);
+    res.status(500).json({ error: "Failed to create template" });
+  }
+};
 
 // AUTOMATIC TIMESLOT CREATION  
 const generateShowtimes = (date, startTime, endTime, slotInterval) => {
@@ -128,68 +141,72 @@ const generateShowtimes = (date, startTime, endTime, slotInterval) => {
   return showtimes;
 };
 
-exports.createTemplate = async (req, res) => {
-  try {
-    const template = await Template.create(req.body);
-
-    // Trigger immediate generation for next 7 days
-    await exports.generateSlotsFor7Days(template);
-
-    res.status(201).json(template);
-  } catch (err) {
-    console.error("Template creation failed:", err);
-    res.status(500).json({ error: "Failed to create template" });
-  }
-};
 
 exports.generateSlotsFor7Days = async (singleTemplate = null) => {
-  const templates = singleTemplate ? [singleTemplate] : await Template.find();
-  const today = moment().startOf("day");
-
-  for (let template of templates) {
-    for (let i = 0; i < 7; i++) {
-      const targetDate = today.clone().add(i, "days");
-      const dayName = targetDate.format("dddd");
-
-      if (!template.workingDays.includes(dayName)) continue;
-
-      const dateISO = targetDate.clone().startOf("day").toDate(); // fixed
-
-      let timeslotDoc = await TimeSlot.findOne({
-        shop_owner_id: template.shop_owner_id,
-        date: dateISO
+  try {
+    const templates = singleTemplate ? [singleTemplate] : await Template.find();
+    const today = moment().startOf("day");
+    const cutoffFuture = today.clone().add(7, "days").endOf("day");
+  
+     // ❌ Delete TimeSlots before today or beyond next 7 days
+    const deleteResult = await TimeSlot.deleteMany({
+        $or: [
+          { date: { $lt: today.toDate() } },
+          { date: { $gt: cutoffFuture.toDate() } }
+        ]
       });
-
-      const newShowtimes = generateShowtimes(
-        targetDate.format("YYYY-MM-DD"),
-        template.startTime,
-        template.endTime,
-        template.slotInterval
-      );
-
-      if (!timeslotDoc) {
-        await TimeSlot.create({
+  
+    for (let template of templates) {
+      for (let i = 0; i < 7; i++) {
+        const targetDate = today.clone().add(i, "days");
+        const dayName = targetDate.format("dddd");
+  
+        if (!template.workingDays.includes(dayName)) continue;
+  
+        const dateISO = targetDate.clone().startOf("day").toDate(); // fixed
+  
+        let timeslotDoc = await TimeSlot.findOne({
           shop_owner_id: template.shop_owner_id,
-          name: template.name,
-          email: template.email,
-          phone: template.phone,
-          date: dateISO,
-          showtimes: newShowtimes
+          date: dateISO
         });
-      } else {
-        const newSlots = newShowtimes.filter(slot => {
-          return !timeslotDoc.showtimes.some(existing =>
-            moment(existing.date).isSame(moment(slot.date))
-          );
-        });
-        timeslotDoc.showtimes.push(...newSlots);
-        await timeslotDoc.save();
+  
+        const newShowtimes = generateShowtimes(
+          targetDate.format("YYYY-MM-DD"),
+          template.startTime,
+          template.endTime,
+          template.slotInterval
+        );
+  
+        if (!timeslotDoc) {
+          await TimeSlot.create({
+            shop_owner_id: template.shop_owner_id,
+            name: template.name,
+            email: template.email,
+            phone: template.phone,
+            date: dateISO,
+            showtimes: newShowtimes
+          });
+        } else {
+          const newSlots = newShowtimes.filter(slot => {
+            return !timeslotDoc.showtimes.some(existing =>
+              moment(existing.date).isSame(moment(slot.date))
+            );
+          });
+          timeslotDoc.showtimes.push(...newSlots);
+          await timeslotDoc.save();
+        }
       }
     }
+    res.status(200).json({
+        message: "Timeslot cleanup and generation completed",
+        deletedOldOrExtraSlots: deleteResult.deletedCount
+      });
+  } catch (err) {
+    console.error("Timeslot maintenance failed:", err);
+    res.status(500).json({ error: "Timeslot maintenance failed" });
   }
 };
 
-// 
 
 
 // exports.getTimeSlots = async (req, res) => {

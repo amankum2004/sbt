@@ -1,11 +1,11 @@
 // backend/cron/cronJob.js
-const cron = require("node-cron");
-const { generateSlotsFor7Days } = require("../controllers/timeSlot-controller");
+// const cron = require("node-cron");
+// const { generateSlotsFor7Days } = require("../controllers/timeSlot-controller");
 
-cron.schedule("0 0 * * *", async () => {
-  console.log("Running daily slot generation at midnight...");
-  await generateSlotsFor7Days();
-});
+// cron.schedule("0 0 * * *", async () => {
+//   console.log("Running daily slot generation at midnight...");
+//   await generateSlotsFor7Days();
+// });
 
 
 // cron.schedule("0 0 * * *", async () => {
