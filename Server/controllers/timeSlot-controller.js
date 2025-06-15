@@ -211,7 +211,7 @@ exports.generateSlotsFor7Days = async (singleTemplate = null) => {
 
     // Log more error detail
     res.status(500).json({
-      message: "Slot generation failed",
+      message: "Slot generation failed from generateslotsfor7days",
       error: error.message || "Unknown error",
       stack: error.stack || null
     });
