@@ -57,7 +57,7 @@ router.post('/generate-timeslots', async (req, res) => {
     res.status(200).json({ message: 'Time slots generated for 7 days.' });
   } catch (error) {
     console.error('Time slot generation error from scheduler:', error);
-    res.status(500).json({ message: 'Slot generation failed', error });
+    res.status(500).json({ message: 'Slot generation failed from scheduler', error });
   }
 });
 
