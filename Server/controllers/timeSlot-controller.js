@@ -145,7 +145,6 @@ const generateShowtimes = (date, startTime, endTime, slotInterval) => {
   return showtimes;
 };
 
-
 exports.generateSlotsFor7Days = async (singleTemplate = null) => {
   try {
     const templates = await Template.find();

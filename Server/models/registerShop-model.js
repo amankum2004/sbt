@@ -4,7 +4,7 @@ const shopSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   phone: { type: String, required: true },
-  password: { type: String }, // Remove 'required: true' here
+  password: { type: String },
   shopname: { type: String, required: true },
   state: { type: String, required: true },
   district: { type: String, required: true },
@@ -20,6 +20,8 @@ const shopSchema = new mongoose.Schema({
     service: { type: String, required: true },
     price: { type: String, required: true }
   }],
+  lat: { type: Number, required: true },
+  lng: { type: Number, required: true },
   isApproved: { type: Boolean, default: false }
 }, { timestamps: true });
 
