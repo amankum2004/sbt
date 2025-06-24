@@ -6,25 +6,12 @@ import { stateDistrictCityData } from "../utils/locationData";
 import Swal from "sweetalert2"
 import { api } from "../utils/api"
 
-// const token = JSON.parse(localStorage.getItem('token'))
-
 const defaultFormData = {
-    name: "",
-    email: "",
-    phone: "",
-    password: "",
-    shopname: "",
-    state: "",
-    district: "",
-    city: "",
-    street: "",
-    pin: "",
-    bankname: "",
-    bankbranch: "",
-    ifsc: "",
-    micr: "",
-    account: "",
-    services: [{ service: '', price: '' }]
+    name: "",email: "",phone: "",password: "",
+    shopname: "",state: "",district: "",city: "",street: "",pin: "",
+    bankname: "",bankbranch: "",ifsc: "",micr: "",account: "",
+    services: [{ service: '', price: '' }],
+    lat: null, lng: null
 };
 
 export const RegisterShop = () => {
@@ -34,6 +21,33 @@ export const RegisterShop = () => {
     const [districts, setDistricts] = useState([]);
     const [cities, setCities] = useState([]);
     const [token, setToken] = useState(null);
+    const [location, setLocation] = useState({ lat: null, lng: null });
+
+    useEffect(() => {
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+            const { latitude, longitude } = position.coords;
+
+            setLocation({ lat: latitude, lng: longitude });
+
+            // Update formData with lat/lng
+            setFormData((prevFormData) => ({
+                ...prevFormData,
+                lat: latitude,
+                lng: longitude
+            }));
+            },
+            (error) => {
+            console.error("Geolocation error:", error);
+            Swal.fire({
+                title: "Location Access Denied",
+                text: "Please allow location access for accurate shop location.",
+                icon: "warning"
+            });
+            }
+        );
+    }, []);
+
 
     useEffect(() => {
         const getToken = () => {
@@ -140,6 +154,15 @@ export const RegisterShop = () => {
             });
             return;
         }
+
+        if (!formData.lat || !formData.lng) {
+            Swal.fire({
+                title: "Location Missing",
+                text: "Please allow location access and try again.",
+                icon: "error"
+            });
+            return;
+        }
         
         const requiredFields = [
             'name', 'email', 'phone', 'shopname', 'state', 'district', 
@@ -164,6 +187,7 @@ export const RegisterShop = () => {
             }
         }
 
+        console.log("FormData being submitted:", formData);
         try {
             const response = await api.post(`/shop/registershop`,formData, {
                 headers: {
@@ -171,7 +195,7 @@ export const RegisterShop = () => {
                     Authorization: `Bearer ${token}`,
                 },
             });
-            
+
             if (response.status === 201) {
                 Swal.fire({ title: "Success", text: "Shop registration successful", icon: "success" });
                 navigate(isAdmin ? '/admin/shops' : '/');
@@ -184,10 +208,10 @@ export const RegisterShop = () => {
                 });
             }
         } catch (error) {
-            console.log("registershop", error);
+            console.log("registershop", error.response?.data || error);
             Swal.fire({ 
                 title: "Error", 
-                text: "Registration failed. Please try again.", 
+                text: error.response?.data?.message || "Registration failed. Please try again.", 
                 icon: "error" 
             });
         }
@@ -279,81 +303,82 @@ export const RegisterShop = () => {
                             </div>
                             
                             <div className="space-y-2">
-                                                                                            <label className="block text-sm font-medium text-gray-700">State *</label>
-                                                                                            <select 
-                                                                                                name="state" 
-                                                                                                value={formData.state} 
-                                                                                                onChange={handleStateChange} 
-                                                                                                required
-                                                                                                className="w-full h-11 sm:h-12 border-2 border-gray-200 rounded-lg px-4 py-2 text-sm sm:text-base focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all appearance-none bg-white"
-                                                                                            >
-                                                                                                <option value="" disabled>Select State</option>
-                                                                                                {Object.keys(stateDistrictCityData).map((state, index) => (
-                                                                                                    <option key={index} value={state}>{state}</option>
-                                                                                                ))}
-                                                                                            </select>
-                                                                                        </div>
+                            
+                                <label className="block text-sm font-medium text-gray-700">State *</label>
+                                <select 
+                                    name="state" 
+                                    value={formData.state} 
+                                    onChange={handleStateChange} 
+                                    required
+                                    className="w-full h-11 sm:h-12 border-2 border-gray-200 rounded-lg px-4 py-2 text-sm sm:text-base focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all appearance-none bg-white"
+                                >
+                                    <option value="" disabled>Select State</option>
+                                    {Object.keys(stateDistrictCityData).map((state, index) => (
+                                        <option key={index} value={state}>{state}</option>
+                                    ))}
+                                </select>
+                            </div>
                                                                                         
-                                                                                        <div className="space-y-2">
-                                                                                            <label className="block text-sm font-medium text-gray-700">District *</label>
-                                                                                            <select 
-                                                                                                name="district" 
-                                                                                                value={formData.district} 
-                                                                                                onChange={handleDistrictChange} 
-                                                                                                required
-                                                                                                className="w-full h-11 sm:h-12 border-2 border-gray-200 rounded-lg px-4 py-2 text-sm sm:text-base focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all appearance-none bg-white"
-                                                                                                disabled={!formData.state}
-                                                                                            >
-                                                                                                <option value="" disabled>Select District</option>
-                                                                                                {districts.map((district, index) => (
-                                                                                                    <option key={index} value={district}>{district}</option>
-                                                                                                ))}
-                                                                                            </select>
-                                                                                        </div>
+                            <div className="space-y-2">
+                                <label className="block text-sm font-medium text-gray-700">District *</label>
+                                <select 
+                                    name="district" 
+                                    value={formData.district} 
+                                    onChange={handleDistrictChange} 
+                                    required
+                                    className="w-full h-11 sm:h-12 border-2 border-gray-200 rounded-lg px-4 py-2 text-sm sm:text-base focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all appearance-none bg-white"
+                                    disabled={!formData.state}
+                                >
+                                    <option value="" disabled>Select District</option>
+                                    {districts.map((district, index) => (
+                                        <option key={index} value={district}>{district}</option>
+                                    ))}
+                                </select>
+                            </div>
                                                                                         
-                                                                                        <div className="space-y-2">
-                                                                                            <label className="block text-sm font-medium text-gray-700">City *</label>
-                                                                                            <select 
-                                                                                                name="city" 
-                                                                                                value={formData.city} 
-                                                                                                onChange={handleCityChange} 
-                                                                                                required
-                                                                                                className="w-full h-11 sm:h-12 border-2 border-gray-200 rounded-lg px-4 py-2 text-sm sm:text-base focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all appearance-none bg-white"
-                                                                                                disabled={!formData.district}
-                                                                                            >
-                                                                                                <option value="" disabled>Select City</option>
-                                                                                                {cities.map((city, index) => (
-                                                                                                    <option key={index} value={city}>{city}</option>
-                                                                                                ))}
-                                                                                            </select>
-                                                                                        </div>
+                            <div className="space-y-2">
+                                <label className="block text-sm font-medium text-gray-700">City *</label>
+                                <select 
+                                    name="city" 
+                                    value={formData.city} 
+                                    onChange={handleCityChange} 
+                                    required
+                                    className="w-full h-11 sm:h-12 border-2 border-gray-200 rounded-lg px-4 py-2 text-sm sm:text-base focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all appearance-none bg-white"
+                                    disabled={!formData.district}
+                                >
+                                    <option value="" disabled>Select City</option>
+                                    {cities.map((city, index) => (
+                                        <option key={index} value={city}>{city}</option>
+                                    ))}
+                                </select>
+                            </div>
                                                                                         
-                                                                                        <div className="space-y-2">
-                                                                                            <label className="block text-sm font-medium text-gray-700">Street Address *</label>
-                                                                                            <input 
-                                                                                                type="text" 
-                                                                                                name="street" 
-                                                                                                placeholder="Enter street address" 
-                                                                                                required
-                                                                                                value={formData.street} 
-                                                                                                onChange={handleInput} 
-                                                                                                className="w-full h-11 sm:h-12 border-2 border-gray-200 rounded-lg px-4 py-2 text-sm sm:text-base focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all" 
-                                                                                            />
-                                                                                        </div>
-                                                                                        
-                                                                                        <div className="space-y-2">
-                                                                                            <label className="block text-sm font-medium text-gray-700">Pin Code *</label>
-                                                                                            <input 
-                                                                                                type="tel" 
-                                                                                                name="pin" 
-                                                                                                placeholder="Enter pin code" 
-                                                                                                required
-                                                                                                maxLength="6"
-                                                                                                value={formData.pin} 
-                                                                                                onChange={handleInput} 
-                                                                                                className="w-full h-11 sm:h-12 border-2 border-gray-200 rounded-lg px-4 py-2 text-sm sm:text-base focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all" 
-                                                                                            />
-                                                                                        </div>
+                            <div className="space-y-2">
+                                <label className="block text-sm font-medium text-gray-700">Street Address *</label>
+                                <input 
+                                    type="text" 
+                                    name="street" 
+                                    placeholder="Enter street address" 
+                                    required
+                                    value={formData.street} 
+                                    onChange={handleInput} 
+                                    className="w-full h-11 sm:h-12 border-2 border-gray-200 rounded-lg px-4 py-2 text-sm sm:text-base focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all" 
+                                />
+                            </div>
+                                    
+                            <div className="space-y-2">
+                                <label className="block text-sm font-medium text-gray-700">Pin Code *</label>
+                                <input 
+                                    type="tel" 
+                                    name="pin" 
+                                    placeholder="Enter pin code" 
+                                    required
+                                    maxLength="6"
+                                    value={formData.pin} 
+                                    onChange={handleInput} 
+                                    className="w-full h-11 sm:h-12 border-2 border-gray-200 rounded-lg px-4 py-2 text-sm sm:text-base focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all" 
+                                />
+                            </div>
                             
                             {/* Password field only for shop owners */}
                             {!isAdmin && (

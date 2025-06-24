@@ -21,7 +21,9 @@ exports.registershop = async (req, res, next) => {
       ifsc,
       micr,
       account,
-      services
+      services,
+      lat,
+      lng
     } = req.body;
 
     // Required fields for all cases
@@ -94,6 +96,8 @@ exports.registershop = async (req, res, next) => {
       micr,
       account,
       services,
+      lat,
+      lng,
       isApproved: !password // Auto-approve if created by admin (no password)
     });
 
@@ -119,6 +123,84 @@ exports.registershop = async (req, res, next) => {
     });
   }
 };
+
+
+// Get all approved shops (for customers)
+exports.getAllApprovedShops = async(req, res) => {
+  try {
+    const { state, district, city } = req.query;
+    const query = { isApproved: true }; // Only fetch approved shops
+    
+    if (state) {
+      query.state = { $regex: new RegExp(state, 'i') };
+    }
+    if (district) {
+      query.district = { $regex: new RegExp(district, 'i') };
+    }
+    if (city) {
+      query.city = { $regex: new RegExp(city, 'i') };
+    }
+    
+    const shops = await Shops.find(query);
+    res.json(shops);
+  } catch (error) {
+    console.log("Error while getting all shops", error);
+    res.status(500).json({ 
+      message: 'Error fetching shops',
+      error: error.message // Better to send the error message
+    });
+  }
+}
+
+// LOGIC TO GET SINGLE Shop DATA     
+exports.getShopById = async(req,res) => {
+  try {
+      const id = req.params.id;
+      const data = await Shops.findOne({_id: id}, {password: 0});
+      return res.status(200).json(data);
+      // return res.status(200).json({message:"User updated successfully"});
+    } catch (error) {
+      next(error)
+    }
+  }
+  
+  // Function to get shopId from user's email
+  exports.getShopByEmail = async (req, res) => {
+    try {
+      const email = req.params.email;
+      const shop = await Shops.findOne({ email: { $regex: new RegExp(`^${email}$`, 'i') } });
+      
+      if (!shop) {
+        return res.status(404).json({ message: 'Shop not found' });
+      }
+      res.status(200).json(shop);
+    } catch (error) {
+      res.status(500).json({ message: 'Error fetching shop data', error });
+    }
+  };
+  
+  
+  // update barber Profile by email
+  exports.updateBarberProfile = async (req, res) => {
+    try {
+      const { email } = req.body;  // Assuming the email is sent in the request body
+      const updatedData = req.body;
+
+      // Find and update the barber profile by email
+      const updatedProfile = await Shops.findOneAndUpdate({ email }, updatedData, { new: true });
+      
+      if (!updatedProfile) {
+      return res.status(404).json({ message: "Profile not found" });
+    }
+    
+    res.status(200).json(updatedProfile);
+  } catch (error) {
+    res.status(500).json({ message: "Error updating profile", error });
+  }
+};
+
+
+
 
 // Get all user services
 // exports.getUserServices = async (req, res) => {
@@ -188,80 +270,3 @@ exports.registershop = async (req, res, next) => {
 //       res.status(500).send(error);
 //     }
 // };
-
-// Get all approved shops (for customers)
-exports.getAllApprovedShops = async(req, res) => {
-  try {
-    const { state, district, city } = req.query;
-    const query = { isApproved: true }; // Only fetch approved shops
-    
-    if (state) {
-      query.state = { $regex: new RegExp(state, 'i') };
-    }
-    if (district) {
-      query.district = { $regex: new RegExp(district, 'i') };
-    }
-    if (city) {
-      query.city = { $regex: new RegExp(city, 'i') };
-    }
-    
-    const shops = await Shops.find(query);
-    res.json(shops);
-  } catch (error) {
-    console.log("Error while getting all shops", error);
-    res.status(500).json({ 
-      message: 'Error fetching shops',
-      error: error.message // Better to send the error message
-    });
-  }
-}
-
-// LOGIC TO GET SINGLE Shop DATA     
-exports.getShopById = async(req,res) => {
-  try {
-      const id = req.params.id;
-      const data = await Shops.findOne({_id: id}, {password: 0});
-      return res.status(200).json(data);
-      // return res.status(200).json({message:"User updated successfully"});
-  } catch (error) {
-      next(error)
-  }
-}
-
-// Function to get shopId from user's email
-exports.getShopByEmail = async (req, res) => {
-    try {
-        const email = req.params.email;
-        const shop = await Shops.findOne({ email: { $regex: new RegExp(`^${email}$`, 'i') } });
-        
-        if (!shop) {
-            return res.status(404).json({ message: 'Shop not found' });
-        }
-        res.status(200).json(shop);
-    } catch (error) {
-        res.status(500).json({ message: 'Error fetching shop data', error });
-    }
-};
-
-
-// update barber Profile by email
-exports.updateBarberProfile = async (req, res) => {
-  try {
-    const { email } = req.body;  // Assuming the email is sent in the request body
-    const updatedData = req.body;
-
-    // Find and update the barber profile by email
-    const updatedProfile = await Shops.findOneAndUpdate({ email }, updatedData, { new: true });
-
-    if (!updatedProfile) {
-      return res.status(404).json({ message: "Profile not found" });
-    }
-
-    res.status(200).json(updatedProfile);
-  } catch (error) {
-    res.status(500).json({ message: "Error updating profile", error });
-  }
-};
-
-
-
