@@ -1,4 +1,4 @@
-# 💈 Salonify – Smart Salon Appointment Booking Platform
+#  Salonify – Smart Salon Appointment Booking Platform
 
 Salonify is a web-based appointment booking system that allows users to easily discover and book appointments with nearby barber shops. The goal is to eliminate long queues and reduce wait time, making salon visits more efficient and convenient.
 
@@ -60,8 +60,3 @@ With Salonify:
 - JWT (authentication)
 - Cloudinary (image uploads)
 - Geolocation API
-
----
-
-## 📸 Screenshots
-
