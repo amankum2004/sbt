@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import Swal from "sweetalert2";
 import { api } from "../utils/api";
 import { FaEye, FaEyeSlash, FaCut, FaUser, FaEnvelope, FaPhoneAlt, FaUserTag, FaLock, FaKey } from "react-icons/fa";
@@ -195,6 +195,9 @@ export const Register = () => {
               {showOTP ? <FaEye size={20} /> : <FaEyeSlash size={20} />}
             </span>
           </div>
+          <Link to="/forget" className="text-orange-400 text-sm mb-3 block text-right">
+            Resend OTP
+          </Link>
 
           {/* Submit */}
           <button

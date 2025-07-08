@@ -80,9 +80,9 @@ export default function GetOTP() {
               className="block w-full pl-10 h-10 border border-transparent rounded-lg bg-white focus:outline-none focus:border-red-600"
             />
           </div>
-          <Link to="/forget" className="text-orange-400 text-sm mb-3 block text-right">
+          {/* <Link to="/forget" className="text-orange-400 text-sm mb-3 block text-right">
             Resend OTP
-          </Link>
+          </Link> */}
           <button
             disabled={isSubmitting}
             className="w-full h-10 bg-gray-900 text-white font-bold rounded-lg hover:bg-gray-800 transition duration-300"
