@@ -69,7 +69,7 @@ export const Header = () => {
   };
 
   return (
-    <nav className={`w-full transition-all duration-300 bg-black py-2 z-50 shadow ${scrolled ? "shadow-lg" : ""}`}>
+    <nav className={`fixed w-full transition-all duration-300 bg-black py-2 z-50 shadow ${scrolled ? "shadow-lg" : ""}`}>
       <div className="max-w-7xl mx-auto px-4 lg:px-10 relative flex justify-between items-center">
         {/* Hamburger menu */}
         <button
