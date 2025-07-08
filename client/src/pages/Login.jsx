@@ -41,7 +41,7 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    showLoading('Verifying your credentials');
+    showLoading('Verifying your details');
   //   Swal.fire({
   //   title: 'Please wait...',
   //   text: 'Verifying your credentials',
