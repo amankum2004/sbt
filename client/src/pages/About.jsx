@@ -3,14 +3,14 @@ import { motion } from "framer-motion";
 
 export const About = () => {
   return (
-    <main className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 py-16 px-4 sm:px-6 lg:px-8">
+    <main className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 py-12 px-4 sm:px-6 lg:px-8">
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
         className="max-w-4xl mx-auto bg-white p-10 rounded-2xl shadow-xl"
       >
-        <h1 className="text-4xl font-bold text-center text-purple-800 mb-8">
+        <h1 className="text-4xl font-bold text-center text-purple-800 mb-6">
           About Salonify
         </h1>
         <p className="text-lg text-gray-600 leading-relaxed text-center mb-10">
