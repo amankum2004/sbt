@@ -1,4 +1,5 @@
 import React from "react";
+import { motion } from "framer-motion";
 
 export const Service = () => {
   const services = [
@@ -66,9 +67,15 @@ export const Service = () => {
 
   return (
     <section className="bg-gradient-to-br from-gray-100 to-white py-16 px-4 sm:px-6 lg:px-8">
+      <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="max-w-6xl mx-auto"
+            >
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-14">
-          <h2 className="text-4xl font-bold text-purple-700 mb-3">
+          <h2 className="text-4xl font-bold text-purple-800 mb-3 mt-4">
             Our Salon Services
           </h2>
           <p className="text-xl text-gray-600">
@@ -81,7 +88,7 @@ export const Service = () => {
             <div
               key={idx}
               className="bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition duration-300"
-            >
+              >
               <img
                 src={service.img}
                 alt={service.title}
@@ -97,6 +104,7 @@ export const Service = () => {
           ))}
         </div>
       </div>
+      </motion.div>
     </section>
   );
 };

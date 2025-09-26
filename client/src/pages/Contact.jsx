@@ -70,7 +70,7 @@ export const Contact = () => {
         className="max-w-6xl mx-auto"
       >
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-purple-800 mt-4 mb-4">Contact Us</h1>
+          <h1 className="text-4xl font-bold text-purple-800 mt-8 mb-4">Contact Us</h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
             We'd love to hear from you! Whether you have questions, feedback, or need support, 
             our team is ready to help.

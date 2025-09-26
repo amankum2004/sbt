@@ -14,7 +14,7 @@ export const Home = () => {
                 className="max-w-6xl mx-auto"
             >
                 {/* Welcome Section */}
-                <section className="bg-white p-10 rounded-2xl shadow-xl text-center mb-12">
+                <section className="bg-white p-10 rounded-2xl shadow-xl text-center mb-8 mt-8">
                     <h1 className="text-3xl md:text-4xl font-bold text-purple-800 mb-4">
                         Welcome
                         {user ? (
@@ -83,7 +83,7 @@ export const Home = () => {
                         <p className="text-xl text-gray-700 mb-6">Ready to book your next appointment?</p>
                         <a href={loggedIn ? "/nearbyShops" : "/login"}>
                             <button className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all">
-                                Book Your Favorite Salon Now!
+                                Book Your Favorite and Nearest Salon Now!
                             </button>
                         </a>
                     </div>
