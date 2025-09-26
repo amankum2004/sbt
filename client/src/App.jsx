@@ -32,6 +32,7 @@ import AdminPendingShops from "./pages/Admin-PendingShops";
 import Donate from "./pages/Donate";
 import LearningGuide from "./pages/learning-guide";
 import { TemplateForm } from "./pages/TimeSlot-Creater";
+import { AdminHome } from "./pages/Admin-Home";
 // import { TimeSlotManager } from "./pages/TimeSlot-Manager";
 
 
@@ -67,6 +68,7 @@ function App()  {
           <Route path="/nearbyShops/:shopId/shopinfo" element = {<DateTimeSelection/>}/>
           <Route path="*" element={<Error />}/>
           <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<AdminHome/>}/>
             <Route path="users" element={<AdminUsers/>}/>
             <Route path="contacts" element={<AdminContacts/>}/>
             <Route path="services" element={<AdminServices/>}/>

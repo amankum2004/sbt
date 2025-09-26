@@ -77,7 +77,7 @@ const LearningGuide = () => {
             {activeStep === 1 && (
               <div className="mt-4">
                 <img 
-                  src="/location-search-demo.gif" 
+                  src="/images/location-img.png" 
                   alt="Location search demo" 
                   className="rounded-lg border border-gray-200"
                 />
