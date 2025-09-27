@@ -69,59 +69,127 @@ const register = async(req,res) => {
       }
 }
 
-const login = async (req,res) =>{
-    const { email, password } = req.body;
+// login using email or phone and password
+const login = async (req, res) => {
+    const { email, phone, password, contactType } = req.body;
+    
     try {
-        const user = await User.findOne({ email:email.toLowerCase() });
-        if (!user) {
-          return res.status(404).json({ 
-            error: "User not found" 
-          });
+        // Validate input
+        if (!password) {
+            return res.status(400).json({ error: "Password is required" });
         }
+
+        if (!contactType || (contactType !== 'email' && contactType !== 'phone')) {
+            return res.status(400).json({ error: "Valid contact type (email or phone) is required" });
+        }
+
+        if (contactType === 'email' && !email) {
+            return res.status(400).json({ error: "Email is required" });
+        }
+
+        if (contactType === 'phone' && !phone) {
+            return res.status(400).json({ error: "Phone number is required" });
+        }
+
+        // Find user by email or phone
+        let user;
+        if (contactType === 'email') {
+            user = await User.findOne({ email: email.toLowerCase() });
+        } else {
+            user = await User.findOne({ phone: phone });
+        }
+
+        if (!user) {
+            return res.status(404).json({ 
+                error: "User not found" 
+            });
+        }
+
         const passwordMatch = await bcrypt.compare(password, user.password);
         if (!passwordMatch) {
-        return res.status(401).json({ error: "Invalid email or password" });
+            return res.status(401).json({ error: "Invalid credentials" });
         }
+
         const token = jwt.sign({ 
-          userId: user._id ,
-          email: user.email,
-          usertype: user.usertype || 'customer',
-          name: user.name || 'user',
-          phone: user.phone || ''
+            userId: user._id,
+            email: user.email,
+            usertype: user.usertype || 'customer',
+            name: user.name || 'user',
+            phone: user.phone || ''
         }, 
         `${process.env.JWT_SECRET || 'secret'}`,
-      {
-        expiresIn: '24h'
-      })
-      res.cookie('token', token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'Lax',
-        maxAge: 24 * 60 * 60 * 1000
-      })
-      res.status(200).json({
-        userId: user._id,
-        email: user.email,
-        usertype: user.usertype || 'customer',
-        name: user.name || 'user',
-        phone: user.phone || '',
-        exp: Math.floor(Date.now() / 1000) + 24 * 60 * 60
-      })
-        // res.status(200).json({ token });
-        // if (passwordMatch) {
-        //   res.status(201).json({
-        //       message: "Login successful",
-        //       token: await user.generateToken(),
-        //       userId: user._id
-        //   })
-        // }else{
-        //   res.status(401).json({message: "Invalid email or password"})
-        // }
+        {
+            expiresIn: '24h'
+        });
+
+        res.cookie('token', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'Lax',
+            maxAge: 24 * 60 * 60 * 1000
+        });
+
+        res.status(200).json({
+            success: true,
+            user: {
+                userId: user._id,
+                email: user.email,
+                usertype: user.usertype || 'customer',
+                name: user.name || 'user',
+                phone: user.phone || '',
+                exp: Math.floor(Date.now() / 1000) + 24 * 60 * 60
+            }
+        });
+
     } catch (error) {
         console.error("Error during login:", error);
         res.status(500).json({ error: "Internal server error" });
     }
 };
+
+// const login = async (req,res) =>{
+//     const { email, password } = req.body;
+//     try {
+//         const user = await User.findOne({ email:email.toLowerCase() });
+//         if (!user) {
+//           return res.status(404).json({ 
+//             error: "User not found" 
+//           });
+//         }
+//         const passwordMatch = await bcrypt.compare(password, user.password);
+//         if (!passwordMatch) {
+//         return res.status(401).json({ error: "Invalid email or password" });
+//         }
+//         const token = jwt.sign({ 
+//           userId: user._id ,
+//           email: user.email,
+//           usertype: user.usertype || 'customer',
+//           name: user.name || 'user',
+//           phone: user.phone || ''
+//         }, 
+//         `${process.env.JWT_SECRET || 'secret'}`,
+//       {
+//         expiresIn: '24h'
+//       })
+//       res.cookie('token', token, {
+//         httpOnly: true,
+//         secure: process.env.NODE_ENV === 'production',
+//         sameSite: 'Lax',
+//         maxAge: 24 * 60 * 60 * 1000
+//       })
+//       res.status(200).json({
+//         userId: user._id,
+//         email: user.email,
+//         usertype: user.usertype || 'customer',
+//         name: user.name || 'user',
+//         phone: user.phone || '',
+//         exp: Math.floor(Date.now() / 1000) + 24 * 60 * 60
+//       })
+//     } catch (error) {
+//         console.error("Error during login:", error);
+//         res.status(500).json({ error: "Internal server error" });
+//     }
+// };
 
 const update = async(req,res) => {
     try {
