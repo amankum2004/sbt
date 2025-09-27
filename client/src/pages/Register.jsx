@@ -49,13 +49,15 @@ export const Register = () => {
 
     const { email } = formData;
 
-    if (!/^[a-zA-Z0-9._%+-]+@(gmail.com|.*\.gmail.com)$/.test(email)) {
+    // Fixed email validation regex
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+    if (!emailRegex.test(email)) {
       Swal.fire({
-        title: "Error",
-        text: "Please enter a valid email ID.",
-        icon: "error",
+        title: 'Error',
+        text: 'Please enter a valid email address',
+        icon: 'error'
       });
-      setIsSubmitting(false);
       return;
     }
 

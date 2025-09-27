@@ -12,14 +12,17 @@ export default function GetOTP() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!/^[a-zA-Z0-9._%+-]+@(gmail.com|.*\.gmail.com)$/.test(email)) {
-      setEmail('');
+    
+    // Fixed email validation regex
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    
+    if (!emailRegex.test(email)) {
       Swal.fire({
         title: 'Error',
-        text: 'Invalid email id. Use valid mail id.',
+        text: 'Please enter a valid email address',
         icon: 'error'
       });
-      return setIsSubmitting(false);
+      return;
     }
 
     setIsSubmitting(true);
@@ -80,9 +83,6 @@ export default function GetOTP() {
               className="block w-full pl-10 h-10 border border-transparent rounded-lg bg-white focus:outline-none focus:border-red-600"
             />
           </div>
-          {/* <Link to="/forget" className="text-orange-400 text-sm mb-3 block text-right">
-            Resend OTP
-          </Link> */}
           <button
             disabled={isSubmitting}
             className="w-full h-10 bg-gray-900 text-white font-bold rounded-lg hover:bg-gray-800 transition duration-300"
@@ -103,7 +103,6 @@ export default function GetOTP() {
     </div>
   );
 }
-
 
 
 
