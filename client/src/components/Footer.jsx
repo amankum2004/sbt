@@ -22,12 +22,12 @@ export const Footer = () => {
             <div className="flex flex-col items-center md:items-start">
               <a href="/" className="mb-4">
                 <img 
-                  src="/images/sbt logo md.svg" 
+                  src="/images/salonify-logo.svg" 
                   alt="Salon Booking Time" 
-                  className="h-16 w-16 rounded-full bg-white p-2 shadow-lg"
+                  className="h-16 w-16 rounded-full bg-white shadow-lg"
                 />
               </a>
-              <h3 className="text-xl font-bold mb-2 text-center md:text-left">Salon Booking Time</h3>
+              <h3 className="text-xl font-bold mb-2 text-center md:text-left">Book Your Beauty</h3>
               <p className="text-pink-200 text-sm text-center md:text-left">
                 Your one-stop solution for all salon booking needs
               </p>

@@ -96,7 +96,7 @@ export const Header = () => {
           to="/"
           className="hidden md:flex items-center text-3xl font-extrabold bg-gradient-to-r from-purple-600 to-indigo-600 text-transparent bg-clip-text hover:scale-105 transition-transform duration-300"
         >
-          <img src="/images/sbt logo.svg" alt="Salonify Logo" className="w-10 h-10 mr-2 rounded-full" />
+          <img src="/images/salonify-logo.svg" alt="Salonify Logo" className="w-10 h-10 mr-2 rounded-full" />
           Salonify
         </Link>
 
