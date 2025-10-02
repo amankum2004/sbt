@@ -5,6 +5,7 @@ import PropTypes from "prop-types";
 import { useLogin } from "./LoginContext";
 import {
   UserCircle,
+  ClipboardList,
   Scissors,
   LayoutDashboard,
   Calendar,
@@ -192,8 +193,10 @@ export const Header = () => {
               {user.usertype === "shopOwner" ? (
                 <>
                   <NavLink to="/barberprofile" label="Profile" icon={UserCircle} onClick={toggleRightSidebar} />
-                  <NavLink to="/timeSlot-create" label="Create Slots" icon={Calendar} onClick={toggleRightSidebar} />
-                  <NavLink to="/registershop" label="Register your Salon" icon={Scissors} onClick={toggleRightSidebar} />
+                  <NavLink to="/barberDashboard" label="Dashboard" icon={LayoutDashboard} onClick={toggleRightSidebar} />
+                  <NavLink to="/timeSlot-create" label="Create slots" icon={Calendar} onClick={toggleRightSidebar} />
+                  <NavLink to="/customerDashboard" label="My bookings" icon={ClipboardList} onClick={toggleRightSidebar} />
+                  {/* <NavLink to="/registershop" label="Register your Salon" icon={Scissors} onClick={toggleRightSidebar} /> */}
                 </>
               ) : user.usertype === "admin" ? (
                 <>
@@ -204,10 +207,11 @@ export const Header = () => {
               ) : (
                 <>
                   <NavLink to="/customerprofile" label="Profile" icon={UserCircle} onClick={toggleRightSidebar} />
-                  <NavLink to="/nearbyShops" label="Book Appointment" icon={Calendar} onClick={toggleRightSidebar} />
+                  <NavLink to="/customerDashboard" label="My bookings" icon={ClipboardList} onClick={toggleRightSidebar} />
+                  <NavLink to="/nearbyShops" label="Book appointment" icon={Calendar} onClick={toggleRightSidebar} />
                 </>
               )}
-              <NavLink to="/learning" label="Guide-Appointment Booking" icon={BookOpen} onClick={toggleRightSidebar} />
+              <NavLink to="/learning" label="Booking Guide/Help" icon={BookOpen} onClick={toggleRightSidebar} />
               <NavLink to="/donate" label="Donate for Environment" icon={HeartHandshake} onClick={toggleRightSidebar} />
               <NavLink
                 to="/login"

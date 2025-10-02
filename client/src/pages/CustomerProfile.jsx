@@ -104,8 +104,8 @@ export const CustomerProfile = () => {
                 name="email"
                 id="email"
                 value={profile.email}
-                onChange={handleInput}
-                readOnly={!isEditable}
+                // onChange={handleInput}
+                readOnly
                 className={`w-full px-4 py-2 rounded-md text-sm shadow-sm focus:outline-none ${
                   isEditable
                     ? "border border-blue-400 focus:border-blue-600"

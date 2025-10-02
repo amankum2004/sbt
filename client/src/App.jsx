@@ -33,6 +33,8 @@ import Donate from "./pages/Donate";
 import LearningGuide from "./pages/learning-guide";
 import { TemplateForm } from "./pages/TimeSlot-Creater";
 import { AdminHome } from "./pages/Admin-Home";
+import BarberDashboard from "./pages/BarberDashboard";
+import CustomerDashboard from "./pages/customerDashboard";
 // import { TimeSlotManager } from "./pages/TimeSlot-Manager";
 
 
@@ -62,6 +64,8 @@ function App()  {
           <Route path="/barberprofile" element = {<BarberProfile/>}/>
           <Route path="/privacy-policy" element = {<PrivacyPolicy/>}/>
           <Route path="/timeSlot-create" element = {<TemplateForm/>}/>
+          <Route path="/barberDashboard" element = {<BarberDashboard/>}/>
+          <Route path="/customerDashboard" element = {<CustomerDashboard/>}/>
           {/* <Route path="/timeSlot-manager" element = {<TimeSlotManager/>}/> */}
           <Route path="/barber-profile-update" element = {<BarberProfileUpdate/>}/>
           <Route path="/payment" element = {<Payment/>}/>

@@ -8,6 +8,16 @@ const registershopController = require("@/controllers/registerShop-controller")
 // router.route('/registershop').post(validate(shopSchema), registershopController.registershop)
 router.route('/registershop').post( registershopController.registershop)
 
+router.get("/approvedshops", registershopController.getAllApprovedShops);
+
+router.get('/check-shop/:email', registershopController.checkShopExists);
+
+router.route("/shoplists/:id").get(registershopController.getShopById);
+router.get('/by-email/:email', registershopController.getShopByEmail);
+
+router.patch('/update', registershopController.updateBarberProfile);
+
+module.exports = router;
 // router.route('/services').post(registershopController.addService)
 // router.route('/shop-services').get(registershopController.getUserServices)
 // router.route('/shop-services/:id').get(registershopController.getUserServiceById)
@@ -16,12 +26,4 @@ router.route('/registershop').post( registershopController.registershop)
 
 // Public route: Approved shops
 // router.route('/shoplists').get(registershopController.getAllShops);
-router.get("/approvedshops", registershopController.getAllApprovedShops);
 
-router.route("/shoplists/:id").get(registershopController.getShopById);
-router.get('/by-email/:email', registershopController.getShopByEmail);
-
-router.patch('/update', registershopController.updateBarberProfile);
-
-
-module.exports = router;

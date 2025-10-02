@@ -125,9 +125,87 @@ const mailOtp = async (otp, email, subject = 'OTP') => {
   await transporter.sendMail(mailOptions)
 }
 
+const sendDonationConfirmationEmail = async (name, email, amount, message) => {
+  try {
+    // You can use your existing email service (Nodemailer, SendGrid, etc.)
+    let transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: 'sbthelp123@gmail.com',
+        pass: 'pigw wfcs pidv aibo',
+      },
+    });
+
+    const mailOptions = {
+      from: process.env.EMAIL_FROM,
+      to: email,
+      subject: 'Thank You for Your Environmental Donation 🌱',
+      html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                    <div style="background: linear-gradient(135deg, #10B981, #059669); padding: 30px; text-align: center; color: white;">
+                        <h1 style="margin: 0; font-size: 28px;">Thank You for Your Donation!</h1>
+                        <p style="margin: 10px 0 0 0; font-size: 16px;">Together we're building a greener future</p>
+                    </div>
+                    
+                    <div style="padding: 30px; background: #f9fafb;">
+                        <h2 style="color: #065f46; margin-bottom: 20px;">Dear ${name},</h2>
+                        
+                        <p style="color: #374151; line-height: 1.6; margin-bottom: 15px;">
+                            We are incredibly grateful for your generous donation of <strong>₹${amount}</strong> 
+                            towards our environmental initiatives.
+                        </p>
+                        
+                        ${message ? `
+                        <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #10B981; margin: 20px 0;">
+                            <p style="color: #374151; margin: 0; font-style: italic;">"${message}"</p>
+                        </div>
+                        ` : ''}
+                        
+                        <p style="color: #374151; line-height: 1.6; margin-bottom: 15px;">
+                            Your contribution will help us:
+                        </p>
+                        
+                        <ul style="color: #374151; line-height: 1.6; margin-bottom: 20px;">
+                            <li>🌳 Plant trees in deforested areas</li>
+                            <li>♻️ Support waste management programs</li>
+                            <li>💧 Provide clean water solutions</li>
+                            <li>📚 Educate communities about sustainability</li>
+                        </ul>
+                        
+                        <div style="background: #d1fae5; padding: 20px; border-radius: 8px; text-align: center; margin: 25px 0;">
+                            <p style="color: #065f46; margin: 0; font-weight: bold;">
+                                100% of your donation goes directly to environmental projects.
+                            </p>
+                        </div>
+                        
+                        <p style="color: #374151; line-height: 1.6;">
+                            We'll keep you updated on the impact of your donation. Thank you for being a part of 
+                            this important mission!
+                        </p>
+                    </div>
+                    
+                    <div style="background: #374151; padding: 20px; text-align: center; color: white;">
+                        <p style="margin: 0; font-size: 14px;">
+                            With gratitude,<br>
+                            <strong>The Environmental Initiative Team</strong>
+                        </p>
+                    </div>
+                </div>
+            `
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log(`Donation confirmation email sent to ${email}`);
+  } catch (error) {
+    console.error('Error sending donation email:', error);
+    // Don't throw error - payment is still valid even if email fails
+  }
+};
+
 module.exports = {
   sendPaymentSuccessEmail,
   mailOtp,
-  sendConfirmationEmail
+  sendConfirmationEmail,
+  sendDonationConfirmationEmail
 }
 

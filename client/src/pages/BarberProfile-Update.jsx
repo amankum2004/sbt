@@ -124,7 +124,7 @@ export const BarberProfileUpdate = () => {
 
     return (
         <section className="max-w-4xl mx-auto bg-white p-8 shadow-lg rounded-lg">
-      <h2 className="text-2xl text-center font-semibold text-purple-600 mb-6">Update Shop Data</h2>
+      <h2 className="text-2xl text-center font-semibold text-purple-600 mb-4 mt-10">Update Shop Data</h2>
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
