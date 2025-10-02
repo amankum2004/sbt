@@ -2,6 +2,7 @@ const User = require("@/models/user/user-model")
 const bcrypt = require("bcrypt")
 const OTP = require("@/models/user/otp-model")
 const jwt = require("jsonwebtoken")
+const Shop = require("../../models/registerShop-model")
 
 const home = async(req,res) => {
     try {
@@ -110,6 +111,13 @@ const login = async (req, res) => {
             return res.status(401).json({ error: "Invalid credentials" });
         }
 
+         // ADD THIS: Find shop if user is shopOwner
+        let shop = null;
+        if (user.usertype === 'shopOwner') {
+            shop = await Shop.findOne({ email: user.email });
+            console.log('Found shop for shopOwner:', shop);
+        }
+
         const token = jwt.sign({ 
             userId: user._id,
             email: user.email,
@@ -137,7 +145,8 @@ const login = async (req, res) => {
                 usertype: user.usertype || 'customer',
                 name: user.name || 'user',
                 phone: user.phone || '',
-                exp: Math.floor(Date.now() / 1000) + 24 * 60 * 60
+                exp: Math.floor(Date.now() / 1000) + 24 * 60 * 60,
+                shop: shop // ADD THIS LINE
             }
         });
 

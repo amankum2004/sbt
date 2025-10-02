@@ -111,6 +111,7 @@ const DateTimeSelection = () => {
         customerName,
         shopName: shopDetails.shopname,
         location: shopDetails.city,
+        shopId: shopId, // ADD THIS LINE - THIS IS THE FIX
         showtimeServices,
       },
     });
@@ -151,10 +152,10 @@ const DateTimeSelection = () => {
                     <button
                       key={showtime._id}
                       className={`px-4 py-2 rounded-lg text-white min-w-[80px] text-center text-sm transition-colors duration-300 ${showtime.is_booked
-                          ? 'bg-red-500 cursor-not-allowed'
-                          : selectedShowtimes.some(slot => slot.showtimeId === showtime._id)
-                            ? 'bg-orange-600'
-                            : 'bg-green-500 hover:bg-green-600'
+                        ? 'bg-red-500 cursor-not-allowed'
+                        : selectedShowtimes.some(slot => slot.showtimeId === showtime._id)
+                          ? 'bg-orange-600'
+                          : 'bg-green-500 hover:bg-green-600'
                         }`}
                       disabled={showtime.is_booked}
                       onClick={() => handleShowtimeSelect(timeSlot._id, showtime._id, showtime.date)}

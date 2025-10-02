@@ -7,13 +7,13 @@ const LearningGuide = () => {
   const steps = [
     {
       id: 1,
-      title: "Find Nearby Shops",
+      title: "Find Nearby Shop",
       icon: <FaMapMarkerAlt className="text-purple-600" />,
       content: "Search for salons near your location using our map or address search."
     },
     {
       id: 2,
-      title: "Select Service & Stylist",
+      title: "Select Salon",
       icon: <FaUser className="text-purple-600" />,
       content: "Choose your preferred services and select a stylist (optional)."
     },
@@ -33,7 +33,7 @@ const LearningGuide = () => {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold text-center text-purple-700 mb-8">
+      <h1 className="text-3xl font-bold text-center text-purple-700 mb-6 mt-12">
         How to Book Your Salon Appointment
       </h1>
       

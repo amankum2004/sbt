@@ -29,8 +29,7 @@ exports.registershop = async (req, res, next) => {
     // Required fields for all cases
     const requiredFields = [
       'name', 'email', 'phone', 'shopname', 'state', 'district',
-      'city', 'street', 'pin', 'bankname', 'bankbranch',
-      'ifsc', 'micr', 'account', 'services'
+      'city', 'street', 'pin', 'services'
     ];
 
     // Check for missing required fields
@@ -121,6 +120,30 @@ exports.registershop = async (req, res, next) => {
       message: "Internal server error",
       error: err.message
     });
+  }
+};
+
+// Check if shop exists by email
+exports.checkShopExists = async (req, res) => {
+  try {
+    const { email } = req.params;
+
+    const shop = await Shops.findOne({ email: email.toLowerCase() });
+    
+    if (shop) {
+      return res.status(200).json({ 
+        exists: true, 
+        shop: shop,
+        isApproved: shop.isApproved 
+      });
+    } else {
+      return res.status(200).json({ 
+        exists: false 
+      });
+    }
+  } catch (error) {
+    console.error("Error checking shop existence:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
 

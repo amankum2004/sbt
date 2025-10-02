@@ -168,47 +168,6 @@ export const TemplateForm = () => {
           </div>
         )}
 
-        {/* Basic Info */}
-        <div className="space-y-4 mb-6">
-            <h3 className="text-lg font-semibold text-gray-700 border-b pb-2 mb-4">Owner Information</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">Name</label>
-                <input
-                    id="name"
-                    type="text"
-                    value={form.name}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-50 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out cursor-not-allowed"
-                    readOnly
-                    required
-                />
-                </div>
-                <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                <input
-                    id="email"
-                    type="email"
-                    value={form.email}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-50 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out cursor-not-allowed"
-                    readOnly
-                    required
-                />
-                </div>
-                <div className="md:col-span-2">
-                <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-                <input
-                    id="phone"
-                    type="text"
-                    value={form.phone}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-50 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out cursor-not-allowed"
-                    readOnly
-                    required
-                />
-                </div>
-            </div>
-        </div>
-
-
         {/* Day Selector */}
         <div className="mb-6">
             <h3 className="text-lg font-semibold text-gray-700 border-b pb-2 mb-4">Working Days</h3>
@@ -237,7 +196,7 @@ export const TemplateForm = () => {
             <h3 className="text-lg font-semibold text-gray-700 border-b pb-2 mb-4">Working Hours & Slot Interval</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                 <div>
-                <label htmlFor="startTime" className="block text-sm font-medium text-gray-700 mb-1">Start Time</label>
+                <label htmlFor="startTime" className="block text-sm font-medium text-gray-700 mb-1">Shop Opening Time</label>
                 <input
                     id="startTime"
                     type="time"
@@ -248,7 +207,7 @@ export const TemplateForm = () => {
                 />
                 </div>
                 <div>
-                <label htmlFor="endTime" className="block text-sm font-medium text-gray-700 mb-1">End Time</label>
+                <label htmlFor="endTime" className="block text-sm font-medium text-gray-700 mb-1">Shop Closing Time</label>
                 <input
                     id="endTime"
                     type="time"
@@ -308,7 +267,7 @@ export const TemplateForm = () => {
           ) : (
             <>
               {/* <FaSave /> */}
-              Save Template
+              Save
             </>
           )}
         </button>

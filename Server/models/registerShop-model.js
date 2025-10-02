@@ -11,11 +11,11 @@ const shopSchema = new mongoose.Schema({
   city: { type: String, required: true },
   street: { type: String, required: true },
   pin: { type: String, required: true },
-  bankname: { type: String, required: true },
-  bankbranch: { type: String, required: true },
-  ifsc: { type: String, required: true },
-  micr: { type: String, required: true },
-  account: { type: String, required: true },
+  bankname: { type: String, required: false },
+  bankbranch: { type: String, required: false},
+  ifsc: { type: String, required: false },
+  micr: { type: String, required: false },
+  account: { type: String, required: false },
   services: [{
     service: { type: String, required: true },
     price: { type: String, required: true }

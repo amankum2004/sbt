@@ -9,7 +9,7 @@ import { useLoading } from "../components/Loading";
 
 const Login = () => {
   const { showLoading, hideLoading } = useLoading();
-  const { loggedIn, login } = useLogin();
+  const { loggedIn, login, checkShopExists } = useLogin();
   const [, setClicked] = useState("");
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
@@ -53,7 +53,7 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Validation
     if (loginMethod === 'email' && !formData.email) {
       Swal.fire({ title: "Error", text: "Email is required", icon: "error" });
@@ -82,9 +82,19 @@ const Login = () => {
 
       const response = await api.post('/auth/login', loginData);
       hideLoading();
-      
+
       if (response.data.success) {
-        login(response.data.user);
+        await login(response.data.user);
+        // Check if user is shopOwner and check shop existence
+        if (response.data.user.usertype === 'shopOwner') {
+          const shopCheck = await checkShopExists(response.data.user.email);
+
+          if (shopCheck.exists) {
+            // Store shop info in context
+            login({ ...response.data.user, shop: shopCheck.shop });
+          }
+        }
+        
         Swal.fire({
           title: "Success",
           text: "Login successful!",
@@ -97,7 +107,7 @@ const Login = () => {
     } catch (err) {
       hideLoading();
       console.error('Login error:', err);
-      
+
       if (err.response?.status === 404) {
         Swal.fire({ title: "Error", text: "User not found", icon: "error" });
       } else if (err.response?.status === 401) {
@@ -141,11 +151,10 @@ const Login = () => {
           <button
             type="button"
             onClick={() => handleLoginMethodChange('email')}
-            className={`flex-1 py-2 px-4 rounded-md transition-all duration-300 ${
-              loginMethod === 'email' 
-                ? 'bg-blue-600 text-white shadow-md' 
+            className={`flex-1 py-2 px-4 rounded-md transition-all duration-300 ${loginMethod === 'email'
+                ? 'bg-blue-600 text-white shadow-md'
                 : 'text-gray-300 hover:text-white'
-            }`}
+              }`}
           >
             <FaEnvelope className="inline mr-2" />
             Email
@@ -153,11 +162,10 @@ const Login = () => {
           <button
             type="button"
             onClick={() => handleLoginMethodChange('phone')}
-            className={`flex-1 py-2 px-4 rounded-md transition-all duration-300 ${
-              loginMethod === 'phone' 
-                ? 'bg-green-600 text-white shadow-md' 
+            className={`flex-1 py-2 px-4 rounded-md transition-all duration-300 ${loginMethod === 'phone'
+                ? 'bg-green-600 text-white shadow-md'
                 : 'text-gray-300 hover:text-white'
-            }`}
+              }`}
           >
             <FaPhoneAlt className="inline mr-2" />
             Phone
@@ -235,8 +243,8 @@ const Login = () => {
           {/* Helper Text */}
           <div className="mt-3 text-center">
             <span className="text-gray-400 text-xs">
-              {loginMethod === 'phone' 
-                ? 'Enter your registered phone number' 
+              {loginMethod === 'phone'
+                ? 'Enter your registered phone number'
                 : 'Enter your registered email address'}
             </span>
           </div>
