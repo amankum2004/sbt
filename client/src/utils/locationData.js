@@ -1,6 +1,6 @@
 export const stateDistrictCityData = {
     "Andaman and Nicobar Islands": {
-      "Nicobars": ["Car Nicobar", "Nancowry"],
+      "Nicobars": ["Car Nicobar", "Nancowry","Great Nicobar"],
       "North and Middle Andaman": ["Mayabunder", "Rangat"],
       "South Andaman": ["Port Blair", "Wandoor"]
     },
