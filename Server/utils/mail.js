@@ -3,16 +3,16 @@
 // const sendConfirmationEmail = async (customerEmail, shopName, location, timeSlotDate, timeSlotTime) => {
 //   // Step 1: Set up transporter (use your SMTP credentials)
 //   const transporter = nodemailer.createTransport({
-//     service: 'gmail', // or any other email provider
-//     auth: {
-//       user: 'sbthelp123@gmail.com',
-//       pass: 'cwpf ywjb qdrp dexv',
-//     },
+    // service: 'gmail', // or any other email provider
+    // auth: {
+    //   user: process.env.EMAIL,
+    //   pass: process.env.PASSWORD,
+    // },
 //   });
 
 //   // Step 2: Create the email details
 //   const mailOptions = {
-//     from: 'sbthelp123@gmail.com',
+//     from: process.env.EMAIL,
 //     to: customerEmail,
 //     subject: 'Payment Success - Appointment Confirmation',
 //     html: `<h1>Payment Successful!</h1>
@@ -41,21 +41,35 @@ const nodemailer = require('nodemailer');
 
 // Create a reusable transporter object using SMTP transport
 const transporter = nodemailer.createTransport({
-  service: 'gmail', // or your preferred email service
+  host: process.env.BREVO_HOST,
+  port: process.env.BREVO_PORT,
+  secure: false,
   auth: {
-    user: process.env.EMAIL,
-    pass: process.env.PASSWORD,
-  },
+    user: process.env.BREVO_USER,
+    pass: process.env.BREVO_PASS
+  }
+  // service: 'gmail', // or your preferred email service
+  // auth: {
+  //   user: process.env.EMAIL,
+  //   pass: process.env.PASSWORD,
+  // },
 });
 
 
 async function sendConfirmationEmail(customerEmail, customerName, shopName, location, selectedTimeSlots) {
   let transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: process.env.BREVO_HOST,
+    port: process.env.BREVO_PORT,
+    secure: false,
     auth: {
-      user: process.env.EMAIL,
-      pass: process.env.PASSWORD,
-    },
+      user: process.env.BREVO_USER,
+      pass: process.env.BREVO_PASS
+    }
+    // service: 'gmail',
+    // auth: {
+    //   user: process.env.EMAIL,
+    //   pass: process.env.PASSWORD,
+    // },
   });
 
   // Format the time slots properly
@@ -63,10 +77,10 @@ async function sendConfirmationEmail(customerEmail, customerName, shopName, loca
     ? selectedTimeSlots.map(slot => `
         Date: ${new Date(slot.showtimeDate).toLocaleDateString()},
         Time: ${new Date(slot.showtimeDate).toLocaleTimeString('en-US', {
-          hour: '2-digit',
-          minute: '2-digit',
-        })}
-      `).join('\n') 
+      hour: '2-digit',
+      minute: '2-digit',
+    })}
+      `).join('\n')
     : "No time slot selected";
 
   const mailOptions = {
@@ -75,15 +89,15 @@ async function sendConfirmationEmail(customerEmail, customerName, shopName, loca
     subject: 'Appointment Booking Confirmation',
     text: `Dear ${customerName},
 
-Your booking at ${shopName}, located at ${location}, has been successfully received.
+  Your booking at ${shopName}, located at ${location}, has been successfully received.
 
-You have booked the following time slot:
-${selectedTimeSlotHTML}
+  You have booked the following time slot:
+  ${selectedTimeSlotHTML}
 
-Thank you for choosing us!
+  Thank you for choosing us!
 
-Best regards,
-Salon Booking Team`,
+  Best regards,
+  Salon Booking Team`,
   };
 
   try {
@@ -99,11 +113,19 @@ Salon Booking Team`,
 
 // async function sendConfirmationEmail(customerEmail, customerName, shopName, location, selectedTimeSlot) {
 //   let transporter = nodemailer.createTransport({
-//     service: 'gmail',
-//     auth: {
-//        user: process.env.EMAIL,
-//        pass: process.env.PASSWORD,
-//     },
+//   host: process.env.BREVO_HOST,       
+// port: process.env.BREVO_PORT,       
+// secure: false,                      
+// auth: {
+//   user: process.env.BREVO_USER,     
+//   pass: process.env.BREVO_PASS      
+// }
+
+// service: 'gmail',
+// auth: {
+//    user: process.env.EMAIL,
+//    pass: process.env.PASSWORD,
+// },
 //   });
 
 //   const selectedTimeSlotHTML = selectedTimeSlot && selectedTimeSlot.length > 0
@@ -181,11 +203,18 @@ const sendDonationConfirmationEmail = async (name, email, amount, message) => {
   try {
     // You can use your existing email service (Nodemailer, SendGrid, etc.)
     let transporter = nodemailer.createTransport({
-      service: 'gmail',
+      host: process.env.BREVO_HOST,
+      port: process.env.BREVO_PORT,
+      secure: false,
       auth: {
-        user: process.env.EMAIL,
-        pass: process.env.PASSWORD,
-      },
+        user: process.env.BREVO_USER,
+        pass: process.env.BREVO_PASS
+      }
+      // service: 'gmail',
+      // auth: {
+      //   user: process.env.EMAIL,
+      //   pass: process.env.PASSWORD,
+      // },
     });
 
     const mailOptions = {
