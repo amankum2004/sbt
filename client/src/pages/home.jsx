@@ -12,7 +12,7 @@ export const Home = () => {
         "name": "SalonHub - Online Salon Booking Platform",
         "description": "Book the best salon & spa services at home or in-salon across India. Haircuts, facials, manicure, pedicure, bridal makeup & more beauty services.",
         "url": "https://salonhub.co.in",
-        "telephone": "+91-XXXXXXXXXX",
+        "telephone": "+91-8810269376",
         "address": {
             "@type": "PostalAddress",
             "addressCountry": "IN",
@@ -149,7 +149,7 @@ export const Home = () => {
                         </h2>
                         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 text-center">
                             {["Delhi", "Mumbai", "Bangalore", "Chennai", "Kolkata", "Hyderabad", 
-                              "Pune", "Ahmedabad", "Jaipur", "Lucknow", "Chandigarh", "Kochi"].map((city) => (
+                              "Pune", "Ahmedabad", "Jaipur", "Lucknow", "Chandigarh", "Noida"].map((city) => (
                                 <div key={city} className="bg-purple-50 p-3 rounded-lg hover:bg-purple-100 transition-colors">
                                     <span className="text-purple-700 font-medium">{city}</span>
                                 </div>
