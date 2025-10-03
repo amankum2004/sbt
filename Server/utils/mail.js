@@ -3,11 +3,11 @@
 // const sendConfirmationEmail = async (customerEmail, shopName, location, timeSlotDate, timeSlotTime) => {
 //   // Step 1: Set up transporter (use your SMTP credentials)
 //   const transporter = nodemailer.createTransport({
-    // service: 'gmail', // or any other email provider
-    // auth: {
-    //   user: process.env.EMAIL,
-    //   pass: process.env.PASSWORD,
-    // },
+// service: 'gmail', // or any other email provider
+// auth: {
+//   user: process.env.EMAIL,
+//   pass: process.env.PASSWORD,
+// },
 //   });
 
 //   // Step 2: Create the email details
@@ -41,35 +41,35 @@ const nodemailer = require('nodemailer');
 
 // Create a reusable transporter object using SMTP transport
 const transporter = nodemailer.createTransport({
-  host: process.env.BREVO_HOST,
-  port: process.env.BREVO_PORT,
-  secure: false,
-  auth: {
-    user: process.env.BREVO_USER,
-    pass: process.env.BREVO_PASS
-  }
-  // service: 'gmail', // or your preferred email service
+  // host: process.env.BREVO_HOST,
+  // port: process.env.BREVO_PORT,
+  // secure: false,
   // auth: {
-  //   user: process.env.EMAIL,
-  //   pass: process.env.PASSWORD,
-  // },
+  //   user: process.env.BREVO_USER,
+  //   pass: process.env.BREVO_PASS
+  // }
+  service: 'gmail', // or your preferred email service
+  auth: {
+    user: process.env.EMAIL,
+    pass: process.env.PASSWORD,
+  },
 });
 
 
 async function sendConfirmationEmail(customerEmail, customerName, shopName, location, selectedTimeSlots) {
   let transporter = nodemailer.createTransport({
-    host: process.env.BREVO_HOST,
-    port: process.env.BREVO_PORT,
-    secure: false,
-    auth: {
-      user: process.env.BREVO_USER,
-      pass: process.env.BREVO_PASS
-    }
-    // service: 'gmail',
+    // host: process.env.BREVO_HOST,
+    // port: process.env.BREVO_PORT,
+    // secure: false,
     // auth: {
-    //   user: process.env.EMAIL,
-    //   pass: process.env.PASSWORD,
-    // },
+    //   user: process.env.BREVO_USER,
+    //   pass: process.env.BREVO_PASS
+    // }
+    service: 'gmail',
+    auth: {
+      user: process.env.EMAIL,
+      pass: process.env.PASSWORD,
+    },
   });
 
   // Format the time slots properly
@@ -157,6 +157,7 @@ async function sendConfirmationEmail(customerEmail, customerName, shopName, loca
 // Function to send email
 const sendPaymentSuccessEmail = (customerEmail, shopName, location, selectedTimeSlot) => {
   const mailOptions = {
+    // from: process.env.BREVO_EMAIL, // sender address
     from: process.env.EMAIL, // sender address
     to: customerEmail, // customer's email
     subject: 'Payment Successful - Salon Booking Confirmation',
@@ -188,7 +189,8 @@ Salon Booking Team`,
 const mailOtp = async (otp, email, subject = 'OTP') => {
   console.log("in mail otp");
   const mailOptions = {
-    from: process.env.EMAIL,
+    // from: process.env.BREVO_EMAIL,
+    from: process.env.EMAIL, // sender address
     to: email,
     subject: subject,
     text: `Your OTP is ${otp}`
@@ -203,22 +205,22 @@ const sendDonationConfirmationEmail = async (name, email, amount, message) => {
   try {
     // You can use your existing email service (Nodemailer, SendGrid, etc.)
     let transporter = nodemailer.createTransport({
-      host: process.env.BREVO_HOST,
-      port: process.env.BREVO_PORT,
-      secure: false,
-      auth: {
-        user: process.env.BREVO_USER,
-        pass: process.env.BREVO_PASS
-      }
-      // service: 'gmail',
+      // host: process.env.BREVO_HOST,
+      // port: process.env.BREVO_PORT,
+      // secure: false,
       // auth: {
-      //   user: process.env.EMAIL,
-      //   pass: process.env.PASSWORD,
-      // },
+      //   user: process.env.BREVO_USER,
+      //   pass: process.env.BREVO_PASS
+      // }
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL,
+        pass: process.env.PASSWORD,
+      },
     });
 
     const mailOptions = {
-      from: process.env.EMAIL,
+      from: process.env.BREVO_EMAIL,
       to: email,
       subject: 'Thank You for Your Environmental Donation 🌱',
       html: `
