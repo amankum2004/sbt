@@ -22,7 +22,7 @@ export const Footer = () => {
             <div className="flex flex-col items-center md:items-start">
               <a href="/" className="mb-4">
                 <img 
-                  src="/images/salonify-logo.svg" 
+                  src="/images/salonHub-logo.svg" 
                   alt="Salon Booking Time" 
                   className="h-16 w-16 rounded-full bg-white shadow-lg"
                 />

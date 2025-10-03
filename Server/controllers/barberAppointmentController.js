@@ -133,6 +133,7 @@ exports.getBarberAppointments = async (req, res) => {
         .populate('timeSlot', 'date')
         .populate('userId', 'name email phone')
         .sort({ 'timeSlot.date': 1, 'showtimes.date': 1 });
+        // .sort({ bookedAt: -1 });
 
       console.log('Full population result:', fullAppointments.length);
 
@@ -143,36 +144,70 @@ exports.getBarberAppointments = async (req, res) => {
       var appointments = [];
     }
 
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+
     // Separate current and past appointments
     const currentAppointments = [];
     const pastAppointments = [];
+    const todaysAppointments = [];
 
-    const now = new Date();
+    // const now = new Date();
     console.log('Current date:', now);
-    
+
     appointments.forEach(appointment => {
       const appointmentDate = appointment.timeSlot?.date;
-      console.log('Processing appointment:', {
-        _id: appointment._id,
-        appointmentDate: appointmentDate,
-        status: appointment.status
-      });
-      
-      if (appointmentDate) {
-        const aptDate = new Date(appointmentDate);
-        console.log('Appointment date object:', aptDate);
-        console.log('Is future?', aptDate >= now);
-        
-        if (aptDate >= now && appointment.status !== 'cancelled') {
-          currentAppointments.push(appointment);
-        } else {
-          pastAppointments.push(appointment);
-        }
+      if (!appointmentDate) {
+        pastAppointments.push(appointment);
+        return;
+      }
+
+      // Use showtime date if available
+      let appointmentDateTime;
+      if (appointment.showtimes && appointment.showtimes.length > 0 && appointment.showtimes[0].date) {
+        appointmentDateTime = new Date(appointment.showtimes[0].date);
       } else {
-        // If no date, consider it past
+        appointmentDateTime = new Date(appointmentDate);
+      }
+
+      // Check if appointment is today
+      const isToday = appointmentDateTime >= startOfToday && appointmentDateTime < endOfToday;
+
+      if (appointmentDateTime >= now && appointment.status !== 'cancelled') {
+        currentAppointments.push(appointment);
+      } else {
         pastAppointments.push(appointment);
       }
+
+      if (isToday) {
+        todaysAppointments.push(appointment);
+      }
     });
+    
+    // appointments.forEach(appointment => {
+    //   const appointmentDate = appointment.timeSlot?.date;
+    //   console.log('Processing appointment:', {
+    //     _id: appointment._id,
+    //     appointmentDate: appointmentDate,
+    //     status: appointment.status
+    //   });
+      
+    //   if (appointmentDate) {
+    //     const aptDate = new Date(appointmentDate);
+    //     console.log('Appointment date object:', aptDate);
+    //     console.log('Is future?', aptDate >= now);
+        
+    //     if (aptDate >= now && appointment.status !== 'cancelled') {
+    //       currentAppointments.push(appointment);
+    //     } else {
+    //       pastAppointments.push(appointment);
+    //     }
+    //   } else {
+    //     // If no date, consider it past
+    //     pastAppointments.push(appointment);
+    //   }
+    // });
 
     console.log('Current appointments count:', currentAppointments.length);
     console.log('Past appointments count:', pastAppointments.length);
@@ -182,38 +217,54 @@ exports.getBarberAppointments = async (req, res) => {
       total: appointments.length,
       upcoming: currentAppointments.length,
       completed: pastAppointments.filter(apt => apt.status !== 'cancelled').length,
-      cancelled: appointments.filter(apt => apt.status === 'cancelled').length,
-      today: appointments.filter(apt => {
-        const aptDate = apt.timeSlot?.date;
-        if (!aptDate) return false;
-        const appointmentDate = new Date(aptDate);
-        const today = new Date();
-        return appointmentDate.toDateString() === today.toDateString() && 
-               apt.status !== 'cancelled';
-      }).length
+      cancelled: pastAppointments.filter(apt => apt.status === 'cancelled').length,
+      today: todaysAppointments.length
     };
-
-    console.log('Final stats:', stats);
-    console.log('================================');
-
-    // Get shop details
-    const shop = await Shop.findById(shopId);
 
     res.status(200).json({
       success: true,
       currentAppointments,
       pastAppointments,
+      todaysAppointments, // Add this field
       stats,
-      shop: shop ? {
-        name: shop.shopname,
-        city: shop.city,
-        address: shop.address
-      } : {},
-      debug: {
-        simpleQueryCount: simpleAppointments.length,
-        fullQueryCount: appointments.length
-      }
+      shop: await Shop.findById(shopId).select('name city address shopname')
     });
+    // const stats = {
+    //   total: appointments.length,
+    //   upcoming: currentAppointments.length,
+    //   completed: pastAppointments.filter(apt => apt.status !== 'cancelled').length,
+    //   cancelled: appointments.filter(apt => apt.status === 'cancelled').length,
+    //   today: appointments.filter(apt => {
+    //     const aptDate = apt.timeSlot?.date;
+    //     if (!aptDate) return false;
+    //     const appointmentDate = new Date(aptDate);
+    //     const today = new Date();
+    //     return appointmentDate.toDateString() === today.toDateString() && 
+    //            apt.status !== 'cancelled';
+    //   }).length
+    // };
+
+    // console.log('Final stats:', stats);
+    // console.log('================================');
+
+    // // Get shop details
+    // const shop = await Shop.findById(shopId);
+
+    // res.status(200).json({
+    //   success: true,
+    //   currentAppointments,
+    //   pastAppointments,
+    //   stats,
+    //   shop: shop ? {
+    //     name: shop.shopname,
+    //     city: shop.city,
+    //     address: shop.address
+    //   } : {},
+    //   debug: {
+    //     simpleQueryCount: simpleAppointments.length,
+    //     fullQueryCount: appointments.length
+    //   }
+    // });
 
   } catch (error) {
     console.error('Error fetching barber appointments:', error);

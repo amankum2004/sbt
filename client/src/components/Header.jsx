@@ -88,7 +88,7 @@ export const Header = () => {
           to="/"
           className={`md:hidden absolute left-1/2 transform -translate-x-1/2 text-3xl font-extrabold bg-gradient-to-r from-purple-600 to-indigo-600 text-transparent bg-clip-text hover:scale-105 transition-transform duration-300`}
         >
-          Salonify
+          SalonHub
         </Link>
 
         {/* Normal logo on desktop */}
@@ -96,8 +96,8 @@ export const Header = () => {
           to="/"
           className="hidden md:flex items-center text-3xl font-extrabold bg-gradient-to-r from-purple-600 to-indigo-600 text-transparent bg-clip-text hover:scale-105 transition-transform duration-300"
         >
-          <img src="/images/salonify-logo.svg" alt="Salonify Logo" className="w-10 h-10 mr-2 rounded-full" />
-          Salonify
+          <img src="/images/salonHub-logo.svg" alt="SalonHub Logo" className="w-10 h-10 mr-2 rounded-full" />
+          SalonHub
         </Link>
 
         {/* Desktop navigation links */}
@@ -156,8 +156,8 @@ export const Header = () => {
       >
         <div className="p-4 flex justify-between items-center">
           <div className="flex items-center space-x-2">
-            <img src="/images/sbt logo.svg" alt="Salonify Logo" className="w-8 h-8" />
-            <span className="text-xl font-semibold text-purple-600">Salonify</span>
+            <img src="/images/sbt logo.svg" alt="SalonHub Logo" className="w-8 h-8" />
+            <span className="text-xl font-semibold text-purple-600">SalonHub</span>
           </div>
           <XMarkIcon className="h-6 w-6 text-black cursor-pointer" onClick={() => setIsOpenLeft(false)} />
         </div>
@@ -225,7 +225,7 @@ export const Header = () => {
             </>
           ) : (
             <>
-              <p>Welcome to Salonify</p>
+              <p>Welcome to SalonHub</p>
               <Link
                 to="/login"
                 className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-6 py-2 rounded-lg font-semibold shadow-lg hover:scale-105 transition-transform duration-300 flex items-center space-x-2"

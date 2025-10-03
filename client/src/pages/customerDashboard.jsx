@@ -17,14 +17,39 @@ const CustomerDashboard = () => {
     }
   }, [user]);
 
+  // Function to sort appointments by date and time
+  const sortAppointmentsByDateTime = (appointments) => {
+    return appointments.sort((a, b) => {
+      // First, compare by appointment date
+      const dateA = new Date(a.timeSlot?.date || 0);
+      const dateB = new Date(b.timeSlot?.date || 0);
+      
+      if (dateA.getTime() !== dateB.getTime()) {
+        return dateA - dateB; // Sort by date (ascending)
+      }
+      
+      // If dates are the same, compare by the first showtime's time
+      const timeA = a.showtimes && a.showtimes.length > 0 ? new Date(a.showtimes[0].date || 0) : new Date(0);
+      const timeB = b.showtimes && b.showtimes.length > 0 ? new Date(b.showtimes[0].date || 0) : new Date(0);
+      
+      return timeA - timeB; // Sort by time (ascending)
+    });
+  };
+
+
+
   const fetchAppointments = async () => {
     try {
       setLoading(true);
       const response = await api.get(`/appoint/appointments/${user.email}`);
       
       if (response.data.success) {
-        setCurrentAppointments(response.data.currentAppointments || []);
-        setPastAppointments(response.data.pastAppointments || []);
+        // Sort both current and past appointments
+        const sortedCurrent = sortAppointmentsByDateTime(response.data.currentAppointments || []);
+        const sortedPast = sortAppointmentsByDateTime(response.data.pastAppointments || []);
+        
+        setCurrentAppointments(sortedCurrent);
+        setPastAppointments(sortedPast);
       } else {
         throw new Error(response.data.message || 'Failed to fetch appointments');
       }
@@ -234,19 +259,19 @@ const CustomerDashboard = () => {
 
         {/* Appointment Details Row with Cancel Button */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-4 p-4 bg-gray-50 rounded-lg">
-          {/* Appointment Date */}
-          <div className="text-center">
-            <p className="text-sm text-gray-600 font-medium mb-1">Appointment Date</p>
-            <p className="font-semibold text-gray-800">
-              {appointment.timeSlot?.date ? formatDate(appointment.timeSlot.date) : 'N/A'}
-            </p>
-          </div>
-
           {/* Booked On */}
           <div className="text-center">
             <p className="text-sm text-gray-600 font-medium mb-1">Booked On</p>
             <p className="font-semibold text-gray-800">
               {formatDateTime(appointment.bookedAt)}
+            </p>
+          </div>
+
+          {/* Appointment Date */}
+          <div className="text-center">
+            <p className="text-sm text-gray-600 font-medium mb-1">Appointment Date</p>
+            <p className="font-semibold text-gray-800">
+              {appointment.timeSlot?.date ? formatDate(appointment.timeSlot.date) : 'N/A'}
             </p>
           </div>
 
