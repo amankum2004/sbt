@@ -121,7 +121,7 @@ export const Footer = () => {
         <div className="container mx-auto max-w-7xl px-4">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-pink-200 text-sm mb-2 md:mb-0">
-              <FaCopyright className="inline mr-1" /> {new Date().getFullYear()} Salon Booking Time. All rights reserved.
+              <FaCopyright className="inline mr-1" /> {new Date().getFullYear()} SalonHub. All rights reserved.
             </p>
             <div className="flex space-x-4">
               <a href="/privacy-policy" className="text-pink-200 hover:text-white text-sm transition-colors">
