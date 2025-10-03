@@ -4,37 +4,78 @@ const OTP = require('@/models/user/otp-model');
 const User = require('@/models/user/user-model');
 const {mailOtp} = require('../../utils/mail')
 
-exports.userOTP=async (req, res) => {
 
-  const { email} = req.body;
+
+exports.userOTP = async (req, res) => {
+  const { email } = req.body;
+  
   try {
-    const user = await User.findOne({ email:email.toLowerCase() });
+    const user = await User.findOne({ email: email.toLowerCase() });
     if (user) {
       return res.status(401).json({ error: "User already exists please login" });
     }
-    
+
     const otp = otpGenerator.generate(6, {
       upperCaseAlphabets: false,
       lowerCaseAlphabets: false,
       specialChars: false
-    })
+    });
 
-    await OTP.create({ email: email.toLowerCase(), otp })
-    // res.status(200).json({ message: "User not found" });
-    await mailOtp(otp, email.toLowerCase())
+    // Save OTP in DB
+    await OTP.create({ email: email.toLowerCase(), otp });
+
+    // ✅ Respond immediately
     res.status(200).json({
       success: true,
-      message: 'OTP sent successfully'
-    })
-  }
-  catch(error){
-    console.error('Error sending OTP:', error)
+      message: "OTP generated successfully"
+    });
+
+    // 🚀 Send mail in background (non-blocking)
+    mailOtp(otp, email.toLowerCase())
+      .then(() => console.log("OTP email sent:", email))
+      .catch(err => console.error("Failed to send OTP email:", err));
+
+  } catch (error) {
+    console.error("Error generating OTP:", error);
     return res.status(500).json({
       success: false,
-      message: 'Failed to send OTP. Please try again later.'
+      message: "Failed to generate OTP. Please try again later."
     });
   }
 };
+
+
+// exports.userOTP=async (req, res) => {
+
+//   const { email} = req.body;
+//   try {
+//     const user = await User.findOne({ email:email.toLowerCase() });
+//     if (user) {
+//       return res.status(401).json({ error: "User already exists please login" });
+//     }
+    
+//     const otp = otpGenerator.generate(6, {
+//       upperCaseAlphabets: false,
+//       lowerCaseAlphabets: false,
+//       specialChars: false
+//     })
+
+//     await OTP.create({ email: email.toLowerCase(), otp })
+//     // res.status(200).json({ message: "User not found" });
+//     await mailOtp(otp, email.toLowerCase())
+//     res.status(200).json({
+//       success: true,
+//       message: 'OTP sent successfully'
+//     })
+//   }
+//   catch(error){
+//     console.error('Error sending OTP:', error)
+//     return res.status(500).json({
+//       success: false,
+//       message: 'Failed to send OTP. Please try again later.'
+//     });
+//   }
+// };
 
 // exports.userOTP1=async (req, res) => {
 

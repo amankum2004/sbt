@@ -75,7 +75,7 @@ export const Register = () => {
       console.error("Registration Error:", err);
       Swal.fire({
         title: "Error",
-        text: "Email already registered",
+        text: "Email/Phone already registered",
         icon: "error",
       });
     } finally {
