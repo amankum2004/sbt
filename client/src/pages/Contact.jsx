@@ -135,7 +135,7 @@ export const Contact = () => {
               </div>
 
               <div className="space-y-8">
-                <div className="flex items-start">
+                {/* <div className="flex items-start">
                   <div className="bg-white bg-opacity-20 p-3 rounded-full mr-4">
                     <FaMapMarkerAlt className="text-xl" />
                   </div>
@@ -147,7 +147,7 @@ export const Contact = () => {
                       India - 175005
                     </p>
                   </div>
-                </div>
+                </div> */}
 
                 <div className="flex items-start">
                   <div className="bg-white bg-opacity-20 p-3 rounded-full mr-4">
@@ -197,7 +197,7 @@ export const Contact = () => {
               </div>
 
               {/* Service Areas */}
-              <div className="mt-12">
+              {/* <div className="mt-12">
                 <h3 className="font-semibold mb-4 text-lg">Service Areas Across India</h3>
                 <div className="flex flex-wrap gap-2">
                   {["Delhi", "Mumbai", "Bangalore", "Chennai", "Kolkata", "Hyderabad", "Pune"].map((city) => (
@@ -209,7 +209,7 @@ export const Contact = () => {
                     +50 more cities
                   </span>
                 </div>
-              </div>
+              </div> */}
             </div>
 
             {/* Contact Form Section */}

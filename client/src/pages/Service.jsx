@@ -123,7 +123,7 @@ export const Service = () => {
     "Facial & Skin Care", 
     "Hair Coloring Services",
     "Waxing Services",
-    "Beard Grooming & Styling",
+    "Beard Grooming",
     "Hair Spa Treatment"
   ];
 
