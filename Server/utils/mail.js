@@ -43,8 +43,8 @@ const nodemailer = require('nodemailer');
 const transporter = nodemailer.createTransport({
   service: 'gmail', // or your preferred email service
   auth: {
-    user: 'sbthelp123@gmail.com',
-    pass: 'pigw wfcs pidv aibo',
+    user: process.env.EMAIL,
+    pass: process.env.PASSWORD,
   },
 });
 
@@ -53,8 +53,8 @@ async function sendConfirmationEmail(customerEmail, customerName, shopName, loca
   let transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-      user: 'sbthelp123@gmail.com',
-      pass: 'pigw wfcs pidv aibo',
+      user: process.env.EMAIL,
+      pass: process.env.PASSWORD,
     },
   });
 
@@ -101,8 +101,8 @@ Salon Booking Team`,
 //   let transporter = nodemailer.createTransport({
 //     service: 'gmail',
 //     auth: {
-//       user: 'sbthelp123@gmail.com',
-//       pass: 'pigw wfcs pidv aibo',
+//        user: process.env.EMAIL,
+//        pass: process.env.PASSWORD,
 //     },
 //   });
 
@@ -135,7 +135,7 @@ Salon Booking Team`,
 // Function to send email
 const sendPaymentSuccessEmail = (customerEmail, shopName, location, selectedTimeSlot) => {
   const mailOptions = {
-    from: 'sbthelp123@gmail.com', // sender address
+    from: process.env.EMAIL, // sender address
     to: customerEmail, // customer's email
     subject: 'Payment Successful - Salon Booking Confirmation',
     text: `Dear Customer,
@@ -164,6 +164,7 @@ Salon Booking Team`,
 };
 
 const mailOtp = async (otp, email, subject = 'OTP') => {
+  console.log("in mail otp");
   const mailOptions = {
     from: process.env.EMAIL,
     to: email,
@@ -171,7 +172,9 @@ const mailOtp = async (otp, email, subject = 'OTP') => {
     text: `Your OTP is ${otp}`
   }
   // const transporter = transporterSingleton.getTransporter()
-  await transporter.sendMail(mailOptions)
+  console.log("before sending mail");
+  await transporter.sendMail(mailOptions);
+  console.log("after sending mail");
 }
 
 const sendDonationConfirmationEmail = async (name, email, amount, message) => {
@@ -180,8 +183,8 @@ const sendDonationConfirmationEmail = async (name, email, amount, message) => {
     let transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
-        user: 'sbthelp123@gmail.com',
-        pass: 'pigw wfcs pidv aibo',
+        user: process.env.EMAIL,
+        pass: process.env.PASSWORD,
       },
     });
 
