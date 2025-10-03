@@ -141,7 +141,7 @@ const Login = () => {
       {/* Login Form Container */}
       <div className="w-full max-w-md p-8 bg-gray-700 rounded-lg shadow-lg z-10">
         <div className="logo mb-3 text-center">
-          <img src="/images/salonify-logo.svg" alt="Logo" className="mx-auto w-20 rounded-full" />
+          <img src="/images/salonHub-logo.svg" alt="Logo" className="mx-auto w-20 rounded-full" />
         </div>
         <h1 className="text-white text-2xl font-bold text-center mb-1">Login</h1>
         <h4 className="text-gray-300 text-center mb-4">Please enter your details</h4>

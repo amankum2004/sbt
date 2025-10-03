@@ -211,6 +211,8 @@ router.post('/book-direct', async (req, res) => {
 
     // Extract data from the nested structure
     const shopId = shopDetails.shopId;
+    const shopName = shopDetails.shopName; // Extract shopName
+    const location = shopDetails.location; // Extract location
     
     // Since selectedTimeSlots is an array, handle multiple bookings or take the first one
     const firstTimeSlot = selectedTimeSlots[0];
@@ -232,7 +234,9 @@ router.post('/book-direct', async (req, res) => {
       customerEmail,
       userId,
       serviceInfo,
-      totalAmount
+      totalAmount,
+      shopName,
+      location
     });
 
     // Validate extracted parameters
@@ -257,7 +261,8 @@ router.post('/book-direct', async (req, res) => {
       totalAmount
     );
 
-    // await sendConfirmationEmail(customerEmail, customerName, shopName, location, selectedTimeSlot);
+    // Now all variables are defined for the email function
+    await sendConfirmationEmail(customerEmail, customerName, shopName, location, selectedTimeSlots);
 
     console.log('Appointment created successfully:', appointment);
     

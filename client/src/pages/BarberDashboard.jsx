@@ -49,15 +49,97 @@ const BarberDashboard = () => {
     }
   };
 
+//   const fetchAppointments = async () => {
+//   try {
+//     const response = await api.get(`/appoint/barber-appointments/${user.shop._id}`);
+//     console.log('Appointments response:', response.data);
+//     if (response.data.success) {
+//       const allAppointments = response.data.appointments || [];
+      
+//       // Get current date and time
+//       const now = new Date();
+//       const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+//       const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+      
+//       // Separate appointments
+//       const currentAppts = [];
+//       const pastAppts = [];
+//       const todayAppts = [];
+      
+//       allAppointments.forEach(appointment => {
+//         const appointmentDate = appointment.timeSlot?.date;
+//         if (!appointmentDate) {
+//           pastAppts.push(appointment);
+//           return;
+//         }
+        
+//         // Create a Date object for the appointment's date and time
+//         let appointmentDateTime;
+//         if (appointment.showtimes && appointment.showtimes.length > 0 && appointment.showtimes[0].date) {
+//           appointmentDateTime = new Date(appointment.showtimes[0].date);
+//         } else {
+//           appointmentDateTime = new Date(appointmentDate);
+//         }
+        
+//         // Check if appointment is today
+//         const isToday = appointmentDateTime >= startOfToday && appointmentDateTime < endOfToday;
+        
+//         // Compare the full datetime (date + time)
+//         if (appointmentDateTime >= now && appointment.status !== 'cancelled') {
+//           currentAppts.push(appointment);
+//           if (isToday) {
+//             todayAppts.push(appointment);
+//           }
+//         } else {
+//           pastAppts.push(appointment);
+//           if (isToday) {
+//             todayAppts.push(appointment);
+//           }
+//         }
+//       });
+      
+//       setCurrentAppointments(currentAppts);
+//       setPastAppointments(pastAppts);
+//       setTodaysAppointments(todayAppts);
+//       setStats(response.data.stats || {});
+//       setShop(response.data.shop || {});
+//     }
+//   } catch (error) {
+//     console.error('Error fetching appointments:', error);
+//     Swal.fire({
+//       title: 'Error',
+//       text: 'Failed to load appointments',
+//       icon: 'error',
+//       confirmButtonText: 'OK'
+//     });
+//   }
+// };
+
   const fetchAppointments = async () => {
     try {
       const response = await api.get(`/appoint/barber-appointments/${user.shop._id}`);
       console.log('Appointments response:', response.data);
       if (response.data.success) {
-        setCurrentAppointments(response.data.currentAppointments || []);
-        setPastAppointments(response.data.pastAppointments || []);
-        setStats(response.data.stats || {});
-        setShop(response.data.shop || {});
+        const currentAppts = response.data.currentAppointments || [];
+        const pastAppts = response.data.pastAppointments || [];
+        const stats = response.data.stats || {};
+        const shop = response.data.shop || {};
+        
+        console.log('Setting appointments:', {
+          current: currentAppts.length,
+          past: pastAppts.length,
+          stats: stats,
+          shop: shop
+        });
+        
+        setCurrentAppointments(currentAppts);
+        setPastAppointments(pastAppts);
+        setStats(stats);
+        setShop(shop);
+        // setCurrentAppointments(response.data.currentAppointments || []);
+        // setPastAppointments(response.data.pastAppointments || []);
+        // setStats(response.data.stats || {});
+        // setShop(response.data.shop || {});
       }
     } catch (error) {
       console.error('Error fetching appointments:', error);
@@ -75,7 +157,11 @@ const BarberDashboard = () => {
       const response = await api.get(`/appoint/barber-appointments/${user.shop._id}/today`);
       console.log("Today's Appointments response:", response.data);
       if (response.data.success) {
-        setTodaysAppointments(response.data.appointments || []);
+        // Use todaysAppointments from your API response
+        const todayAppts = response.data.todaysAppointments || [];
+        console.log('Setting today appointments:', todayAppts.length);
+        setTodaysAppointments(todayAppts);
+        // setTodaysAppointments(response.data.appointments || []);
       }
     } catch (error) {
       console.error('Error fetching today\'s appointments:', error);
@@ -149,21 +235,49 @@ const BarberDashboard = () => {
     });
   };
 
-  const getStatusBadge = (status) => {
-    const statusConfig = {
-      confirmed: { color: 'bg-green-100 text-green-800', text: 'Confirmed' },
-      pending: { color: 'bg-yellow-100 text-yellow-800', text: 'Pending' },
-      cancelled: { color: 'bg-red-100 text-red-800', text: 'Cancelled' },
-      completed: { color: 'bg-blue-100 text-blue-800', text: 'Completed' }
-    };
+  const getStatusBadge = (status, appointmentDate, appointmentTime) => {
+  const now = new Date();
+  
+  // Create a combined datetime for the appointment
+  let appointmentDateTime;
+  if (appointmentTime) {
+    appointmentDateTime = new Date(appointmentTime);
+  } else if (appointmentDate) {
+    appointmentDateTime = new Date(appointmentDate);
+  } else {
+    appointmentDateTime = new Date(0); // Very old date
+  }
 
-    const config = statusConfig[status] || { color: 'bg-gray-100 text-gray-800', text: status };
-    return (
-      <span className={`px-3 py-1 rounded-full text-sm font-medium ${config.color}`}>
-        {config.text}
-      </span>
-    );
-  };
+  if (status === 'cancelled') {
+    return <span className="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-medium">Cancelled</span>;
+  }
+
+  if (appointmentDateTime < now) {
+    return <span className="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm font-medium">Completed</span>;
+  }
+
+  if (status === 'confirmed') {
+    return <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">Confirmed</span>;
+  }
+
+  return <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-medium">Pending</span>;
+};
+
+  // const getStatusBadge = (status) => {
+  //   const statusConfig = {
+  //     confirmed: { color: 'bg-green-100 text-green-800', text: 'Confirmed' },
+  //     pending: { color: 'bg-yellow-100 text-yellow-800', text: 'Pending' },
+  //     cancelled: { color: 'bg-red-100 text-red-800', text: 'Cancelled' },
+  //     completed: { color: 'bg-blue-100 text-blue-800', text: 'Completed' }
+  //   };
+
+  //   const config = statusConfig[status] || { color: 'bg-gray-100 text-gray-800', text: status };
+  //   return (
+  //     <span className={`px-3 py-1 rounded-full text-sm font-medium ${config.color}`}>
+  //       {config.text}
+  //     </span>
+  //   );
+  // };
 
   const getStatusOptions = (currentStatus) => {
     const allStatuses = [
@@ -232,10 +346,10 @@ const BarberDashboard = () => {
         <div className="flex items-center space-x-4">
           {/* Appointment Date & Time */}
           <div className="text-right">
-            <p className="text-sm font-medium text-gray-600">
+            <p className="text-sm font-semibold text-gray-600">
               {appointment.timeSlot?.date ? formatDate(appointment.timeSlot.date) : 'N/A'}
             </p>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm font-semibold text-black-500">
               {appointment.showtimes?.[0]?.date ? formatTime(appointment.showtimes[0].date) : 'N/A'}
             </p>
           </div>
@@ -264,11 +378,11 @@ const BarberDashboard = () => {
       </div>
 
       {/* Booked On - Small line below */}
-      <div className="mt-3 pt-3 border-t border-gray-100">
+      {/* <div className="mt-3 pt-3 border-t border-gray-100">
         <p className="text-sm text-gray-500">
           Booked on: {formatDateTime(appointment.bookedAt)}
         </p>
-      </div>
+      </div> */}
     </div>
   );
 

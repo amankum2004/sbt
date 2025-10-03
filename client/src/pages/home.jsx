@@ -22,7 +22,7 @@ export const Home = () => {
                         ) : (
                             " "
                         )}
-                        to Salonify!
+                        to SalonHub!
                     </h1>
                     <p className="text-gray-600 text-lg mb-6">
                         Discover the easiest way to book your salon appointments! Find the best salons, browse services, and book your perfect time slot — all in just a few clicks.
