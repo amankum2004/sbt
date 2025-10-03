@@ -189,7 +189,7 @@ const sendDonationConfirmationEmail = async (name, email, amount, message) => {
     });
 
     const mailOptions = {
-      from: process.env.EMAIL_FROM,
+      from: process.env.EMAIL,
       to: email,
       subject: 'Thank You for Your Environmental Donation 🌱',
       html: `
