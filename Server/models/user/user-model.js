@@ -28,7 +28,7 @@ const UserSchema = new mongoose.Schema({
 }, {timestamps: true});
 
 // Add index for phone field for faster queries
-UserSchema.index({ phone: 1 });
+// UserSchema.index({ phone: 1 });
 
 const User = mongoose.model('User', UserSchema);
 module.exports = User;
