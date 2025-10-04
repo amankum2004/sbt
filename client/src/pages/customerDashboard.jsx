@@ -18,36 +18,36 @@ const CustomerDashboard = () => {
   }, [user]);
 
   // Function to sort appointments by date and time
-  const sortAppointmentsByDateTime = (appointments) => {
+  const sortAppointmentsByDateTime = (appointments, isReverse = false) => {
     return appointments.sort((a, b) => {
-      // First, compare by appointment date
-      const dateA = new Date(a.timeSlot?.date || 0);
-      const dateB = new Date(b.timeSlot?.date || 0);
-      
-      if (dateA.getTime() !== dateB.getTime()) {
-        return dateA - dateB; // Sort by date (ascending)
-      }
-      
-      // If dates are the same, compare by the first showtime's time
-      const timeA = a.showtimes && a.showtimes.length > 0 ? new Date(a.showtimes[0].date || 0) : new Date(0);
-      const timeB = b.showtimes && b.showtimes.length > 0 ? new Date(b.showtimes[0].date || 0) : new Date(0);
-      
-      return timeA - timeB; // Sort by time (ascending)
+      // Use showtime date for comparison, fallback to timeSlot date
+      const getAppointmentDate = (appointment) => {
+        return appointment.showtimes && appointment.showtimes.length > 0
+          ? appointment.showtimes[0].date
+          : appointment.timeSlot?.date;
+      };
+
+      const dateA = new Date(getAppointmentDate(a) || 0);
+      const dateB = new Date(getAppointmentDate(b) || 0);
+
+      // For reverse order (most recent first), use dateB - dateA
+      // For normal order (chronological), use dateA - dateB
+      return isReverse ? dateB - dateA : dateA - dateB;
     });
   };
-
-
 
   const fetchAppointments = async () => {
     try {
       setLoading(true);
       const response = await api.get(`/appoint/appointments/${user.email}`);
-      
+
       if (response.data.success) {
-        // Sort both current and past appointments
-        const sortedCurrent = sortAppointmentsByDateTime(response.data.currentAppointments || []);
-        const sortedPast = sortAppointmentsByDateTime(response.data.pastAppointments || []);
-        
+        // Sort current appointments in chronological order (earliest first)
+        const sortedCurrent = sortAppointmentsByDateTime(response.data.currentAppointments || [], false);
+
+        // Sort past appointments in reverse chronological order (most recent first)
+        const sortedPast = sortAppointmentsByDateTime(response.data.pastAppointments || [], true);
+
         setCurrentAppointments(sortedCurrent);
         setPastAppointments(sortedPast);
       } else {
@@ -80,7 +80,7 @@ const CustomerDashboard = () => {
 
       if (result.isConfirmed) {
         await api.put(`/appoint/appointments/${appointmentId}/cancel`);
-        
+
         Swal.fire({
           title: 'Cancelled!',
           text: 'Your appointment has been cancelled.',
@@ -132,8 +132,14 @@ const CustomerDashboard = () => {
     });
   };
 
-  const getStatusBadge = (status, appointmentDate) => {
+  const getStatusBadge = (status, appointment) => {
     const now = new Date();
+
+    // Use the showtime date instead of timeSlot date for comparison
+    const appointmentDate = appointment.showtimes && appointment.showtimes[0]
+      ? appointment.showtimes[0].date
+      : appointment.timeSlot?.date;
+
     const appointmentDateTime = new Date(appointmentDate);
 
     if (status === 'cancelled') {
@@ -154,14 +160,14 @@ const CustomerDashboard = () => {
   // Function to generate Google Maps directions URL
   const getGoogleMapsUrl = (shop) => {
     if (!shop) return '#';
-    
+
     const { street, city, state, pin, lat, lng } = shop;
-    
+
     // If we have coordinates, use them for precise location
     if (lat && lng) {
       return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
     }
-    
+
     // Otherwise use address
     const address = `${street}, ${city}, ${state} ${pin}`;
     const encodedAddress = encodeURIComponent(address);
@@ -171,16 +177,16 @@ const CustomerDashboard = () => {
   // Function to format complete address
   const getCompleteAddress = (shop) => {
     if (!shop) return 'Location not available';
-    
+
     const { street, city, district, state, pin } = shop;
     const addressParts = [];
-    
+
     if (street) addressParts.push(street);
     if (city) addressParts.push(city);
     if (district && district !== city) addressParts.push(district);
     if (state) addressParts.push(state);
     if (pin) addressParts.push(pin);
-    
+
     return addressParts.length > 0 ? addressParts.join(', ') : 'Location not available';
   };
 
@@ -198,7 +204,7 @@ const CustomerDashboard = () => {
             <h3 className="text-xl font-semibold text-gray-800 mb-3">
               {shop?.shopname || 'Salon Name Not Available'}
             </h3>
-            
+
             <div className="space-y-2">
               {/* Shop Owner Name */}
               {shop?.name && (
@@ -211,7 +217,7 @@ const CustomerDashboard = () => {
                   </span>
                 </div>
               )}
-              
+
               {/* Contact Information */}
               {shop?.phone && (
                 <div className="flex items-center">
@@ -230,7 +236,7 @@ const CustomerDashboard = () => {
           <div className="flex-1 text-right">
             <div className="text-gray-600">
               <div className="flex items-center justify-end space-x-2 mb-2">
-                 <FaMapMarkerAlt className="text-xl text-blue-600 hover:text-blue-800" />
+                <FaMapMarkerAlt className="text-xl text-blue-600 hover:text-blue-800" />
                 <div>
                   <p className="mb-1 text-sm">{completeAddress}</p>
                   {completeAddress !== 'Location not available' && (
@@ -253,7 +259,7 @@ const CustomerDashboard = () => {
 
           {/* Status Badge */}
           <div className="ml-4">
-            {getStatusBadge(appointment.status, appointment.timeSlot?.date)}
+            {getStatusBadge(appointment.status, appointment)}
           </div>
         </div>
 
@@ -285,11 +291,10 @@ const CustomerDashboard = () => {
                     <span className="font-semibold text-gray-800">
                       {showtime.date ? formatTime(showtime.date) : 'N/A'}
                     </span>
-                    <span className={`px-2 py-1 rounded text-xs ${
-                      showtime.showtimeId?.is_booked 
-                        ? 'bg-green-100 text-green-800' 
+                    <span className={`px-2 py-1 rounded text-xs ${showtime.showtimeId?.is_booked
+                        ? 'bg-green-100 text-green-800'
                         : 'bg-gray-100 text-gray-800'
-                    }`}>
+                      }`}>
                       {/* {showtime.showtimeId?.is_booked ? 'Booked' : 'Available'} */}
                     </span>
                   </div>
@@ -342,21 +347,19 @@ const CustomerDashboard = () => {
           <div className="flex border-b border-gray-200">
             <button
               onClick={() => setActiveTab('current')}
-              className={`flex-1 py-4 px-6 text-center font-medium ${
-                activeTab === 'current'
+              className={`flex-1 py-4 px-6 text-center font-medium ${activeTab === 'current'
                   ? 'text-blue-600 border-b-2 border-blue-600'
                   : 'text-gray-500 hover:text-gray-700'
-              }`}
+                }`}
             >
-              Current Appointments ({currentAppointments.length})
+              Upcoming Appointments ({currentAppointments.length})
             </button>
             <button
               onClick={() => setActiveTab('history')}
-              className={`flex-1 py-4 px-6 text-center font-medium ${
-                activeTab === 'history'
+              className={`flex-1 py-4 px-6 text-center font-medium ${activeTab === 'history'
                   ? 'text-blue-600 border-b-2 border-blue-600'
                   : 'text-gray-500 hover:text-gray-700'
-              }`}
+                }`}
             >
               Appointment History ({pastAppointments.length})
             </button>
@@ -375,9 +378,9 @@ const CustomerDashboard = () => {
                 ) : (
                   <div>
                     {currentAppointments.map((appointment) => (
-                      <AppointmentCard 
-                        key={appointment._id} 
-                        appointment={appointment} 
+                      <AppointmentCard
+                        key={appointment._id}
+                        appointment={appointment}
                         isCurrent={true}
                       />
                     ))}
@@ -395,9 +398,9 @@ const CustomerDashboard = () => {
                 ) : (
                   <div>
                     {pastAppointments.map((appointment) => (
-                      <AppointmentCard 
-                        key={appointment._id} 
-                        appointment={appointment} 
+                      <AppointmentCard
+                        key={appointment._id}
+                        appointment={appointment}
                         isCurrent={false}
                       />
                     ))}
@@ -429,7 +432,7 @@ const CustomerDashboard = () => {
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Completed</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {pastAppointments.filter(apt => 
+                  {pastAppointments.filter(apt =>
                     new Date(apt.timeSlot?.date) < new Date() && apt.status !== 'cancelled'
                   ).length}
                 </p>

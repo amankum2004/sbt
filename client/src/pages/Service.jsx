@@ -216,7 +216,7 @@ export const Service = () => {
                     ))}
                   </div>
                   <button className="w-full bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700 transition-colors font-medium">
-                    Book {service.title}
+                    {service.title}
                   </button>
                 </div>
               </motion.div>
@@ -240,7 +240,7 @@ export const Service = () => {
               </button> */}
             </div>
             <p className="text-sm mt-4 opacity-80">
-              ✅ 100+ Certified Salons ✅ Best Price Guarantee ✅ Instant Confirmation
+              ✅ Certified Salons ✅ Best Price Guarantee ✅ Instant Confirmation
             </p>
           </div>
 

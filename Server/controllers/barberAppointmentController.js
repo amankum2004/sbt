@@ -5,91 +5,6 @@ const User = require('../models/user/user-model');
 const mongoose = require('mongoose');
 
 // Get all appointments for barber's shop
-// exports.getBarberAppointments = async (req, res) => {
-//   try {
-//     const { shopId } = req.params;
-    
-//     console.log('=== SIMPLE QUERY ===');
-//     console.log('ShopId:', shopId);
-
-//     // Simple query without complex population that might fail
-//     const appointments = await Appointment.find({ shopId: shopId })
-//       .populate('shopId', 'shopname city address')
-//       .populate('userId', 'name email phone')
-//       .lean(); // Use lean() for better performance
-
-//     console.log('Found appointments:', appointments.length);
-
-//     // If we have appointments but no timeSlot data, fetch it separately
-//     const appointmentsWithTimeSlots = await Promise.all(
-//       appointments.map(async (apt) => {
-//         if (apt.timeSlot) {
-//           const timeSlot = await TimeSlot.findById(apt.timeSlot).select('date').lean();
-//           return {
-//             ...apt,
-//             timeSlot: timeSlot
-//           };
-//         }
-//         return apt;
-//       })
-//     );
-
-//     // Separate current and past appointments
-//     const now = new Date();
-//     const currentAppointments = [];
-//     const pastAppointments = [];
-
-//     appointmentsWithTimeSlots.forEach(appointment => {
-//       const appointmentDate = appointment.timeSlot?.date;
-      
-//       if (appointmentDate && new Date(appointmentDate) >= now && appointment.status !== 'cancelled') {
-//         currentAppointments.push(appointment);
-//       } else {
-//         pastAppointments.push(appointment);
-//       }
-//     });
-
-//     // Sort by date
-//     currentAppointments.sort((a, b) => new Date(a.timeSlot?.date) - new Date(b.timeSlot?.date));
-//     pastAppointments.sort((a, b) => new Date(b.timeSlot?.date) - new Date(a.timeSlot?.date));
-
-//     const stats = {
-//       total: appointments.length,
-//       upcoming: currentAppointments.length,
-//       completed: pastAppointments.filter(apt => apt.status !== 'cancelled').length,
-//       cancelled: appointments.filter(apt => apt.status === 'cancelled').length,
-//       today: appointments.filter(apt => {
-//         const aptDate = apt.timeSlot?.date;
-//         return aptDate && 
-//                new Date(aptDate).toDateString() === now.toDateString() && 
-//                apt.status !== 'cancelled';
-//       }).length
-//     };
-
-//     const shop = await Shop.findById(shopId);
-
-//     res.status(200).json({
-//       success: true,
-//       currentAppointments,
-//       pastAppointments,
-//       stats,
-//       shop: shop ? {
-//         name: shop.shopname,
-//         city: shop.city,
-//         address: shop.address
-//       } : {}
-//     });
-
-//   } catch (error) {
-//     console.error('Error in simple query:', error);
-//     res.status(500).json({ 
-//       success: false,
-//       error: 'Failed to fetch appointments',
-//       details: error.message 
-//     });
-//   }
-// };
-
 exports.getBarberAppointments = async (req, res) => {
   try {
     const { shopId } = req.params;
@@ -104,66 +19,36 @@ exports.getBarberAppointments = async (req, res) => {
       });
     }
 
-    // First, let's do a simple query without population to verify we find the appointments
-    const simpleAppointments = await Appointment.find({ shopId: shopId });
-    console.log('Simple query result (no population):', simpleAppointments.length);
-    console.log('Simple appointments:', simpleAppointments.map(apt => ({
-      _id: apt._id,
-      shopId: apt.shopId,
-      customerEmail: apt.customerEmail,
-      status: apt.status
-    })));
+    const fullAppointments = await Appointment.find({ shopId: shopId })
+      .populate('shopId', 'shopname city address phone email')
+      .populate('timeSlot', 'date')
+      .populate('userId', 'name email phone');
 
-    // If simple query works but populated query doesn't, the issue is with population
-    if (simpleAppointments.length > 0) {
-      console.log('Simple query found appointments. Now trying with population...');
-      
-      // Try population step by step
-      const appointmentsWithShop = await Appointment.find({ shopId: shopId })
-        .populate('shopId', 'shopname city address phone email');
-      console.log('With shop population:', appointmentsWithShop.length);
-
-      const appointmentsWithShopAndTimeSlot = await Appointment.find({ shopId: shopId })
-        .populate('shopId', 'shopname city address phone email')
-        .populate('timeSlot', 'date');
-      console.log('With shop and timeslot population:', appointmentsWithShopAndTimeSlot.length);
-
-      const fullAppointments = await Appointment.find({ shopId: shopId })
-        .populate('shopId', 'shopname city address phone email')
-        .populate('timeSlot', 'date')
-        .populate('userId', 'name email phone')
-        .sort({ 'timeSlot.date': 1, 'showtimes.date': 1 });
-        // .sort({ bookedAt: -1 });
-
-      console.log('Full population result:', fullAppointments.length);
-
-      // Use the fully populated appointments
-      var appointments = fullAppointments;
-    } else {
-      console.log('No appointments found even with simple query');
-      var appointments = [];
-    }
+    console.log('Full population result:', fullAppointments.length);
 
     const now = new Date();
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
 
-    // Separate current and past appointments
-    const currentAppointments = [];
-    const pastAppointments = [];
+    console.log('Time references:', {
+      now: now.toLocaleString(),
+      startOfToday: startOfToday.toLocaleString(),
+      endOfToday: endOfToday.toLocaleString()
+    });
+
+    // Separate appointments based on STATUS, not time
     const todaysAppointments = [];
+    const upcomingAppointments = [];
+    const pastAppointments = [];
 
-    // const now = new Date();
-    console.log('Current date:', now);
-
-    appointments.forEach(appointment => {
+    fullAppointments.forEach(appointment => {
       const appointmentDate = appointment.timeSlot?.date;
       if (!appointmentDate) {
         pastAppointments.push(appointment);
         return;
       }
 
-      // Use showtime date if available
+      // Use showtime date if available, otherwise use timeSlot date
       let appointmentDateTime;
       if (appointment.showtimes && appointment.showtimes.length > 0 && appointment.showtimes[0].date) {
         appointmentDateTime = new Date(appointment.showtimes[0].date);
@@ -171,101 +56,98 @@ exports.getBarberAppointments = async (req, res) => {
         appointmentDateTime = new Date(appointmentDate);
       }
 
-      // Check if appointment is today
-      const isToday = appointmentDateTime >= startOfToday && appointmentDateTime < endOfToday;
+      console.log('Processing appointment:', {
+        customer: appointment.userId?.name,
+        appointmentTime: appointmentDateTime.toLocaleString(),
+        status: appointment.status,
+        isToday: appointmentDateTime >= startOfToday && appointmentDateTime < endOfToday
+      });
 
-      if (appointmentDateTime >= now && appointment.status !== 'cancelled') {
-        currentAppointments.push(appointment);
-      } else {
+      // Categorize based on STATUS first, then date for today/upcoming
+      if (appointment.status === 'completed' || appointment.status === 'cancelled') {
+        // Completed and cancelled appointments always go to history
         pastAppointments.push(appointment);
-      }
-
-      if (isToday) {
-        todaysAppointments.push(appointment);
+        console.log('-> Added to HISTORY (completed/cancelled)');
+      } else {
+        // For pending/confirmed appointments, check if they are today or upcoming
+        const isToday = appointmentDateTime >= startOfToday && appointmentDateTime < endOfToday;
+        
+        if (isToday) {
+          todaysAppointments.push(appointment);
+          console.log('-> Added to TODAY (confirmed/pending)');
+        } else if (appointmentDateTime >= now) {
+          upcomingAppointments.push(appointment);
+          console.log('-> Added to UPCOMING (future date)');
+        } else {
+          // If appointment time has passed but status is still confirmed/pending
+          todaysAppointments.push(appointment);
+          console.log('-> Added to TODAY (past time but not completed)');
+        }
       }
     });
-    
-    // appointments.forEach(appointment => {
-    //   const appointmentDate = appointment.timeSlot?.date;
-    //   console.log('Processing appointment:', {
-    //     _id: appointment._id,
-    //     appointmentDate: appointmentDate,
-    //     status: appointment.status
-    //   });
-      
-    //   if (appointmentDate) {
-    //     const aptDate = new Date(appointmentDate);
-    //     console.log('Appointment date object:', aptDate);
-    //     console.log('Is future?', aptDate >= now);
-        
-    //     if (aptDate >= now && appointment.status !== 'cancelled') {
-    //       currentAppointments.push(appointment);
-    //     } else {
-    //       pastAppointments.push(appointment);
-    //     }
-    //   } else {
-    //     // If no date, consider it past
-    //     pastAppointments.push(appointment);
-    //   }
-    // });
 
-    console.log('Current appointments count:', currentAppointments.length);
-    console.log('Past appointments count:', pastAppointments.length);
+    // Sort Today appointments chronologically (earliest first)
+    todaysAppointments.sort((a, b) => {
+      const getAppointmentDate = (appointment) => {
+        return appointment.showtimes && appointment.showtimes.length > 0 
+          ? appointment.showtimes[0].date 
+          : appointment.timeSlot?.date;
+      };
+      
+      const dateA = new Date(getAppointmentDate(a) || 0);
+      const dateB = new Date(getAppointmentDate(b) || 0);
+      return dateA - dateB; // Ascending order (earliest first)
+    });
+
+    // Sort Upcoming appointments chronologically (earliest first)
+    upcomingAppointments.sort((a, b) => {
+      const getAppointmentDate = (appointment) => {
+        return appointment.showtimes && appointment.showtimes.length > 0 
+          ? appointment.showtimes[0].date 
+          : appointment.timeSlot?.date;
+      };
+      
+      const dateA = new Date(getAppointmentDate(a) || 0);
+      const dateB = new Date(getAppointmentDate(b) || 0);
+      return dateA - dateB; // Ascending order (earliest first)
+    });
+
+    // Sort History appointments in reverse chronological order (most recent first)
+    pastAppointments.sort((a, b) => {
+      const getAppointmentDate = (appointment) => {
+        return appointment.showtimes && appointment.showtimes.length > 0 
+          ? appointment.showtimes[0].date 
+          : appointment.timeSlot?.date;
+      };
+      
+      const dateA = new Date(getAppointmentDate(a) || 0);
+      const dateB = new Date(getAppointmentDate(b) || 0);
+      return dateB - dateA; // Descending order (most recent first)
+    });
+
+    console.log('Categorized and sorted appointments:', {
+      today: todaysAppointments.length,
+      upcoming: upcomingAppointments.length,
+      past: pastAppointments.length
+    });
 
     // Calculate statistics
     const stats = {
-      total: appointments.length,
-      upcoming: currentAppointments.length,
-      completed: pastAppointments.filter(apt => apt.status !== 'cancelled').length,
-      cancelled: pastAppointments.filter(apt => apt.status === 'cancelled').length,
-      today: todaysAppointments.length
+      total: fullAppointments.length,
+      today: todaysAppointments.length,
+      upcoming: upcomingAppointments.length,
+      completed: pastAppointments.filter(apt => apt.status === 'completed').length,
+      cancelled: pastAppointments.filter(apt => apt.status === 'cancelled').length
     };
 
     res.status(200).json({
       success: true,
-      currentAppointments,
+      todaysAppointments,
+      upcomingAppointments,
       pastAppointments,
-      todaysAppointments, // Add this field
       stats,
       shop: await Shop.findById(shopId).select('name city address shopname')
     });
-    // const stats = {
-    //   total: appointments.length,
-    //   upcoming: currentAppointments.length,
-    //   completed: pastAppointments.filter(apt => apt.status !== 'cancelled').length,
-    //   cancelled: appointments.filter(apt => apt.status === 'cancelled').length,
-    //   today: appointments.filter(apt => {
-    //     const aptDate = apt.timeSlot?.date;
-    //     if (!aptDate) return false;
-    //     const appointmentDate = new Date(aptDate);
-    //     const today = new Date();
-    //     return appointmentDate.toDateString() === today.toDateString() && 
-    //            apt.status !== 'cancelled';
-    //   }).length
-    // };
-
-    // console.log('Final stats:', stats);
-    // console.log('================================');
-
-    // // Get shop details
-    // const shop = await Shop.findById(shopId);
-
-    // res.status(200).json({
-    //   success: true,
-    //   currentAppointments,
-    //   pastAppointments,
-    //   stats,
-    //   shop: shop ? {
-    //     name: shop.shopname,
-    //     city: shop.city,
-    //     address: shop.address
-    //   } : {},
-    //   debug: {
-    //     simpleQueryCount: simpleAppointments.length,
-    //     fullQueryCount: appointments.length
-    //   }
-    // });
-
   } catch (error) {
     console.error('Error fetching barber appointments:', error);
     res.status(500).json({ 
@@ -298,12 +180,13 @@ exports.getTodaysAppointments = async (req, res) => {
       'timeSlot.date': {
         $gte: today,
         $lt: tomorrow
-      }
+      },
+      status: { $in: ['confirmed', 'pending'] } // Only show active appointments for today
     })
     .populate('shopId', 'shopname city address')
     .populate('timeSlot', 'date')
     .populate('userId', 'name email phone')
-    .sort({ 'showtimes.date': 1 });
+    .sort({ 'showtimes.date': 1 }); // Sort chronologically
 
     res.status(200).json({
       success: true,
@@ -326,18 +209,13 @@ exports.updateAppointmentStatus = async (req, res) => {
     const { appointmentId } = req.params;
     const { status } = req.body;
 
-    if (!appointmentId || !status) {
-      return res.status(400).json({ 
-        success: false,
-        error: 'Appointment ID and status are required' 
-      });
-    }
+    console.log('Updating appointment status:', { appointmentId, status });
 
-    const validStatuses = ['confirmed', 'pending', 'cancelled', 'completed'];
+    const validStatuses = ['pending', 'confirmed', 'completed', 'cancelled'];
     if (!validStatuses.includes(status)) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         success: false,
-        error: 'Invalid status. Must be: confirmed, pending, cancelled, or completed' 
+        error: 'Invalid status'
       });
     }
 
@@ -346,28 +224,34 @@ exports.updateAppointmentStatus = async (req, res) => {
       { status },
       { new: true }
     )
-    .populate('shopId', 'shopname city address')
+    .populate('shopId', 'shopname city address phone email')
     .populate('timeSlot', 'date')
     .populate('userId', 'name email phone');
 
     if (!appointment) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         success: false,
-        error: 'Appointment not found' 
+        error: 'Appointment not found'
       });
     }
 
+    console.log('Appointment status updated:', {
+      appointmentId,
+      newStatus: appointment.status,
+      customer: appointment.userId?.name
+    });
+
     res.status(200).json({
       success: true,
-      message: `Appointment ${status} successfully`,
+      message: `Appointment status updated to ${status}`,
       appointment
     });
 
   } catch (error) {
     console.error('Error updating appointment status:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
-      error: 'Failed to update appointment status' 
+      error: 'Failed to update appointment status'
     });
   }
 };
