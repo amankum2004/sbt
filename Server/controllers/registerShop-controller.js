@@ -6,19 +6,10 @@ const bcrypt = require("bcrypt")
 exports.registershop = async (req, res, next) => {
   try {
     const {
-      name,
-      email,
-      phone,
-      password,
-      shopname,
-      state,
-      district,
-      city,
-      street,
-      pin,
+      name,email,phone,password,
+      shopname,state,district,city,street,pin,
       services,
-      lat,
-      lng
+      lat,lng
     } = req.body;
 
     // Required fields for all cases
@@ -26,6 +17,20 @@ exports.registershop = async (req, res, next) => {
       'name', 'email', 'phone', 'shopname', 'state', 'district',
       'city', 'street', 'pin', 'services'
     ];
+
+        // Validate required fields including coordinates
+        if (!lat || !lng) {
+            return res.status(400).json({
+                message: "Shop location coordinates are required"
+            });
+        }
+
+                // Validate coordinate ranges
+        if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+            return res.status(400).json({
+                message: "Invalid coordinates provided"
+            });
+        }
 
     // Check for missing required fields
     for (const field of requiredFields) {
@@ -85,8 +90,8 @@ exports.registershop = async (req, res, next) => {
       street,
       pin,
       services,
-      lat,
-      lng,
+      lat: parseFloat(lat),
+      lng: parseFloat(lng),
       isApproved: !password // Auto-approve if created by admin (no password)
     });
 
@@ -99,7 +104,11 @@ exports.registershop = async (req, res, next) => {
         shopId: newShop._id,
         name: newShop.name,
         email: newShop.email,
-        isApproved: newShop.isApproved
+        isApproved: newShop.isApproved,
+        location: {
+          lat: newShop.lat,
+          lng: newShop.lng
+        }
       }
     });
 

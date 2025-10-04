@@ -10,10 +10,6 @@ const allowedLvl = (level) => {
   if (level === 'customer') {
     return ['admin', 'customer']
   }
-//   if (level === 'ticketvolunteer') {
-//     return ['admin', 'volunteer', 'movievolunteer', 'ticketvolunteer']
-//   }
-//   return ['admin', 'volunteer', 'movievolunteer', 'ticketvolunteer', 'standard']
 }
 
 const isAllowedLvl = (minLevel, usertype) =>
