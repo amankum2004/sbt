@@ -123,12 +123,51 @@ exports.getCustomerAppointments = async (req, res) => {
     const now = new Date();
 
     allAppointments.forEach(appointment => {
-      const appointmentDate = appointment.timeSlot?.date;
-      if (appointmentDate && new Date(appointmentDate) >= now && appointment.status !== 'cancelled') {
+      // Use the showtime date instead of timeSlot date for comparison
+      const appointmentShowtime = appointment.showtimes && appointment.showtimes[0];
+      const appointmentDate = appointmentShowtime?.date || appointment.timeSlot?.date;
+      
+      console.log('Processing appointment:', {
+        timeSlotDate: appointment.timeSlot?.date,
+        showtimeDate: appointmentShowtime?.date,
+        appointmentDateUsed: appointmentDate,
+        status: appointment.status
+      });
+
+      // If no date or cancelled, always go to past
+      if (!appointmentDate || appointment.status === 'cancelled') {
+        pastAppointments.push(appointment);
+        return;
+      }
+
+      // Create date object for appointment date
+      const appointmentDateTime = new Date(appointmentDate);
+      
+      console.log('Time comparison:', {
+        currentTime: now.toLocaleString(),
+        appointmentTime: appointmentDateTime.toLocaleString(),
+        appointmentUTC: appointmentDateTime.toISOString(),
+        isFuture: appointmentDateTime > now
+      });
+
+      // Simple comparison: if appointment datetime is in the future, it's current
+      if (appointmentDateTime > now) {
         currentAppointments.push(appointment);
+        console.log('-> Added to CURRENT appointments');
       } else {
         pastAppointments.push(appointment);
+        console.log('-> Added to PAST appointments');
       }
+    });
+
+    console.log('Final Categorization:', {
+      currentTime: now.toLocaleString(),
+      currentCount: currentAppointments.length,
+      pastCount: pastAppointments.length,
+      currentAppointments: currentAppointments.map(a => ({
+        date: a.showtimes?.[0]?.date || a.timeSlot?.date,
+        time: a.showtimes?.[0]?.date ? new Date(a.showtimes[0].date).toLocaleTimeString() : 'N/A'
+      }))
     });
 
     res.status(200).json({
@@ -146,6 +185,152 @@ exports.getCustomerAppointments = async (req, res) => {
     });
   }
 };
+
+
+
+// exports.getCustomerAppointments = async (req, res) => {
+//   try {
+//     const { customerEmail } = req.params;
+    
+//     if (!customerEmail) {
+//       return res.status(400).json({ 
+//         success: false,
+//         error: 'Customer email is required' 
+//       });
+//     }
+
+//     const aggregationPipeline = [
+//       {
+//         $match: { customerEmail: customerEmail }
+//       },
+//       {
+//         $lookup: {
+//           from: 'shops',
+//           localField: 'shopId',
+//           foreignField: '_id',
+//           as: 'shopId'
+//         }
+//       },
+//       {
+//         $unwind: '$shopId'
+//       },
+//       {
+//         $lookup: {
+//           from: 'timeslots',
+//           localField: 'timeSlot',
+//           foreignField: '_id',
+//           as: 'timeSlot'
+//         }
+//       },
+//       {
+//         $unwind: '$timeSlot'
+//       },
+//       {
+//         $lookup: {
+//           from: 'showtimes',
+//           localField: 'showtimes.showtimeId',
+//           foreignField: '_id',
+//           as: 'populatedShowtimes'
+//         }
+//       },
+//       {
+//         $addFields: {
+//           // Create full address from shop details
+//           'shopId.fullAddress': {
+//             $concat: [
+//               { $ifNull: ['$shopId.street', ''] }, ', ',
+//               { $ifNull: ['$shopId.city', ''] },
+//               { $cond: { 
+//                 if: { $and: ['$shopId.district', { $ne: ['$shopId.district', '$shopId.city'] }] }, 
+//                 then: { $concat: [', ', '$shopId.district'] }, 
+//                 else: '' 
+//               }},
+//               { $cond: { 
+//                 if: '$shopId.state', 
+//                 then: { $concat: [', ', '$shopId.state'] }, 
+//                 else: '' 
+//               }},
+//               { $cond: { 
+//                 if: '$shopId.pin', 
+//                 then: { $concat: [' - ', '$shopId.pin'] }, 
+//                 else: '' 
+//               }}
+//             ]
+//           },
+//           // Map showtimes with their populated data
+//           showtimes: {
+//             $map: {
+//               input: '$showtimes',
+//               as: 'st',
+//               in: {
+//                 $mergeObjects: [
+//                   '$$st',
+//                   {
+//                     showtimeId: {
+//                       $arrayElemAt: [
+//                         {
+//                           $filter: {
+//                             input: '$populatedShowtimes',
+//                             as: 'pst',
+//                             cond: { $eq: ['$$pst._id', '$$st.showtimeId'] }
+//                           }
+//                         },
+//                         0
+//                       ]
+//                     }
+//                   }
+//                 ]
+//               }
+//             }
+//           }
+//         }
+//       },
+//       {
+//         $project: {
+//           populatedShowtimes: 0
+//         }
+//       },
+//       {
+//         $facet: {
+//           allAppointments: [
+//             { $sort: { bookedAt: -1 } }
+//           ]
+//         }
+//       }
+//     ];
+
+//     const result = await Appointment.aggregate(aggregationPipeline);
+//     const allAppointments = result[0]?.allAppointments || [];
+
+//     // Separate current and past appointments
+//     const currentAppointments = [];
+//     const pastAppointments = [];
+//     const now = new Date();
+
+//     allAppointments.forEach(appointment => {
+//       const appointmentDate = appointment.timeSlot?.date;
+//       if (appointmentDate && new Date(appointmentDate) >= now && appointment.status !== 'cancelled') {
+//         currentAppointments.push(appointment);
+//       } else {
+//         pastAppointments.push(appointment);
+//       }
+//     });
+
+//     res.status(200).json({
+//       success: true,
+//       currentAppointments,
+//       pastAppointments,
+//       totalAppointments: allAppointments.length
+//     });
+
+//   } catch (error) {
+//     console.error('Error fetching customer appointments:', error);
+//     res.status(500).json({ 
+//       success: false,
+//       error: 'Failed to fetch appointments' 
+//     });
+//   }
+// };
 
 
 // exports.getCustomerAppointments = async (req, res) => {

@@ -56,6 +56,7 @@ const transporter = nodemailer.createTransport({
 // Appointment Booking Confirmation Email
 // ==========================================
 async function sendConfirmationEmail(customerEmail, customerName, shopName, location, selectedTimeSlots) {
+  console.log("from send confirmation email");
   let transporter = nodemailer.createTransport({
     host: process.env.BREVO_HOST,
     port: process.env.BREVO_PORT,
@@ -102,7 +103,7 @@ async function sendConfirmationEmail(customerEmail, customerName, shopName, loca
     // }
 
   const mailOptions = {
-    from: '"Salon Booking Time" sbthelp123@gmail.com',
+    from: process.env.BREVO_EMAIL, // sender address
     to: customerEmail,
     subject: 'Appointment Booking Confirmation',
     text: `Dear ${customerName},
@@ -115,7 +116,7 @@ async function sendConfirmationEmail(customerEmail, customerName, shopName, loca
   Thank you for choosing us!
 
   Best regards,
-  Salon Booking Team`,
+  Salon Hub Team`,
   };
 
   try {

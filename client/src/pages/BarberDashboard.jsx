@@ -17,39 +17,28 @@ const BarberDashboard = () => {
   const [shopId, setShopId] = useState('');
   const [shopStatus, setShopStatus] = useState('');
   const [checkingShopStatus, setCheckingShopStatus] = useState(true); // Add loading state for shop check
-
-  const fetchBarberData = async () => {
-    try {
-      setLoading(true);
-      await Promise.all([
-        fetchAppointments(),
-        fetchTodaysAppointments()
-      ]);
-    } catch (error) {
-      console.error('Error fetching barber data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  
   const fetchAppointments = async () => {
     try {
       const response = await api.get(`/appoint/barber-appointments/${user.shop._id}`);
       console.log('Appointments response:', response.data);
       if (response.data.success) {
-        const currentAppts = response.data.currentAppointments || [];
+        const todaysAppts = response.data.todaysAppointments || [];
+        const upcomingAppts = response.data.upcomingAppointments || []; // Changed from currentAppointments
         const pastAppts = response.data.pastAppointments || [];
         const stats = response.data.stats || {};
         const shop = response.data.shop || {};
         
         console.log('Setting appointments:', {
-          current: currentAppts.length,
+          today: todaysAppts.length,
+          upcoming: upcomingAppts.length,
           past: pastAppts.length,
           stats: stats,
           shop: shop
         });
         
-        setCurrentAppointments(currentAppts);
+        setTodaysAppointments(todaysAppts);
+        setCurrentAppointments(upcomingAppts); // This now contains only upcoming (tomorrow+)
         setPastAppointments(pastAppts);
         setStats(stats);
         setShop(shop);
@@ -62,6 +51,36 @@ const BarberDashboard = () => {
         icon: 'error',
         confirmButtonText: 'OK'
       });
+    }
+  };
+  
+  const fetchTodaysAppointments = async () => {
+    try {
+      const response = await api.get(`/appoint/barber-appointments/${user.shop._id}/today`);
+      console.log("Today's Appointments response:", response.data);
+      if (response.data.success) {
+        // Use todaysAppointments from your API response
+        const todayAppts = response.data.todaysAppointments || [];
+        console.log('Setting today appointments:', todayAppts.length);
+        setTodaysAppointments(todayAppts);
+        // setTodaysAppointments(response.data.appointments || []);
+      }
+    } catch (error) {
+      console.error('Error fetching today\'s appointments:', error);
+    }
+  };
+
+  const fetchBarberData = async () => {
+    try {
+      setLoading(true);
+      await Promise.all([
+        fetchAppointments(),
+        fetchTodaysAppointments()
+      ]);
+    } catch (error) {
+      console.error('Error fetching barber data:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -148,24 +167,6 @@ const BarberDashboard = () => {
     );
   }
 
-
-
-  const fetchTodaysAppointments = async () => {
-    try {
-      const response = await api.get(`/appoint/barber-appointments/${user.shop._id}/today`);
-      console.log("Today's Appointments response:", response.data);
-      if (response.data.success) {
-        // Use todaysAppointments from your API response
-        const todayAppts = response.data.todaysAppointments || [];
-        console.log('Setting today appointments:', todayAppts.length);
-        setTodaysAppointments(todayAppts);
-        // setTodaysAppointments(response.data.appointments || []);
-      }
-    } catch (error) {
-      console.error('Error fetching today\'s appointments:', error);
-    }
-  };
-
   const updateAppointmentStatus = async (appointmentId, newStatus) => {
     try {
       const result = await Swal.fire({
@@ -222,44 +223,22 @@ const BarberDashboard = () => {
     });
   };
 
-  const formatDateTime = (dateString) => {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+  const getStatusBadge = (status) => {
+    // Remove time-based logic, only use status
+    if (status === 'cancelled') {
+      return <span className="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-medium">Cancelled</span>;
+    }
+
+    if (status === 'completed') {
+      return <span className="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm font-medium">Completed</span>;
+    }
+
+    if (status === 'confirmed') {
+      return <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">Confirmed</span>;
+    }
+
+    return <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-medium">Pending</span>;
   };
-
-  const getStatusBadge = (status, appointmentDate, appointmentTime) => {
-  const now = new Date();
-  
-  // Create a combined datetime for the appointment
-  let appointmentDateTime;
-  if (appointmentTime) {
-    appointmentDateTime = new Date(appointmentTime);
-  } else if (appointmentDate) {
-    appointmentDateTime = new Date(appointmentDate);
-  } else {
-    appointmentDateTime = new Date(0); // Very old date
-  }
-
-  if (status === 'cancelled') {
-    return <span className="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-medium">Cancelled</span>;
-  }
-
-  if (appointmentDateTime < now) {
-    return <span className="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm font-medium">Completed</span>;
-  }
-
-  if (status === 'confirmed') {
-    return <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">Confirmed</span>;
-  }
-
-  return <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-medium">Pending</span>;
-};
 
   const getStatusOptions = (currentStatus) => {
     const allStatuses = [
