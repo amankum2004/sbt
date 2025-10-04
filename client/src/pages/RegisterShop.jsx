@@ -166,8 +166,7 @@ export const RegisterShop = () => {
         
         const requiredFields = [
             'name', 'email', 'phone', 'shopname', 'state', 'district', 
-            'city', 'street', 'pin', 'bankname', 'bankbranch', 
-            'ifsc', 'micr', 'account'
+            'city', 'street', 'pin', 'services'
         ];
         
         // Add password only for shop owners
@@ -419,7 +418,7 @@ export const RegisterShop = () => {
                         </div>
                         
                         {/* Bank Details Section */}
-                        <div className="bg-blue-50 rounded-xl p-6 sm:p-8">
+                        {/* <div className="bg-blue-50 rounded-xl p-6 sm:p-8">
                             <div className="flex items-center mb-6">
                                 <div className="bg-blue-100 rounded-full p-3 mr-4">
                                     <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -498,7 +497,7 @@ export const RegisterShop = () => {
                                     />
                                 </div>
                             </div>
-                        </div>
+                        </div> */}
 
                         {/* Services Section */}
                         <div className="bg-green-50 rounded-xl p-6 sm:p-8">

@@ -48,7 +48,8 @@ export const AdminShops = () => {
                     <table className="w-full border-collapse">
                         <thead>
                             <tr className="bg-gray-800 text-white">
-                                <th className="py-3 px-4 text-left uppercase text-sm font-semibold">Name</th>
+                                <th className="py-3 px-4 text-left uppercase text-sm font-semibold">Shop name</th>
+                                <th className="py-3 px-4 text-left uppercase text-sm font-semibold">Owner name</th>
                                 <th className="py-3 px-4 text-left uppercase text-sm font-semibold">Email</th>
                                 <th className="py-3 px-4 text-left uppercase text-sm font-semibold">Phone</th>
                                 <th className="py-3 px-4 text-left uppercase text-sm font-semibold">Update</th>
@@ -58,6 +59,7 @@ export const AdminShops = () => {
                         <tbody>
                             {shop.map((curShop, index) => (
                                 <tr key={index} className="border-b hover:bg-gray-100">
+                                    <td className="py-3 px-4 text-gray-700">{curShop.shopname}</td>
                                     <td className="py-3 px-4 text-gray-700">{curShop.name}</td>
                                     <td className="py-3 px-4 text-gray-700">{curShop.email}</td>
                                     <td className="py-3 px-4 text-gray-700">{curShop.phone}</td>

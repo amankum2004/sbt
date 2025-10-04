@@ -114,6 +114,7 @@ const updateShopById = async(req,res) => {
     try {
         const id = req.params.id;
         const updatedShopData = req.body;
+        // console.log("from admin controller before updating ",updatedShopData);
         const updatedData = await Shop.updateOne({_id:id},{$set: updatedShopData});
         return res.status(200).json(updatedData);
     } catch (error) {
