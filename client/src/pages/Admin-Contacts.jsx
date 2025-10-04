@@ -24,7 +24,7 @@ export const AdminContacts = () => {
     // DEFINING THE FUNCTION deleteContactById
     const deleteContactById = async (id) => {
         try {
-            const response = await api.delete(`http://localhost:8000/api/admin/contacts/delete/${id}`)
+            const response = await api.delete(`/admin/contacts/delete/${id}`)
 
             if (response.ok) {
                 getContactsData();

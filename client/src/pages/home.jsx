@@ -47,7 +47,7 @@ export const Home = () => {
                             ) : (
                                 " "
                             )}
-                            to SalonHub - Book Salon Services Online in India
+                            to SalonHub - Book Salon Appointment Online 
                         </h1>
                         <p className="text-gray-600 text-lg mb-6">
                             Discover the easiest way to <strong>book salon appointments online</strong>! 

@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useLogin } from '../components/LoginContext';
 import { api } from '../utils/api';
 import Swal from 'sweetalert2';
+import {useNavigate} from 'react-router-dom'
 
 const BarberDashboard = () => {
   const { user } = useLogin();
+  const navigate = useNavigate();
   const [currentAppointments, setCurrentAppointments] = useState([]);
   const [pastAppointments, setPastAppointments] = useState([]);
   const [todaysAppointments, setTodaysAppointments] = useState([]);
@@ -13,27 +15,8 @@ const BarberDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('today');
   const [shopId, setShopId] = useState('');
-
-  useEffect(() => {
-    if (user) {
-      console.log('User data:', user);
-      console.log('User shop ID:', user.shop?._id);
-      console.log('User shop object:', user.shop);
-      
-      if (user.shop?._id) {
-        setShopId(user.shop._id);
-        fetchBarberData();
-      } else {
-        console.error('No shop found in user data');
-        Swal.fire({
-          title: 'Error',
-          text: 'No shop associated with your account. Please contact support.',
-          icon: 'error',
-          confirmButtonText: 'OK'
-        });
-      }
-    }
-  }, [user]);
+  const [shopStatus, setShopStatus] = useState('');
+  const [checkingShopStatus, setCheckingShopStatus] = useState(true); // Add loading state for shop check
 
   const fetchBarberData = async () => {
     try {
@@ -48,72 +31,6 @@ const BarberDashboard = () => {
       setLoading(false);
     }
   };
-
-//   const fetchAppointments = async () => {
-//   try {
-//     const response = await api.get(`/appoint/barber-appointments/${user.shop._id}`);
-//     console.log('Appointments response:', response.data);
-//     if (response.data.success) {
-//       const allAppointments = response.data.appointments || [];
-      
-//       // Get current date and time
-//       const now = new Date();
-//       const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-//       const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
-      
-//       // Separate appointments
-//       const currentAppts = [];
-//       const pastAppts = [];
-//       const todayAppts = [];
-      
-//       allAppointments.forEach(appointment => {
-//         const appointmentDate = appointment.timeSlot?.date;
-//         if (!appointmentDate) {
-//           pastAppts.push(appointment);
-//           return;
-//         }
-        
-//         // Create a Date object for the appointment's date and time
-//         let appointmentDateTime;
-//         if (appointment.showtimes && appointment.showtimes.length > 0 && appointment.showtimes[0].date) {
-//           appointmentDateTime = new Date(appointment.showtimes[0].date);
-//         } else {
-//           appointmentDateTime = new Date(appointmentDate);
-//         }
-        
-//         // Check if appointment is today
-//         const isToday = appointmentDateTime >= startOfToday && appointmentDateTime < endOfToday;
-        
-//         // Compare the full datetime (date + time)
-//         if (appointmentDateTime >= now && appointment.status !== 'cancelled') {
-//           currentAppts.push(appointment);
-//           if (isToday) {
-//             todayAppts.push(appointment);
-//           }
-//         } else {
-//           pastAppts.push(appointment);
-//           if (isToday) {
-//             todayAppts.push(appointment);
-//           }
-//         }
-//       });
-      
-//       setCurrentAppointments(currentAppts);
-//       setPastAppointments(pastAppts);
-//       setTodaysAppointments(todayAppts);
-//       setStats(response.data.stats || {});
-//       setShop(response.data.shop || {});
-//     }
-//   } catch (error) {
-//     console.error('Error fetching appointments:', error);
-//     Swal.fire({
-//       title: 'Error',
-//       text: 'Failed to load appointments',
-//       icon: 'error',
-//       confirmButtonText: 'OK'
-//     });
-//   }
-// };
 
   const fetchAppointments = async () => {
     try {
@@ -136,10 +53,6 @@ const BarberDashboard = () => {
         setPastAppointments(pastAppts);
         setStats(stats);
         setShop(shop);
-        // setCurrentAppointments(response.data.currentAppointments || []);
-        // setPastAppointments(response.data.pastAppointments || []);
-        // setStats(response.data.stats || {});
-        // setShop(response.data.shop || {});
       }
     } catch (error) {
       console.error('Error fetching appointments:', error);
@@ -151,6 +64,91 @@ const BarberDashboard = () => {
       });
     }
   };
+
+  useEffect(() => {
+    const checkShopStatus = async () => {
+      if (user) {
+        // console.log('User data:', user);
+        // console.log('User shop ID:', user.shop?._id);
+        // console.log('User shop object:', user.shop);
+        
+        if (user.shop?._id) {
+          setShopId(user.shop._id);
+          
+          try {
+            // Fetch the latest shop data to get current status
+            const shopRes = await api.get(`/shop/by-email/${user.email}`);
+            const latestShopData = shopRes.data;
+            
+            // console.log('Latest shop data:', latestShopData);
+            const isApproved = latestShopData?.isApproved || false;
+            setShopStatus(isApproved ? 'approved' : 'pending');
+            setShop(latestShopData);
+            
+            // Only fetch barber data if shop is approved
+            if (isApproved) {
+              await fetchBarberData();
+            } else {
+              setLoading(false);
+            }
+          } catch (error) {
+            console.error('Error fetching shop data:', error);
+            setShopStatus('pending');
+            setLoading(false);
+          }
+        } else {
+          console.error('No shop found in user data');
+          setShopStatus('none');
+          setLoading(false);
+        }
+      }
+      setCheckingShopStatus(false);
+    };
+
+    checkShopStatus();
+  }, [user, navigate]);
+
+  // Show loading while checking shop status
+  if (checkingShopStatus) {
+    return (
+      <div className="flex justify-center items-center h-screen bg-gray-100">
+        <div className="text-xl text-gray-700 flex items-center">
+          <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          Checking shop status...
+        </div>
+      </div>
+    );
+  }
+
+  // Show shop status message if not approved
+  if (shopStatus && shopStatus !== "approved") {
+    return (
+      <div className="flex justify-center items-center h-screen bg-gray-100">
+        <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full text-center">
+          <div className="text-yellow-500 text-6xl mb-4">⏳</div>
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">
+            {shopStatus === "pending" ? "Shop Under Review" : "Shop Not Approved"}
+          </h2>
+          <p className="text-gray-600 mb-6">
+            {shopStatus === "pending" 
+              ? "Your shop registration is under review. Please wait for approval to access the dashboard."
+              : "Your shop registration was not approved. Please contact support for more information."}
+          </p>
+          <button
+            onClick={() => navigate('/')}
+            className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition duration-200"
+          >
+            Go to Home
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+
 
   const fetchTodaysAppointments = async () => {
     try {
@@ -262,22 +260,6 @@ const BarberDashboard = () => {
 
   return <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-medium">Pending</span>;
 };
-
-  // const getStatusBadge = (status) => {
-  //   const statusConfig = {
-  //     confirmed: { color: 'bg-green-100 text-green-800', text: 'Confirmed' },
-  //     pending: { color: 'bg-yellow-100 text-yellow-800', text: 'Pending' },
-  //     cancelled: { color: 'bg-red-100 text-red-800', text: 'Cancelled' },
-  //     completed: { color: 'bg-blue-100 text-blue-800', text: 'Completed' }
-  //   };
-
-  //   const config = statusConfig[status] || { color: 'bg-gray-100 text-gray-800', text: status };
-  //   return (
-  //     <span className={`px-3 py-1 rounded-full text-sm font-medium ${config.color}`}>
-  //       {config.text}
-  //     </span>
-  //   );
-  // };
 
   const getStatusOptions = (currentStatus) => {
     const allStatuses = [
