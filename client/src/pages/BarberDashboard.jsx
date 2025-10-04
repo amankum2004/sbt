@@ -91,15 +91,15 @@ const BarberDashboard = () => {
         // console.log('User shop ID:', user.shop?._id);
         // console.log('User shop object:', user.shop);
         
-        if (user.shop?._id) {
-          setShopId(user.shop._id);
-          
+        // if (user.shop?._id) {
+        //   setShopId(user.shop._id);
           try {
             // Fetch the latest shop data to get current status
             const shopRes = await api.get(`/shop/by-email/${user.email}`);
             const latestShopData = shopRes.data;
-            
-            // console.log('Latest shop data:', latestShopData);
+            console.log('Latest shop data:', latestShopData);
+            setShopId(latestShopData._id);
+
             const isApproved = latestShopData?.isApproved || false;
             setShopStatus(isApproved ? 'approved' : 'pending');
             setShop(latestShopData);
@@ -112,14 +112,16 @@ const BarberDashboard = () => {
             }
           } catch (error) {
             console.error('Error fetching shop data:', error);
-            setShopStatus('pending');
+            // setShopStatus('pending');
+            setShopStatus('none');
             setLoading(false);
           }
-        } else {
-          console.error('No shop found in user data');
-          setShopStatus('none');
-          setLoading(false);
-        }
+        // } 
+        // else {
+          // console.error('No shop found in user data');
+          // setShopStatus('none');
+          // setLoading(false);
+        // }
       }
       setCheckingShopStatus(false);
     };
@@ -142,30 +144,83 @@ const BarberDashboard = () => {
     );
   }
 
-  // Show shop status message if not approved
-  if (shopStatus && shopStatus !== "approved") {
-    return (
-      <div className="flex justify-center items-center h-screen bg-gray-100">
-        <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full text-center">
-          <div className="text-yellow-500 text-6xl mb-4">⏳</div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">
-            {shopStatus === "pending" ? "Shop Under Review" : "Shop Not Approved"}
-          </h2>
-          <p className="text-gray-600 mb-6">
-            {shopStatus === "pending" 
-              ? "Your shop registration is under review. Please wait for approval to access the dashboard."
-              : "Your shop registration was not approved. Please contact support for more information."}
-          </p>
-          <button
-            onClick={() => navigate('/')}
-            className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition duration-200"
-          >
-            Go to Home
-          </button>
-        </div>
-      </div>
-    );
-  }
+  // Show shop status message if not approved or no shop exists
+    if (shopStatus && shopStatus !== "approved") {
+        let title, message, icon;
+        
+        switch (shopStatus) {
+            case "none":
+                title = "Shop Not Registered";
+                message = "You need to register your shop first before setting up time templates.";
+                icon = "🏪";
+                break;
+            case "pending":
+                title = "Shop Under Review";
+                message = "Your shop registration is under review. Please wait for approval to access this page.";
+                icon = "⏳";
+                break;
+            case "rejected":
+                title = "Shop Not Approved";
+                message = "Your shop registration was not approved. Please contact support for more information.";
+                icon = "❌";
+                break;
+            default:
+                title = "Shop Status Unknown";
+                message = "Unable to determine your shop status. Please contact support.";
+                icon = "❓";
+        }
+
+        return (
+            <div className="flex justify-center items-center h-screen bg-gray-100">
+                <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full text-center">
+                    <div className="text-6xl mb-4">{icon}</div>
+                    <h2 className="text-2xl font-bold text-gray-800 mb-4">{title}</h2>
+                    <p className="text-gray-600 mb-6">{message}</p>
+                    <div className="flex flex-col space-y-3">
+                        {shopStatus === "none" && (
+                            <button
+                                onClick={() => navigate('/registershop')}
+                                className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg transition duration-200"
+                            >
+                                Register Your Shop
+                            </button>
+                        )}
+                        <button
+                            onClick={() => navigate('/')}
+                            className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition duration-200"
+                        >
+                            Go to Home
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+
+  // if (shopStatus && shopStatus !== "approved") {
+  //   return (
+  //     <div className="flex justify-center items-center h-screen bg-gray-100">
+  //       <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full text-center">
+  //         <div className="text-yellow-500 text-6xl mb-4">⏳</div>
+  //         <h2 className="text-2xl font-bold text-gray-800 mb-4">
+  //           {shopStatus === "pending" ? "Shop Under Review" : "Shop Not Approved"}
+  //         </h2>
+  //         <p className="text-gray-600 mb-6">
+  //           {shopStatus === "pending" 
+  //             ? "Your shop registration is under review. Please wait for approval to access the dashboard."
+  //             : "Your shop registration was not approved. Please contact support for more information."}
+  //         </p>
+  //         <button
+  //           onClick={() => navigate('/')}
+  //           className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition duration-200"
+  //         >
+  //           Go to Home
+  //         </button>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   const updateAppointmentStatus = async (appointmentId, newStatus) => {
     try {

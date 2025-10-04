@@ -41,7 +41,7 @@ export default function Forget() {
     >
       <div className="w-full max-w-md p-8 bg-gray-700 rounded-lg shadow-lg">
         <div className="logo mt-3 mb-3 text-center">
-          <img src="/images/sbt logo md.svg" alt="Logo" className="mx-auto h-20" />
+          <img src="/images/salonHub-logo.svg" alt="Logo" className="mx-auto h-20" />
         </div>
 
         <h4 className="text-white text-2xl font-bold text-center mb-1">Reset your password</h4>

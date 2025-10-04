@@ -322,7 +322,7 @@ export const RegisterShop = () => {
             if (response.status === 201) {
                 Swal.fire({ 
                     title: "Success!", 
-                    text: "Shop registration successful with exact location coordinates", 
+                    text: "Shop registration successful", 
                     icon: "success",
                     confirmButtonText: "Great!",
                     confirmButtonColor: "#10B981"
@@ -348,16 +348,16 @@ export const RegisterShop = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-6xl mx-auto">
+            <div className="max-w-6xl mx-auto mt-10">
                 {/* Header Section */}
-                <div className="text-center mb-6">
+                {/* <div className="text-center mb-6">
                     <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2 mt-10">
                         {isAdmin ? "Register New Shop" : "Shop Registration"}
                     </h1>
-                    <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                    <p className="text-lg text-gray-600 max-w-2xl mx-auto mt-12">
                         {isAdmin ? "Add a new shop to the system with complete details" : "Complete your salon registration to start accepting bookings"}
                     </p>
-                </div>
+                </div> */}
 
                 <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
                     {/* Form Header */}
@@ -430,7 +430,7 @@ export const RegisterShop = () => {
                                                     <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
                                                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                                                     </svg>
-                                                    <span className="font-medium">High-Precision Location Captured</span>
+                                                    <span className="font-medium">Location Captured</span>
                                                 </div>
                                                 <div className="text-xs font-mono text-gray-600 ml-6 bg-gray-50 p-2 rounded">
                                                     <div>Latitude: {location.lat}</div>

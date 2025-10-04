@@ -3,11 +3,9 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../utils/api";
 
-// const token = JSON.parse(localStorage.getItem('token'))
 
 export const AdminShops = () => {
     const [shop,setShop] = useState([]);
-    // const {authorizationToken,API} = useAuth();
 
     const getAllShopsData = async() => {
         try {

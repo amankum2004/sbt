@@ -60,9 +60,6 @@ const register = async(req,res) => {
           success: true,
           message: 'User registered successfully',
           user: newUser,
-          // message: "Registration successful",
-          // token: await newUser.generateToken(),
-          // userId: newUser._id
         });
       } catch (error) {
         console.log(error.message);
