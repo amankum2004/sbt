@@ -197,31 +197,6 @@ const BarberDashboard = () => {
         );
     }
 
-
-  // if (shopStatus && shopStatus !== "approved") {
-  //   return (
-  //     <div className="flex justify-center items-center h-screen bg-gray-100">
-  //       <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full text-center">
-  //         <div className="text-yellow-500 text-6xl mb-4">⏳</div>
-  //         <h2 className="text-2xl font-bold text-gray-800 mb-4">
-  //           {shopStatus === "pending" ? "Shop Under Review" : "Shop Not Approved"}
-  //         </h2>
-  //         <p className="text-gray-600 mb-6">
-  //           {shopStatus === "pending" 
-  //             ? "Your shop registration is under review. Please wait for approval to access the dashboard."
-  //             : "Your shop registration was not approved. Please contact support for more information."}
-  //         </p>
-  //         <button
-  //           onClick={() => navigate('/')}
-  //           className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition duration-200"
-  //         >
-  //           Go to Home
-  //         </button>
-  //       </div>
-  //     </div>
-  //   );
-  // }
-
   const updateAppointmentStatus = async (appointmentId, newStatus) => {
     try {
       const result = await Swal.fire({

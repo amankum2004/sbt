@@ -212,7 +212,7 @@ export const Register = () => {
 
           <div className="text-center text-gray-300 mt-4">
             Already have an account?
-            <a href="/login" className="text-blue-400 hover:underline ml-1">Login here</a>
+            <a href="/login" className="text-blue-400 hover:underline ml-1">Login</a>
           </div>
         </form>
       </div>
