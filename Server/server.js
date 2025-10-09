@@ -63,7 +63,7 @@ const corsOptions = {
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded({ extended: true }))
   app.use(cookieParser())
-  app.use(express.static(path.join(__dirname, '../frontend/dist')))
+  app.use(express.static(path.join(__dirname, '../client/dist')))
   
   // require('./utils/scheduler')  // for deleting expired timeslots and appointments
   
@@ -78,7 +78,7 @@ const corsOptions = {
   app.use('/api/cron', cronRoutes);
   
   app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../client/dist', 'index.html'))
+    res.sendFile(path.join(__dirname, '../client/dist/index.html', 'index.html'))
   })
   
 https.listen(PORT, () => {
