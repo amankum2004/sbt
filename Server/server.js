@@ -1,6 +1,6 @@
 require('module-alias/register')
 const { config } = require('dotenv')
-config({ path: './.env' })
+// config({ path: './.env' })
 const express = require("express")
 const app = express();
 const mongoose = require('mongoose')
@@ -17,14 +17,20 @@ require('./utils/slot-creation');
 // const nodemailer = require('nodemailer');
 // const { bookAppointment } = require('../Server/controllers/appointment-controller')
 
+// Load environment file based on NODE_ENV
+const envFile = process.env.NODE_ENV === 'production'
+  ? '.env.production'
+  : '.env.development';
+config({ path: path.resolve(__dirname, envFile) });
+
 const apiRoute = require('@/routes')
 
 const PORT = process.env.PORT ?? 8000
 
 mongoose
 .connect(`${process.env.MongoDB}`)
-.then(() => console.log('Connected to MongoDB'))
-.catch((error) => console.error('MongoDB connection error:', error))
+.then(() => console.log(`Connected to MongoDB (${process.env.NODE_ENV})`))
+.catch((error) => console.error('MongoDB connection error:', error));
 
 
 const corsOptions = {
