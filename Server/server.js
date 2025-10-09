@@ -78,7 +78,7 @@ const corsOptions = {
   app.use('/api/cron', cronRoutes);
   
   app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../client/dist/index.html', 'index.html'))
+    res.sendFile(path.join(__dirname, '../client/dist', 'index.html'))
   })
   
 https.listen(PORT, () => {
