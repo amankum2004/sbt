@@ -67,6 +67,6 @@
     "postcss": "^8.4.47",
     "react-error-overlay": "^6.0.9",
     "tailwindcss": "^3.4.13",
-    "vite": "^5.4.2"
+    "vite": "^7.1.9"
   }
 }
