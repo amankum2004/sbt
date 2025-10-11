@@ -256,13 +256,13 @@ export const Footer = () => {
                 >
                   Cancellation Policy
                 </a>
-                <a 
+                {/* <a 
                   href="/sitemap.xml" 
                   className="text-pink-200 hover:text-white text-sm transition-colors"
                   title="SalonHub Sitemap"
                 >
                   Sitemap
-                </a>
+                </a> */}
               </div>
             </div>
             {/* SEO Keywords Footer - Hidden but crawlable */}

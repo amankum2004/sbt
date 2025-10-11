@@ -36,18 +36,14 @@ exports.getBarberAppointments = async (req, res) => {
       endOfToday: endOfToday.toLocaleString()
     });
 
-    // Separate appointments based on DATE first, then status
+    // Separate appointments based on STATUS first, then DATE
     const todaysAppointments = [];
     const upcomingAppointments = [];
     const pastAppointments = [];
 
     fullAppointments.forEach(appointment => {
       const appointmentDate = appointment.timeSlot?.date;
-      if (!appointmentDate) {
-        pastAppointments.push(appointment);
-        return;
-      }
-
+      
       // Use showtime date if available, otherwise use timeSlot date
       let appointmentDateTime;
       if (appointment.showtimes && appointment.showtimes.length > 0 && appointment.showtimes[0].date) {
@@ -65,23 +61,30 @@ exports.getBarberAppointments = async (req, res) => {
         isFuture: appointmentDateTime >= endOfToday
       });
 
-      // FIRST: Categorize by DATE
+      // FIRST: Check if appointment is completed or cancelled - these always go to history
+      if (appointment.status === 'completed' || appointment.status === 'cancelled') {
+        pastAppointments.push(appointment);
+        console.log('-> Added to HISTORY (completed/cancelled status)');
+        return;
+      }
+
+      // SECOND: For active appointments (pending/confirmed), categorize by DATE
       const isToday = appointmentDateTime >= startOfToday && appointmentDateTime < endOfToday;
       const isPast = appointmentDateTime < startOfToday;
       const isFuture = appointmentDateTime >= endOfToday;
 
       if (isToday) {
-        // Today's appointments - show regardless of status (so barber can update status)
+        // Today's appointments - show only if not completed/cancelled
         todaysAppointments.push(appointment);
-        console.log('-> Added to TODAY (today date)');
+        console.log('-> Added to TODAY (today date, active status)');
       } else if (isPast) {
-        // Past appointments - move to history regardless of status
+        // Past appointments with active status - move to history
         pastAppointments.push(appointment);
-        console.log('-> Added to HISTORY (past date)');
+        console.log('-> Added to HISTORY (past date, active status)');
       } else if (isFuture) {
         // Future appointments - show in upcoming
         upcomingAppointments.push(appointment);
-        console.log('-> Added to UPCOMING (future date)');
+        console.log('-> Added to UPCOMING (future date, active status)');
       }
     });
 
@@ -170,6 +173,173 @@ exports.getBarberAppointments = async (req, res) => {
     });
   }
 };
+
+
+// exports.getBarberAppointments = async (req, res) => {
+//   try {
+//     const { shopId } = req.params;
+    
+//     console.log('=== DEBUGGING BARBER APPOINTMENTS ===');
+//     console.log('Requested shopId:', shopId);
+
+//     if (!shopId) {
+//       return res.status(400).json({ 
+//         success: false,
+//         error: 'Shop ID is required' 
+//       });
+//     }
+
+//     const fullAppointments = await Appointment.find({ shopId: shopId })
+//       .populate('shopId', 'shopname city address phone email')
+//       .populate('timeSlot', 'date')
+//       .populate('userId', 'name email phone');
+
+//     console.log('Full population result:', fullAppointments.length);
+
+//     const now = new Date();
+//     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+//     const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+
+//     console.log('Time references:', {
+//       now: now.toLocaleString(),
+//       startOfToday: startOfToday.toLocaleString(),
+//       endOfToday: endOfToday.toLocaleString()
+//     });
+
+//     // Separate appointments based on DATE first, then status
+//     const todaysAppointments = [];
+//     const upcomingAppointments = [];
+//     const pastAppointments = [];
+
+//     fullAppointments.forEach(appointment => {
+//       const appointmentDate = appointment.timeSlot?.date;
+//       if (!appointmentDate) {
+//         pastAppointments.push(appointment);
+//         return;
+//       }
+
+//       // Use showtime date if available, otherwise use timeSlot date
+//       let appointmentDateTime;
+//       if (appointment.showtimes && appointment.showtimes.length > 0 && appointment.showtimes[0].date) {
+//         appointmentDateTime = new Date(appointment.showtimes[0].date);
+//       } else {
+//         appointmentDateTime = new Date(appointmentDate);
+//       }
+
+//       console.log('Processing appointment:', {
+//         customer: appointment.userId?.name,
+//         appointmentTime: appointmentDateTime.toLocaleString(),
+//         status: appointment.status,
+//         isToday: appointmentDateTime >= startOfToday && appointmentDateTime < endOfToday,
+//         isPast: appointmentDateTime < startOfToday,
+//         isFuture: appointmentDateTime >= endOfToday
+//       });
+
+//       // FIRST: Categorize by DATE
+//       const isToday = appointmentDateTime >= startOfToday && appointmentDateTime < endOfToday;
+//       const isPast = appointmentDateTime < startOfToday;
+//       const isFuture = appointmentDateTime >= endOfToday;
+
+//       if (isToday) {
+//         // Today's appointments - show regardless of status (so barber can update status)
+//         todaysAppointments.push(appointment);
+//         console.log('-> Added to TODAY (today date)');
+//       } else if (isPast) {
+//         // Past appointments - move to history regardless of status
+//         pastAppointments.push(appointment);
+//         console.log('-> Added to HISTORY (past date)');
+//       } else if (isFuture) {
+//         // Future appointments - show in upcoming
+//         upcomingAppointments.push(appointment);
+//         console.log('-> Added to UPCOMING (future date)');
+//       }
+//     });
+
+//     // Sort Today appointments chronologically (earliest first)
+//     todaysAppointments.sort((a, b) => {
+//       const getAppointmentDate = (appointment) => {
+//         return appointment.showtimes && appointment.showtimes.length > 0 
+//           ? appointment.showtimes[0].date 
+//           : appointment.timeSlot?.date;
+//       };
+      
+//       const dateA = new Date(getAppointmentDate(a) || 0);
+//       const dateB = new Date(getAppointmentDate(b) || 0);
+//       return dateA - dateB; // Ascending order (earliest first)
+//     });
+
+//     // Sort Upcoming appointments chronologically (earliest first)
+//     upcomingAppointments.sort((a, b) => {
+//       const getAppointmentDate = (appointment) => {
+//         return appointment.showtimes && appointment.showtimes.length > 0 
+//           ? appointment.showtimes[0].date 
+//           : appointment.timeSlot?.date;
+//       };
+      
+//       const dateA = new Date(getAppointmentDate(a) || 0);
+//       const dateB = new Date(getAppointmentDate(b) || 0);
+//       return dateA - dateB; // Ascending order (earliest first)
+//     });
+
+//     // Sort History appointments in reverse chronological order (most recent first)
+//     pastAppointments.sort((a, b) => {
+//       const getAppointmentDate = (appointment) => {
+//         return appointment.showtimes && appointment.showtimes.length > 0 
+//           ? appointment.showtimes[0].date 
+//           : appointment.timeSlot?.date;
+//       };
+      
+//       const dateA = new Date(getAppointmentDate(a) || 0);
+//       const dateB = new Date(getAppointmentDate(b) || 0);
+//       return dateB - dateA; // Descending order (most recent first)
+//     });
+
+//     console.log('Final categorized appointments:', {
+//       today: todaysAppointments.length,
+//       upcoming: upcomingAppointments.length,
+//       past: pastAppointments.length,
+//       todayDetails: todaysAppointments.map(apt => ({
+//         customer: apt.userId?.name,
+//         date: apt.showtimes?.[0]?.date || apt.timeSlot?.date,
+//         status: apt.status
+//       })),
+//       pastDetails: pastAppointments.map(apt => ({
+//         customer: apt.userId?.name,
+//         date: apt.showtimes?.[0]?.date || apt.timeSlot?.date,
+//         status: apt.status
+//       }))
+//     });
+
+//     // Calculate statistics
+//     const stats = {
+//       total: fullAppointments.length,
+//       today: todaysAppointments.length,
+//       upcoming: upcomingAppointments.length,
+//       completed: pastAppointments.filter(apt => apt.status === 'completed').length,
+//       cancelled: pastAppointments.filter(apt => apt.status === 'cancelled').length,
+//       pending: todaysAppointments.filter(apt => apt.status === 'pending').length + 
+//                upcomingAppointments.filter(apt => apt.status === 'pending').length,
+//       confirmed: todaysAppointments.filter(apt => apt.status === 'confirmed').length + 
+//                  upcomingAppointments.filter(apt => apt.status === 'confirmed').length
+//     };
+
+//     res.status(200).json({
+//       success: true,
+//       todaysAppointments,
+//       upcomingAppointments,
+//       pastAppointments,
+//       stats,
+//       shop: await Shop.findById(shopId).select('name city address shopname')
+//     });
+//   } catch (error) {
+//     console.error('Error fetching barber appointments:', error);
+//     res.status(500).json({ 
+//       success: false,
+//       error: 'Failed to fetch appointments',
+//       details: error.message 
+//     });
+//   }
+// };
 
 // Get today's appointments only
 exports.getTodaysAppointments = async (req, res) => {
@@ -267,265 +437,6 @@ exports.updateAppointmentStatus = async (req, res) => {
   }
 };
 
-
-
-// const Appointment = require('../models/appointment-model');
-// const Shop = require('../models/registerShop-model');
-// const TimeSlot = require('../models/timeSlot-model');
-// const User = require('../models/user/user-model');
-// const mongoose = require('mongoose');
-
-// // Get all appointments for barber's shop
-// exports.getBarberAppointments = async (req, res) => {
-//   try {
-//     const { shopId } = req.params;
-    
-//     console.log('=== DEBUGGING BARBER APPOINTMENTS ===');
-//     console.log('Requested shopId:', shopId);
-
-//     if (!shopId) {
-//       return res.status(400).json({ 
-//         success: false,
-//         error: 'Shop ID is required' 
-//       });
-//     }
-
-//     const fullAppointments = await Appointment.find({ shopId: shopId })
-//       .populate('shopId', 'shopname city address phone email')
-//       .populate('timeSlot', 'date')
-//       .populate('userId', 'name email phone');
-
-//     console.log('Full population result:', fullAppointments.length);
-
-//     const now = new Date();
-//     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-//     const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
-
-//     console.log('Time references:', {
-//       now: now.toLocaleString(),
-//       startOfToday: startOfToday.toLocaleString(),
-//       endOfToday: endOfToday.toLocaleString()
-//     });
-
-//     // Separate appointments based on STATUS, not time
-//     const todaysAppointments = [];
-//     const upcomingAppointments = [];
-//     const pastAppointments = [];
-
-//     fullAppointments.forEach(appointment => {
-//       const appointmentDate = appointment.timeSlot?.date;
-//       if (!appointmentDate) {
-//         pastAppointments.push(appointment);
-//         return;
-//       }
-
-//       // Use showtime date if available, otherwise use timeSlot date
-//       let appointmentDateTime;
-//       if (appointment.showtimes && appointment.showtimes.length > 0 && appointment.showtimes[0].date) {
-//         appointmentDateTime = new Date(appointment.showtimes[0].date);
-//       } else {
-//         appointmentDateTime = new Date(appointmentDate);
-//       }
-
-//       console.log('Processing appointment:', {
-//         customer: appointment.userId?.name,
-//         appointmentTime: appointmentDateTime.toLocaleString(),
-//         status: appointment.status,
-//         isToday: appointmentDateTime >= startOfToday && appointmentDateTime < endOfToday
-//       });
-
-//       // Categorize based on STATUS first, then date for today/upcoming
-//       if (appointment.status === 'completed' || appointment.status === 'cancelled') {
-//         // Completed and cancelled appointments always go to history
-//         pastAppointments.push(appointment);
-//         console.log('-> Added to HISTORY (completed/cancelled)');
-//       } else {
-//         // For pending/confirmed appointments, check if they are today or upcoming
-//         const isToday = appointmentDateTime >= startOfToday && appointmentDateTime < endOfToday;
-        
-//         if (isToday) {
-//           todaysAppointments.push(appointment);
-//           console.log('-> Added to TODAY (confirmed/pending)');
-//         } else if (appointmentDateTime >= now) {
-//           upcomingAppointments.push(appointment);
-//           console.log('-> Added to UPCOMING (future date)');
-//         } else {
-//           // If appointment time has passed but status is still confirmed/pending
-//           todaysAppointments.push(appointment);
-//           console.log('-> Added to TODAY (past time but not completed)');
-//         }
-//       }
-//     });
-
-//     // Sort Today appointments chronologically (earliest first)
-//     todaysAppointments.sort((a, b) => {
-//       const getAppointmentDate = (appointment) => {
-//         return appointment.showtimes && appointment.showtimes.length > 0 
-//           ? appointment.showtimes[0].date 
-//           : appointment.timeSlot?.date;
-//       };
-      
-//       const dateA = new Date(getAppointmentDate(a) || 0);
-//       const dateB = new Date(getAppointmentDate(b) || 0);
-//       return dateA - dateB; // Ascending order (earliest first)
-//     });
-
-//     // Sort Upcoming appointments chronologically (earliest first)
-//     upcomingAppointments.sort((a, b) => {
-//       const getAppointmentDate = (appointment) => {
-//         return appointment.showtimes && appointment.showtimes.length > 0 
-//           ? appointment.showtimes[0].date 
-//           : appointment.timeSlot?.date;
-//       };
-      
-//       const dateA = new Date(getAppointmentDate(a) || 0);
-//       const dateB = new Date(getAppointmentDate(b) || 0);
-//       return dateA - dateB; // Ascending order (earliest first)
-//     });
-
-//     // Sort History appointments in reverse chronological order (most recent first)
-//     pastAppointments.sort((a, b) => {
-//       const getAppointmentDate = (appointment) => {
-//         return appointment.showtimes && appointment.showtimes.length > 0 
-//           ? appointment.showtimes[0].date 
-//           : appointment.timeSlot?.date;
-//       };
-      
-//       const dateA = new Date(getAppointmentDate(a) || 0);
-//       const dateB = new Date(getAppointmentDate(b) || 0);
-//       return dateB - dateA; // Descending order (most recent first)
-//     });
-
-//     console.log('Categorized and sorted appointments:', {
-//       today: todaysAppointments.length,
-//       upcoming: upcomingAppointments.length,
-//       past: pastAppointments.length
-//     });
-
-//     // Calculate statistics
-//     const stats = {
-//       total: fullAppointments.length,
-//       today: todaysAppointments.length,
-//       upcoming: upcomingAppointments.length,
-//       completed: pastAppointments.filter(apt => apt.status === 'completed').length,
-//       cancelled: pastAppointments.filter(apt => apt.status === 'cancelled').length
-//     };
-
-//     res.status(200).json({
-//       success: true,
-//       todaysAppointments,
-//       upcomingAppointments,
-//       pastAppointments,
-//       stats,
-//       shop: await Shop.findById(shopId).select('name city address shopname')
-//     });
-//   } catch (error) {
-//     console.error('Error fetching barber appointments:', error);
-//     res.status(500).json({ 
-//       success: false,
-//       error: 'Failed to fetch appointments',
-//       details: error.message 
-//     });
-//   }
-// };
-
-// // Get today's appointments
-// exports.getTodaysAppointments = async (req, res) => {
-//   try {
-//     const { shopId } = req.params;
-    
-//     if (!shopId) {
-//       return res.status(400).json({ 
-//         success: false,
-//         error: 'Shop ID is required' 
-//       });
-//     }
-
-//     const today = new Date();
-//     today.setHours(0, 0, 0, 0);
-//     const tomorrow = new Date(today);
-//     tomorrow.setDate(tomorrow.getDate() + 1);
-
-//     const appointments = await Appointment.find({ 
-//       shopId,
-//       'timeSlot.date': {
-//         $gte: today,
-//         $lt: tomorrow
-//       },
-//       status: { $in: ['confirmed', 'pending'] } // Only show active appointments for today
-//     })
-//     .populate('shopId', 'shopname city address')
-//     .populate('timeSlot', 'date')
-//     .populate('userId', 'name email phone')
-//     .sort({ 'showtimes.date': 1 }); // Sort chronologically
-
-//     res.status(200).json({
-//       success: true,
-//       appointments,
-//       date: today.toISOString().split('T')[0]
-//     });
-
-//   } catch (error) {
-//     console.error('Error fetching today\'s appointments:', error);
-//     res.status(500).json({ 
-//       success: false,
-//       error: 'Failed to fetch today\'s appointments' 
-//     });
-//   }
-// };
-
-// // Update appointment status
-// exports.updateAppointmentStatus = async (req, res) => {
-//   try {
-//     const { appointmentId } = req.params;
-//     const { status } = req.body;
-
-//     console.log('Updating appointment status:', { appointmentId, status });
-
-//     const validStatuses = ['pending', 'confirmed', 'completed', 'cancelled'];
-//     if (!validStatuses.includes(status)) {
-//       return res.status(400).json({
-//         success: false,
-//         error: 'Invalid status'
-//       });
-//     }
-
-//     const appointment = await Appointment.findByIdAndUpdate(
-//       appointmentId,
-//       { status },
-//       { new: true }
-//     )
-//     .populate('shopId', 'shopname city address phone email')
-//     .populate('timeSlot', 'date')
-//     .populate('userId', 'name email phone');
-
-//     if (!appointment) {
-//       return res.status(404).json({
-//         success: false,
-//         error: 'Appointment not found'
-//       });
-//     }
-
-//     console.log('Appointment status updated:', {
-//       appointmentId,
-//       newStatus: appointment.status,
-//       customer: appointment.userId?.name
-//     });
-
-//     res.status(200).json({
-//       success: true,
-//       message: `Appointment status updated to ${status}`,
-//       appointment
-//     });
-
-//   } catch (error) {
-//     console.error('Error updating appointment status:', error);
-//     res.status(500).json({
-//       success: false,
-//       error: 'Failed to update appointment status'
-//     });
-//   }
-// };
 
 // Get appointment analytics
 exports.getAppointmentAnalytics = async (req, res) => {
