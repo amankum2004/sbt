@@ -1,6 +1,7 @@
 const express = require("express")
 const router = express.Router();
 const registershopController = require("@/controllers/registerShop-controller")
+const { updateShopStatus, getShopStatus } = require('../controllers/registerShop-controller');
 // const {shopSchema} = require("../validators/auth-validator");
 // const validate = require("../middlewares/validate-middleware");
 // const authMiddleware = require("../middlewares/auth-middleware")
@@ -16,6 +17,10 @@ router.route("/shoplists/:id").get(registershopController.getShopById);
 router.get('/by-email/:email', registershopController.getShopByEmail);
 
 router.patch('/update', registershopController.updateBarberProfile);
+
+
+router.put('/:shopId/status', updateShopStatus);
+router.get('/:shopId/status', getShopStatus);
 
 module.exports = router;
 // router.route('/services').post(registershopController.addService)

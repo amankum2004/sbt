@@ -19,6 +19,8 @@ const defaultFormData = {
   services: [{ service: "", price: "" }],
   lat: null,
   lng: null,
+  latString: "", // New field for string storage
+  lngString: "", // New field for string storage
 };
 
 export const RegisterShop = () => {
@@ -33,6 +35,24 @@ export const RegisterShop = () => {
   const [isCapturingLocation, setIsCapturingLocation] = useState(false);
   const [locationAccuracy, setLocationAccuracy] = useState(null);
 
+  // Function to store coordinates as strings with full precision
+  const storeHighPrecisionCoordinates = (latitude, longitude) => {
+    // Store as strings to preserve full precision
+    const latString = latitude.toString();
+    const lngString = longitude.toString();
+    
+    // Also store as numbers for backward compatibility
+    const lat = Number(latitude);
+    const lng = Number(longitude);
+    
+    console.log("Full Precision Coordinates:");
+    console.log("As String - Lat:", latString, "Lng:", lngString);
+    console.log("As Number - Lat:", lat, "Lng:", lng);
+    console.log("String length - Lat:", latString.length, "Lng:", lngString.length);
+    
+    return { lat, lng, latString, lngString };
+  };
+
   const captureLocation = () => {
     if (!navigator.geolocation) {
       Swal.fire({
@@ -45,7 +65,7 @@ export const RegisterShop = () => {
 
     setIsCapturingLocation(true);
     Swal.fire({
-      title: "Capturing High-Precision Location",
+      title: "Capturing Full Precision Location",
       text: "Please allow location access for exact shop positioning...",
       icon: "info",
       showConfirmButton: false,
@@ -53,33 +73,53 @@ export const RegisterShop = () => {
       didOpen: () => Swal.showLoading(),
     });
 
+    const geoOptions = {
+      enableHighAccuracy: true,
+      timeout: 30000,
+      maximumAge: 0
+    };
+
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude, accuracy } = position.coords;
-        setLocation({ lat: latitude, lng: longitude });
-        setFormData((prev) => ({ ...prev, lat: latitude, lng: longitude }));
+        
+        // Store coordinates with full precision as strings
+        const preciseCoords = storeHighPrecisionCoordinates(latitude, longitude);
+        
+        setLocation({ lat: preciseCoords.lat, lng: preciseCoords.lng });
+        setFormData((prev) => ({ 
+          ...prev, 
+          lat: preciseCoords.lat, 
+          lng: preciseCoords.lng,
+          latString: preciseCoords.latString,
+          lngString: preciseCoords.lngString
+        }));
         setLocationAccuracy(accuracy);
         setIsLocationCaptured(true);
         setIsCapturingLocation(false);
 
         Swal.fire({
-          title: "Location Captured!",
+          title: "Full Precision Location Captured!",
           html: `
             <div class="text-left">
-              <p><strong>Coordinates:</strong></p>
-              <p class="font-mono text-sm">Lat: ${latitude}</p>
-              <p class="font-mono text-sm">Lng: ${longitude}</p>
-              <p class="mt-1">Accuracy: ${Math.round(accuracy)} meters</p>
+              <p><strong>Full Precision Coordinates (Stored as String):</strong></p>
+              <div class="bg-gray-100 p-2 rounded mt-2 space-y-1">
+                <p class="font-mono text-xs break-all"><strong>Lat:</strong> ${preciseCoords.latString}</p>
+                <p class="font-mono text-xs break-all"><strong>Lng:</strong> ${preciseCoords.lngString}</p>
+              </div>
+              <p class="mt-3"><strong>Accuracy:</strong> ${Math.round(accuracy)} meters</p>
               ${
                 accuracy > 10
-                  ? '<p class="text-yellow-600 mt-1">⚠️ Move to open area for better precision.</p>'
-                  : '<p class="text-green-600 mt-1">✓ Excellent precision</p>'
+                  ? '<p class="text-yellow-600 mt-1 text-sm">⚠️ Move to open area for better precision.</p>'
+                  : '<p class="text-green-600 mt-1 text-sm">✓ Excellent precision achieved</p>'
               }
+              <p class="text-blue-600 text-sm mt-2">✅ Full precision coordinates will be stored as strings in database.</p>
             </div>
           `,
           icon: "success",
-          confirmButtonText: "Ok",
+          confirmButtonText: "Continue",
           confirmButtonColor: "#10B981",
+          width: "550px"
         });
       },
       (error) => {
@@ -88,15 +128,15 @@ export const RegisterShop = () => {
         switch (error.code) {
           case error.PERMISSION_DENIED:
             errorMessage =
-              "Location access denied. Please allow location access in your browser.";
+              "Location access denied. Please allow location access in your browser settings.";
             break;
           case error.POSITION_UNAVAILABLE:
             errorMessage =
-              "Location information is unavailable. Check your internet/GPS.";
+              "Location information is unavailable. Please check your GPS and internet connection.";
             break;
           case error.TIMEOUT:
             errorMessage =
-              "Location request timed out. Try again in a better network area.";
+              "Location request timed out. Please try again in an open area with better network connectivity.";
             break;
         }
         Swal.fire({
@@ -106,11 +146,12 @@ export const RegisterShop = () => {
           showCancelButton: true,
           confirmButtonText: "Try Again",
           cancelButtonText: "Continue Without Location",
+          confirmButtonColor: "#3B82F6",
         }).then((result) => {
           if (result.isConfirmed) captureLocation();
         });
       },
-      { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
+      geoOptions
     );
   };
 
@@ -180,28 +221,60 @@ export const RegisterShop = () => {
       Swal.fire({ title: "Error", text: "Please login again.", icon: "error" });
       return;
     }
-    if (!formData.lat || !formData.lng) {
+    if (!formData.latString || !formData.lngString) {
       const result = await Swal.fire({
         title: "Location Not Captured",
-        text: "Capture location again?",
+        text: "Full precision location is required for accurate positioning. Capture location again?",
         icon: "warning",
         showCancelButton: true,
-        confirmButtonText: "Yes",
+        confirmButtonText: "Yes, Capture Location",
         cancelButtonText: "Continue Anyway",
+        confirmButtonColor: "#3B82F6",
       });
-      if (result.isConfirmed) captureLocation();
-      return;
+      if (result.isConfirmed) {
+        captureLocation();
+        return;
+      }
     }
+
+    // Log the coordinates being sent
+    console.log("Submitting coordinates:", {
+      lat: formData.lat,
+      lng: formData.lng,
+      latString: formData.latString,
+      lngString: formData.lngString,
+      stringLength: {
+        lat: formData.latString?.length,
+        lng: formData.lngString?.length
+      }
+    });
 
     try {
       const response = await api.post(`/shop/registershop`, formData, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
       });
       if (response.status === 201) {
-        Swal.fire({ title: "Success!", text: "Shop registered", icon: "success" });
+        Swal.fire({ 
+          title: "Success!", 
+          html: `
+            <div class="text-left">
+              <p>Shop registered successfully!</p>
+              <p class="text-sm text-green-600 mt-2">Full precision coordinates stored:</p>
+              <div class="bg-gray-100 p-2 rounded mt-1">
+                <p class="font-mono text-xs break-all">Lat: ${formData.latString}</p>
+                <p class="font-mono text-xs break-all">Lng: ${formData.lngString}</p>
+              </div>
+            </div>
+          `,
+          icon: "success" 
+        });
         navigate(isAdmin ? "/admin/shops" : "/");
       }
     } catch (err) {
+      console.error("Registration error:", err);
       Swal.fire({
         title: "Error",
         text: err.response?.data?.message || "Registration failed",
@@ -220,37 +293,53 @@ export const RegisterShop = () => {
             
           {/* Location Capture */}
           <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-5 sm:p-6">
-            <h3 className="text-lg font-semibold text-blue-800 mb-3">Shop Location</h3>
+            <h3 className="text-lg font-semibold text-blue-800 mb-3">Full Precision Shop Location</h3>
+            <p className="text-sm text-blue-600 mb-4">
+              Coordinates will be stored as strings to preserve maximum precision (up to 15+ decimal places).
+            </p>
             <button
               type="button"
               onClick={captureLocation}
               disabled={isCapturingLocation}
-              className={`w-full sm:w-auto px-4 py-2 mb-3 rounded-lg font-medium text-white ${
+              className={`w-full sm:w-auto px-6 py-3 mb-3 rounded-lg font-medium text-white ${
                 isCapturingLocation
                   ? "bg-gray-400 cursor-not-allowed"
                   : "bg-blue-600 hover:bg-blue-700"
               }`}
             >
               {isCapturingLocation
-                ? "Capturing..."
+                ? "Capturing Full Precision Location..."
                 : isLocationCaptured
                 ? "Recapture Location"
-                : "Capture Location"}
+                : "Capture Full Precision Location"}
             </button>
             {isLocationCaptured && (
-              <div className="bg-white border border-blue-100 rounded p-3 text-sm text-gray-700">
-                <p>Latitude: {location.lat}</p>
-                <p>Longitude: {location.lng}</p>
-                <p>
-                  Accuracy: {Math.round(locationAccuracy)} meters{" "}
+              <div className="bg-white border border-blue-100 rounded-lg p-4 text-sm text-gray-700 space-y-3">
+                <div>
+                  <strong className="text-green-600">Full Precision (Stored as String):</strong>
+                  <div className="font-mono text-xs bg-gray-100 p-2 rounded mt-1 break-all space-y-1">
+                    <div><strong>Lat:</strong> {formData.latString}</div>
+                    <div><strong>Lng:</strong> {formData.lngString}</div>
+                  </div>
+                </div>
+                <div>
+                  <strong>Approximate (Number):</strong>
+                  <div className="text-xs text-gray-500 mt-1">
+                    Lat: {formData.lat}, Lng: {formData.lng}
+                  </div>
+                </div>
+                <div>
+                  <strong>Accuracy:</strong> {Math.round(locationAccuracy)} meters{" "}
                   {locationAccuracy > 10 && (
-                    <span className="text-yellow-600">(Better precision recommended)</span>
+                    <span className="text-yellow-600 text-xs">(Better precision recommended)</span>
                   )}
-                </p>
+                </div>
               </div>
             )}
           </div>
 
+          {/* Rest of the form remains the same */}
+          {/* ... (Basic Details, Services sections remain unchanged) ... */}
           {/* Basic Details */}
           <div className="bg-gray-50 rounded-xl p-5 sm:p-6">
             <h3 className="text-lg font-semibold text-gray-800 mb-4">Basic Details</h3>
@@ -418,15 +507,455 @@ export const RegisterShop = () => {
           >
             {isLocationCaptured
               ? isAdmin
-                ? "Register Shop"
-                : "Complete Registration"
-              : "Capture Location First"}
+                ? "Register Shop with Full Precision Location"
+                : "Complete Registration with Full Precision Location"
+              : "Capture Full Precision Location First"}
           </button>
         </form>
       </div>
     </div>
   );
 };
+
+
+
+
+
+
+
+
+
+
+
+// import React, { useState, useEffect } from "react";
+// import { useLogin } from "../components/LoginContext";
+// import { useNavigate } from "react-router-dom";
+// import { stateDistrictCityData } from "../utils/locationData";
+// import Swal from "sweetalert2";
+// import { api } from "../utils/api";
+
+// const defaultFormData = {
+//   name: "",
+//   email: "",
+//   phone: "",
+//   password: "",
+//   shopname: "",
+//   state: "",
+//   district: "",
+//   city: "",
+//   street: "",
+//   pin: "",
+//   services: [{ service: "", price: "" }],
+//   lat: null,
+//   lng: null,
+// };
+
+// export const RegisterShop = () => {
+//   const { user } = useLogin();
+//   const navigate = useNavigate();
+//   const [formData, setFormData] = useState(defaultFormData);
+//   const [districts, setDistricts] = useState([]);
+//   const [cities, setCities] = useState([]);
+//   const [token, setToken] = useState(null);
+//   const [location, setLocation] = useState({ lat: null, lng: null });
+//   const [isLocationCaptured, setIsLocationCaptured] = useState(false);
+//   const [isCapturingLocation, setIsCapturingLocation] = useState(false);
+//   const [locationAccuracy, setLocationAccuracy] = useState(null);
+
+//   const captureLocation = () => {
+//     if (!navigator.geolocation) {
+//       Swal.fire({
+//         title: "Geolocation Not Supported",
+//         text: "Your browser doesn't support geolocation. Please use a modern browser.",
+//         icon: "error",
+//       });
+//       return;
+//     }
+
+//     setIsCapturingLocation(true);
+//     Swal.fire({
+//       title: "Capturing High-Precision Location",
+//       text: "Please allow location access for exact shop positioning...",
+//       icon: "info",
+//       showConfirmButton: false,
+//       allowOutsideClick: false,
+//       didOpen: () => Swal.showLoading(),
+//     });
+
+//     navigator.geolocation.getCurrentPosition(
+//       (position) => {
+//         const { latitude, longitude, accuracy } = position.coords;
+//         setLocation({ lat: latitude, lng: longitude });
+//         setFormData((prev) => ({ ...prev, lat: latitude, lng: longitude }));
+//         setLocationAccuracy(accuracy);
+//         setIsLocationCaptured(true);
+//         setIsCapturingLocation(false);
+
+//         Swal.fire({
+//           title: "Location Captured!",
+//           html: `
+//             <div class="text-left">
+//               <p><strong>Coordinates:</strong></p>
+//               <p class="font-mono text-sm">Lat: ${latitude}</p>
+//               <p class="font-mono text-sm">Lng: ${longitude}</p>
+//               <p class="mt-1">Accuracy: ${Math.round(accuracy)} meters</p>
+//               ${
+//                 accuracy > 10
+//                   ? '<p class="text-yellow-600 mt-1">⚠️ Move to open area for better precision.</p>'
+//                   : '<p class="text-green-600 mt-1">✓ Excellent precision</p>'
+//               }
+//             </div>
+//           `,
+//           icon: "success",
+//           confirmButtonText: "Ok",
+//           confirmButtonColor: "#10B981",
+//         });
+//       },
+//       (error) => {
+//         setIsCapturingLocation(false);
+//         let errorMessage = "Failed to capture location. Please try again.";
+//         switch (error.code) {
+//           case error.PERMISSION_DENIED:
+//             errorMessage =
+//               "Location access denied. Please allow location access in your browser.";
+//             break;
+//           case error.POSITION_UNAVAILABLE:
+//             errorMessage =
+//               "Location information is unavailable. Check your internet/GPS.";
+//             break;
+//           case error.TIMEOUT:
+//             errorMessage =
+//               "Location request timed out. Try again in a better network area.";
+//             break;
+//         }
+//         Swal.fire({
+//           title: "Location Capture Failed",
+//           text: errorMessage,
+//           icon: "error",
+//           showCancelButton: true,
+//           confirmButtonText: "Try Again",
+//           cancelButtonText: "Continue Without Location",
+//         }).then((result) => {
+//           if (result.isConfirmed) captureLocation();
+//         });
+//       },
+//       { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
+//     );
+//   };
+
+//   useEffect(() => {
+//     captureLocation();
+//   }, []);
+
+//   useEffect(() => {
+//     const tokenString = localStorage.getItem("token");
+//     if (tokenString) setToken(JSON.parse(tokenString));
+//   }, []);
+
+//   const isAdmin = user?.usertype === "admin";
+
+//   useEffect(() => {
+//     if (!isAdmin && user) {
+//       setFormData((prev) => ({
+//         ...prev,
+//         name: user.name,
+//         email: user.email,
+//         phone: user.phone,
+//       }));
+//     }
+//   }, [user, isAdmin]);
+
+//   const handleInput = (e) =>
+//     setFormData({ ...formData, [e.target.name]: e.target.value });
+
+//   const handleServiceChange = (e, index) => {
+//     const updated = formData.services.map((s, i) =>
+//       i === index ? { ...s, [e.target.name]: e.target.value } : s
+//     );
+//     setFormData({ ...formData, services: updated });
+//   };
+
+//   const handleAddService = () =>
+//     setFormData({
+//       ...formData,
+//       services: [...formData.services, { service: "", price: "" }],
+//     });
+
+//   const handleRemoveService = (index) =>
+//     setFormData({
+//       ...formData,
+//       services: formData.services.filter((_, i) => i !== index),
+//     });
+
+//   const handleStateChange = (e) => {
+//     const state = e.target.value;
+//     setFormData({ ...formData, state, district: "", city: "" });
+//     setDistricts(Object.keys(stateDistrictCityData[state] || {}));
+//     setCities([]);
+//   };
+
+//   const handleDistrictChange = (e) => {
+//     const district = e.target.value;
+//     setFormData({ ...formData, district, city: "" });
+//     setCities(stateDistrictCityData[formData.state][district] || []);
+//   };
+
+//   const handleCityChange = (e) =>
+//     setFormData({ ...formData, city: e.target.value });
+
+//   const handleSubmit = async (e) => {
+//     e.preventDefault();
+//     if (!token) {
+//       Swal.fire({ title: "Error", text: "Please login again.", icon: "error" });
+//       return;
+//     }
+//     if (!formData.lat || !formData.lng) {
+//       const result = await Swal.fire({
+//         title: "Location Not Captured",
+//         text: "Capture location again?",
+//         icon: "warning",
+//         showCancelButton: true,
+//         confirmButtonText: "Yes",
+//         cancelButtonText: "Continue Anyway",
+//       });
+//       if (result.isConfirmed) captureLocation();
+//       return;
+//     }
+
+//     try {
+//       const response = await api.post(`/shop/registershop`, formData, {
+//         headers: { Authorization: `Bearer ${token}` },
+//       });
+//       if (response.status === 201) {
+//         Swal.fire({ title: "Success!", text: "Shop registered", icon: "success" });
+//         navigate(isAdmin ? "/admin/shops" : "/");
+//       }
+//     } catch (err) {
+//       Swal.fire({
+//         title: "Error",
+//         text: err.response?.data?.message || "Registration failed",
+//         icon: "error",
+//       });
+//     }
+//   };
+
+//   return (
+//     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 py-6 px-4 sm:px-6 lg:px-8">
+//       <div className="max-w-5xl mx-auto mt-10">
+//         <form
+//           onSubmit={handleSubmit}
+//           className="space-y-8 bg-white shadow-xl rounded-2xl p-6 sm:p-10"
+//         >
+            
+//           {/* Location Capture */}
+//           <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-5 sm:p-6">
+//             <h3 className="text-lg font-semibold text-blue-800 mb-3">Shop Location</h3>
+//             <button
+//               type="button"
+//               onClick={captureLocation}
+//               disabled={isCapturingLocation}
+//               className={`w-full sm:w-auto px-4 py-2 mb-3 rounded-lg font-medium text-white ${
+//                 isCapturingLocation
+//                   ? "bg-gray-400 cursor-not-allowed"
+//                   : "bg-blue-600 hover:bg-blue-700"
+//               }`}
+//             >
+//               {isCapturingLocation
+//                 ? "Capturing..."
+//                 : isLocationCaptured
+//                 ? "Recapture Location"
+//                 : "Capture Location"}
+//             </button>
+//             {isLocationCaptured && (
+//               <div className="bg-white border border-blue-100 rounded p-3 text-sm text-gray-700">
+//                 <p>Latitude: {location.lat}</p>
+//                 <p>Longitude: {location.lng}</p>
+//                 <p>
+//                   Accuracy: {Math.round(locationAccuracy)} meters{" "}
+//                   {locationAccuracy > 10 && (
+//                     <span className="text-yellow-600">(Better precision recommended)</span>
+//                   )}
+//                 </p>
+//               </div>
+//             )}
+//           </div>
+
+//           {/* Basic Details */}
+//           <div className="bg-gray-50 rounded-xl p-5 sm:p-6">
+//             <h3 className="text-lg font-semibold text-gray-800 mb-4">Basic Details</h3>
+//             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+//               <input
+//                 type="text"
+//                 name="name"
+//                 placeholder="Full Name"
+//                 value={formData.name}
+//                 onChange={handleInput}
+//                 readOnly={!isAdmin}
+//                 className={`w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-purple-200 ${
+//                   !isAdmin ? "bg-gray-100 cursor-not-allowed" : ""
+//                 }`}
+//               />
+//               <input
+//                 type="email"
+//                 name="email"
+//                 placeholder="Email"
+//                 value={formData.email}
+//                 onChange={handleInput}
+//                 readOnly={!isAdmin}
+//                 className={`w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-purple-200 ${
+//                   !isAdmin ? "bg-gray-100 cursor-not-allowed" : ""
+//                 }`}
+//               />
+//               <input
+//                 type="tel"
+//                 name="phone"
+//                 placeholder="Phone"
+//                 value={formData.phone}
+//                 onChange={handleInput}
+//                 readOnly={!isAdmin}
+//                 className={`w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-purple-200 ${
+//                   !isAdmin ? "bg-gray-100 cursor-not-allowed" : ""
+//                 }`}
+//               />
+//               <input
+//                 type="text"
+//                 name="shopname"
+//                 placeholder="Salon Name"
+//                 value={formData.shopname}
+//                 onChange={handleInput}
+//                 className="w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-purple-200"
+//               />
+//               <select
+//                 value={formData.state}
+//                 onChange={handleStateChange}
+//                 className="w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-purple-200"
+//               >
+//                 <option value="">Select State</option>
+//                 {Object.keys(stateDistrictCityData).map((state, i) => (
+//                   <option key={i} value={state}>
+//                     {state}
+//                   </option>
+//                 ))}
+//               </select>
+//               <select
+//                 value={formData.district}
+//                 onChange={handleDistrictChange}
+//                 disabled={!formData.state}
+//                 className="w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-purple-200"
+//               >
+//                 <option value="">Select District</option>
+//                 {districts.map((d, i) => (
+//                   <option key={i} value={d}>
+//                     {d}
+//                   </option>
+//                 ))}
+//               </select>
+//               <select
+//                 value={formData.city}
+//                 onChange={handleCityChange}
+//                 disabled={!formData.district}
+//                 className="w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-purple-200"
+//               >
+//                 <option value="">Select City</option>
+//                 {cities.map((c, i) => (
+//                   <option key={i} value={c}>
+//                     {c}
+//                   </option>
+//                 ))}
+//               </select>
+//               <input
+//                 type="text"
+//                 name="street"
+//                 placeholder="Street Address"
+//                 value={formData.street}
+//                 onChange={handleInput}
+//                 className="w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-purple-200"
+//               />
+//               <input
+//                 type="tel"
+//                 name="pin"
+//                 placeholder="Pin Code"
+//                 maxLength={6}
+//                 value={formData.pin}
+//                 onChange={handleInput}
+//                 className="w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-purple-200"
+//               />
+//               {!isAdmin && (
+//                 <input
+//                   type="password"
+//                   name="password"
+//                   placeholder="Password"
+//                   value={formData.password}
+//                   onChange={handleInput}
+//                   className="w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-purple-200"
+//                 />
+//               )}
+//             </div>
+//           </div>
+
+//           {/* Services */}
+//           <div className="bg-green-50 rounded-xl p-5 sm:p-6">
+//             <h3 className="text-lg font-semibold text-green-800 mb-4">Services & Pricing</h3>
+//             {formData.services.map((service, i) => (
+//               <div
+//                 key={i}
+//                 className="bg-white border-2 border-green-100 rounded-lg p-4 mb-3 flex flex-col sm:flex-row gap-4"
+//               >
+//                 <input
+//                   type="text"
+//                   name="service"
+//                   placeholder="Service Name"
+//                   value={service.service}
+//                   onChange={(e) => handleServiceChange(e, i)}
+//                   className="flex-1 border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-200"
+//                 />
+//                 <input
+//                   type="tel"
+//                   name="price"
+//                   placeholder="Price ₹"
+//                   value={service.price}
+//                   onChange={(e) => handleServiceChange(e, i)}
+//                   className="w-32 border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-200"
+//                 />
+//                 {formData.services.length > 1 && (
+//                   <button
+//                     type="button"
+//                     onClick={() => handleRemoveService(i)}
+//                     className="bg-red-500 text-white px-3 py-2 rounded-lg hover:bg-red-600"
+//                   >
+//                     Remove
+//                   </button>
+//                 )}
+//               </div>
+//             ))}
+//             <button
+//               type="button"
+//               onClick={handleAddService}
+//               className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600"
+//             >
+//               + Add Service
+//             </button>
+//           </div>
+
+//           {/* Submit */}
+//           <button
+//             type="submit"
+//             disabled={!isLocationCaptured}
+//             className={`w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white py-3 rounded-lg font-semibold ${
+//               !isLocationCaptured ? "opacity-60 cursor-not-allowed" : "hover:from-purple-700 hover:to-purple-800"
+//             }`}
+//           >
+//             {isLocationCaptured
+//               ? isAdmin
+//                 ? "Register Shop"
+//                 : "Complete Registration"
+//               : "Capture Location First"}
+//           </button>
+//         </form>
+//       </div>
+//     </div>
+//   );
+// };
 
 
 

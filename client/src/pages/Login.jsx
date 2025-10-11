@@ -219,7 +219,7 @@ const Login = () => {
             </span>
           </div>
 
-          <Link to="/forget" className="text-orange-400 text-sm mb-3 block text-right">
+          <Link to="/updatePassword" className="text-orange-400 text-sm mb-3 block text-right">
             Forgot password?
           </Link>
 
@@ -232,9 +232,9 @@ const Login = () => {
           </button>
 
           <div className="mt-3 text-center">
-            <span className="text-gray-300 text-sm">
+            <span className="text-gray-300">
               Don&apos;t have an account?{" "}
-              <Link className="text-blue-500 hover:underline" to="/getOTP">
+              <Link className="text-blue-500 hover:underline" to="/register">
                 Register
               </Link>
             </span>

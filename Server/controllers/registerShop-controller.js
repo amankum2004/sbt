@@ -1,15 +1,18 @@
 const Shops = require("../models/registerShop-model")
 const User = require("../models/user/user-model")
 const bcrypt = require("bcrypt")
+const Appointment = require("../models/appointment-model")
+const { sendShopStatusNotification } = require("../utils/mail");
 
 
 exports.registershop = async (req, res, next) => {
   try {
     const {
-      name,email,phone,password,
-      shopname,state,district,city,street,pin,
+      name, email, phone, password,
+      shopname, state, district, city, street, pin,
       services,
-      lat,lng
+      lat, lng,
+      latString, lngString // Add the new string coordinates
     } = req.body;
 
     // Required fields for all cases
@@ -18,19 +21,33 @@ exports.registershop = async (req, res, next) => {
       'city', 'street', 'pin', 'services'
     ];
 
-        // Validate required fields including coordinates
-        if (!lat || !lng) {
-            return res.status(400).json({
-                message: "Shop location coordinates are required"
-            });
-        }
+    // Validate required fields including coordinates
+    if (!lat || !lng) {
+      return res.status(400).json({
+        message: "Shop location coordinates are required"
+      });
+    }
 
-                // Validate coordinate ranges
-        if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
-            return res.status(400).json({
-                message: "Invalid coordinates provided"
-            });
-        }
+    // Use string coordinates if provided, otherwise convert number coordinates to strings
+    const finalLatString = latString || lat.toString();
+    const finalLngString = lngString || lng.toString();
+
+    // Validate coordinate ranges for number coordinates
+    if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+      return res.status(400).json({
+        message: "Invalid coordinates provided"
+      });
+    }
+
+    // Validate string coordinates format
+    const latRegex = /^-?\d{1,3}\.\d+$/;
+    const lngRegex = /^-?\d{1,3}\.\d+$/;
+    
+    if (!latRegex.test(finalLatString) || !lngRegex.test(finalLngString)) {
+      return res.status(400).json({
+        message: "Invalid coordinate format"
+      });
+    }
 
     // Check for missing required fields
     for (const field of requiredFields) {
@@ -53,6 +70,7 @@ exports.registershop = async (req, res, next) => {
     }
 
     // For non-admin registrations (regular shop owners)
+    let hash_password;
     if (password) {
       // Verify user credentials only for shop owners (not for admin-created shops)
       const userExist = await User.findOne({ email });
@@ -74,7 +92,7 @@ exports.registershop = async (req, res, next) => {
 
       // Hash the password before saving
       const saltRound = 10;
-      var hash_password = await bcrypt.hash(password, saltRound);
+      hash_password = await bcrypt.hash(password, saltRound);
     }
 
     // Create the shop (works for both admin and shop owner cases)
@@ -90,9 +108,24 @@ exports.registershop = async (req, res, next) => {
       street,
       pin,
       services,
+      // Store as numbers for backward compatibility
       lat: parseFloat(lat),
       lng: parseFloat(lng),
+      // Store as strings for full precision
+      latString: finalLatString,
+      lngString: finalLngString,
       isApproved: !password // Auto-approve if created by admin (no password)
+    });
+
+    console.log("Shop registered with full precision coordinates:", {
+      latNumber: newShop.lat,
+      lngNumber: newShop.lng,
+      latString: newShop.latString,
+      lngString: newShop.lngString,
+      stringLength: {
+        lat: newShop.latString.length,
+        lng: newShop.lngString.length
+      }
     });
 
     return res.status(201).json({
@@ -107,7 +140,9 @@ exports.registershop = async (req, res, next) => {
         isApproved: newShop.isApproved,
         location: {
           lat: newShop.lat,
-          lng: newShop.lng
+          lng: newShop.lng,
+          latString: newShop.latString, // Include string coordinates in response
+          lngString: newShop.lngString
         }
       }
     });
@@ -218,6 +253,134 @@ exports.getShopById = async(req,res) => {
     res.status(200).json(updatedProfile);
   } catch (error) {
     res.status(500).json({ message: "Error updating profile", error });
+  }
+};
+
+
+
+// Update shop status
+exports.updateShopStatus = async (req, res) => {
+  try {
+    const { shopId } = req.params;
+    const { status } = req.body;
+
+    // Validate status
+    if (!['open', 'closed', 'break'].includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid status. Must be: open, closed, or break'
+      });
+    }
+
+    const updatedShop = await Shops.findByIdAndUpdate(
+      shopId,
+      { 
+        status,
+        statusLastUpdated: new Date()
+      },
+      { new: true }
+    );
+
+    if (!updatedShop) {
+      return res.status(404).json({
+        success: false,
+        message: 'Shop not found'
+      });
+    }
+
+    // Notify customers with upcoming appointments
+    await notifyCustomersAboutStatusChange(updatedShop, status);
+
+    res.status(200).json({
+      success: true,
+      message: `Shop status updated to ${status}`,
+      data: {
+        shopId: updatedShop._id,
+        status: updatedShop.status,
+        statusLastUpdated: updatedShop.statusLastUpdated
+      }
+    });
+
+  } catch (error) {
+    console.error('Error updating shop status:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error.message
+    });
+  }
+};
+
+// Get shop status
+exports.getShopStatus = async (req, res) => {
+  try {
+    const { shopId } = req.params;
+
+    const shop = await Shops.findById(shopId).select('status statusLastUpdated shopname name');
+    
+    if (!shop) {
+      return res.status(404).json({
+        success: false,
+        message: 'Shop not found'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: {
+        status: shop.status,
+        statusLastUpdated: shop.statusLastUpdated,
+        shopname: shop.shopname,
+        name: shop.name
+      }
+    });
+
+  } catch (error) {
+    console.error('Error fetching shop status:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error.message
+    });
+  }
+};
+
+// Helper function to notify customers
+const notifyCustomersAboutStatusChange = async (shop, newStatus) => {
+  try {
+    // Find upcoming appointments for this shop (next 7 days)
+    const sevenDaysFromNow = new Date();
+    sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
+
+    const upcomingAppointments = await Appointment.find({
+      shopId: shop._id,
+      'showtimes.date': { 
+        $gte: new Date(), 
+        $lte: sevenDaysFromNow 
+      },
+      status: { $in: ['confirmed', 'pending'] }
+    }).populate('userId', 'email name');
+
+    if (upcomingAppointments.length === 0) {
+      console.log('No upcoming appointments to notify');
+      return;
+    }
+
+    // Send email notifications
+    for (const appointment of upcomingAppointments) {
+      await sendShopStatusNotification(
+        appointment.userId.email,
+        appointment.userId.name,
+        shop.shopname,
+        newStatus,
+        appointment.showtimes[0]?.date
+      );
+    }
+
+    console.log(`Notified ${upcomingAppointments.length} customers about shop status change`);
+
+  } catch (error) {
+    console.error('Error notifying customers:', error);
   }
 };
 

@@ -83,23 +83,37 @@ export const TemplateForm = () => {
                         phone: shopData?.phone || "",
                     }));
 
-                    // Check for existing template
+                    // Check for existing template - FIXED THIS PART
                     try {
-                        const templateRes = await api.get(`/time/template/shop/${shopData._id}`);
-                        if (templateRes.data) {
-                            setExistingTemplate(templateRes.data);
+                        const templateRes = await api.get(`/time/timeslots/${shopData._id}`);
+                        // console.log('Template response:', templateRes);
+                        
+                        // Check if template exists (not empty array and has data)
+                        if (templateRes.data && 
+                            Array.isArray(templateRes.data) && 
+                            templateRes.data.length > 0) {
+                            
+                            // Get the first template (assuming one template per shop)
+                            const template = templateRes.data[0];
+                            setExistingTemplate(template);
+                            
                             // Pre-fill form with existing template data
                             setForm(prev => ({
                                 ...prev,
-                                workingDays: templateRes.data.workingDays || [],
-                                startTime: templateRes.data.startTime || "08:00",
-                                endTime: templateRes.data.endTime || "20:00",
-                                slotInterval: templateRes.data.slotInterval || 30
+                                workingDays: template.workingDays || [],
+                                startTime: template.startTime || "08:00",
+                                endTime: template.endTime || "20:00",
+                                slotInterval: template.slotInterval || 30
                             }));
+                        } else {
+                            // No template exists - reset existing template state
+                            setExistingTemplate(null);
+                            console.log("No existing template found - empty array returned");
                         }
                     } catch (error) {
-                        // No existing template found - this is fine for new shops
-                        console.log("No existing template found");
+                        // No existing template found or other error
+                        console.log("No existing template found or error:", error);
+                        setExistingTemplate(null);
                     }
 
                 } catch (err) {
@@ -371,6 +385,7 @@ export const TemplateForm = () => {
         </div>
     );
 };
+
 
 
 

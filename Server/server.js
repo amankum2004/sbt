@@ -12,6 +12,7 @@ const cookieParser = require('cookie-parser')
 const https = createServer(app);
 const cronRoutes = require("./utils/scheduler");
 require('./utils/slot-creation');
+// const { initializeSocket } = require('./utils/sockets');
 // const Razorpay = require("razorpay")
 // const crypto = require('crypto');
 // const nodemailer = require('nodemailer');
@@ -67,11 +68,17 @@ const corsOptions = {
   
   app.use(cors(corsOptions));
   app.use(bodyParser.json());
-  app.use(bodyParser.urlencoded({ extended: true }))
-  app.use(cookieParser())
-  app.use(express.static(path.join(__dirname, '../client/dist')))
+  app.use(bodyParser.urlencoded({ extended: true }));
+  app.use(cookieParser());
+  app.use(express.static(path.join(__dirname, '../client/dist')));
+
+  // // Create HTTP server
+  // const server = createServer(app);
+  // // Initialize Socket.io
+  // const io = initializeSocket(server);
+  // // Make io accessible to routes
+  // app.set('io', io);
   
-  // require('./utils/scheduler')  // for deleting expired timeslots and appointments
   
   app.use((req, _, next) => {
     if (!req.url.match(/(assets|images|index\.html|.*\.(svg|png|jpg|jpeg))$/)) {
@@ -79,6 +86,7 @@ const corsOptions = {
     }
     next()
   })
+
   
   app.use('/api', apiRoute);
   app.use('/api/cron', cronRoutes);

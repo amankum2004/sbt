@@ -403,6 +403,114 @@ const verifyBrevoApiKey = async () => {
   }
 };
 
+// ==========================================
+// Shop Status Change Notification Email
+// ==========================================
+const sendShopStatusNotification = async (customerEmail, customerName, shopName, newStatus, appointmentDate) => {
+  console.log(`📧 Sending shop status notification to: ${customerEmail}`);
+
+  const statusConfig = {
+    open: {
+      color: '#10B981',
+      icon: '✅',
+      title: 'Shop is Now Open',
+      message: 'is now open and ready to serve you!'
+    },
+    closed: {
+      color: '#EF4444',
+      icon: '❌',
+      title: 'Shop is Temporarily Closed',
+      message: 'is temporarily closed. We apologize for any inconvenience.'
+    },
+    break: {
+      color: '#F59E0B',
+      icon: '⏸️',
+      title: 'Shop is on Break',
+      message: 'is currently on a break. We will be back soon!'
+    }
+  };
+
+  const config = statusConfig[newStatus] || statusConfig.closed;
+
+  const emailData = {
+    sender: {
+      name: BREVO_SENDER_NAME,
+      email: BREVO_SENDER_EMAIL
+    },
+    to: [
+      {
+        email: customerEmail,
+        name: customerName
+      }
+    ],
+    subject: `${config.icon} Shop Status Update - ${shopName}`,
+    htmlContent: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;">
+        <div style="text-align: center; background: linear-gradient(135deg, ${config.color} 0%, ${config.color}99 100%); padding: 20px; border-radius: 10px 10px 0 0; color: white;">
+          <h1 style="margin: 0;">${config.icon} ${config.title}</h1>
+          <p style="margin: 5px 0 0 0;">SalonHub Status Update</p>
+        </div>
+        
+        <div style="padding: 30px 20px;">
+          <h2 style="color: #333;">Hello ${customerName},</h2>
+          <p style="color: #666; line-height: 1.6;">
+            This is to inform you that <strong>${shopName}</strong> ${config.message}
+          </p>
+          
+          <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid ${config.color};">
+            <h3 style="color: #333; margin-top: 0;">📋 Your Upcoming Appointment</h3>
+            ${appointmentDate ? `
+              <p><strong>📅 Date:</strong> ${new Date(appointmentDate).toLocaleDateString('en-IN')}</p>
+              <p><strong>⏰ Time:</strong> ${new Date(appointmentDate).toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true
+              })}</p>
+            ` : '<p>You have an upcoming appointment at this shop.</p>'}
+          </div>
+          
+          <div style="background: #e7f3ff; padding: 15px; border-radius: 8px; margin: 20px 0;">
+            <p style="margin: 0; color: #0066cc; font-size: 14px;">
+              💡 <strong>Note:</strong> You can check the current shop status anytime in your appointment details.
+            </p>
+          </div>
+          
+          <p style="color: #666; line-height: 1.6;">
+            Thank you for choosing SalonHub! We appreciate your understanding.
+          </p>
+        </div>
+        
+        <div style="background: #f8f9fa; padding: 15px; text-align: center; border-radius: 0 0 10px 10px; border-top: 1px solid #e0e0e0;">
+          <p style="margin: 0; color: #666; font-size: 12px;">
+            Need to reschedule? Contact the shop directly or visit your dashboard.
+          </p>
+        </div>
+      </div>
+    `
+  };
+
+  try {
+    const response = await axios.post(
+      'https://api.brevo.com/v3/smtp/email',
+      emailData,
+      {
+        headers: {
+          'api-key': BREVO_API_KEY,
+          'Content-Type': 'application/json'
+        },
+        timeout: 10000
+      }
+    );
+    
+    console.log(`✅ Shop status notification sent to: ${customerEmail}`);
+    return response.data;
+  } catch (error) {
+    console.error('❌ Failed to send shop status notification:', error.response?.data || error.message);
+    return null;
+  }
+};
+
+
 // Verify API key on startup
 verifyBrevoApiKey();
 
@@ -411,6 +519,7 @@ module.exports = {
   mailOtp,
   sendConfirmationEmail,
   sendDonationConfirmationEmail,
+  sendShopStatusNotification, // Add this
   testEmailService,
   verifyBrevoApiKey
 };
