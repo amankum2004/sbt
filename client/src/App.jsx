@@ -36,18 +36,7 @@ import BarberDashboard from "./pages/BarberDashboard";
 import CustomerDashboard from "./pages/customerDashboard";
 // import { SocketProvider } from "./components/SocketContext";
 // import Forget from "./pages/Forget"
-// import { TimeSlotManager } from "./pages/TimeSlot-Manager";
 
-// Create a wrapper component that uses the login context
-// const AppWithSocket = ({ children }) => {
-//   const { user } = useLogin();
-  
-//   return (
-//     <SocketProvider user={user}>
-//       {children}
-//     </SocketProvider>
-//   );
-// };
 
 
 function App()  {
@@ -78,7 +67,6 @@ function App()  {
             <Route path="/timeSlot-create" element = {<TemplateForm/>}/>
             <Route path="/barberDashboard" element = {<BarberDashboard/>}/>
             <Route path="/customerDashboard" element = {<CustomerDashboard/>}/>
-            {/* <Route path="/timeSlot-manager" element = {<TimeSlotManager/>}/> */}
             <Route path="/barber-profile-update" element = {<BarberProfileUpdate/>}/>
             <Route path="/payment" element = {<Payment/>}/>
             <Route path="/nearbyShops/:shopId/shopinfo" element = {<DateTimeSelection/>}/>
