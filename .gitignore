@@ -68,3 +68,4 @@ node_modules/
 .env.production
 Server/.env.development
 Server/.env.production
+.vercel
