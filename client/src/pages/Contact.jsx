@@ -107,7 +107,7 @@ export const Contact = () => {
               Contact SalonHub - Customer Support & Salon Booking Help
             </h1>
             <p className="text-lg text-gray-600 max-w-3xl mx-auto mb-6">
-              Get in touch with <strong>SalonHub</strong> - India's leading online salon booking platform. 
+              <strong>SalonHub</strong> - India's leading online salon booking platform. 
               Whether you need help with <strong>salon bookings</strong>, have questions about 
               <strong> beauty services</strong>, or want to provide feedback, we're here to help you 
               <strong> 24/7</strong>.

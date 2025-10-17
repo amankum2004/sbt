@@ -93,7 +93,7 @@ export const Footer = () => {
                     Book <strong>haircuts, facials, spa treatments, and grooming services</strong> with top-rated professionals across 50+ cities.
                   </p>
                   <div className="flex flex-wrap gap-2">
-                    {["Salon Booking", "Beauty Services", "Hair Care", "Spa Treatments"].map((tag, idx) => (
+                    {["Salon Booking", "Beauty Services", "Spa Treatments"].map((tag, idx) => (
                       <span key={idx} className="bg-purple-700 px-2 py-1 rounded text-xs text-pink-100">
                         {tag}
                       </span>
