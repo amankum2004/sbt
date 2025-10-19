@@ -1106,11 +1106,27 @@ export const stateDistrictCityData = {
     "South Tripura": ["Belonia", "Sabroom"]
   },
   "Uttar Pradesh": {
-    "Agra": ["Agra City", "Firozabad"],
-    "Lucknow": ["Lucknow City", "Barabanki"],
-    "Varanasi": ["Varanasi City", "Mirzapur"],
-    "Kanpur": ["Kanpur City", "Unnao"],
-    "Noida": ["Noida City", "Greater Noida"]
+    "Agra": ["Agra", "Bah", "Etmadpur", "Fatehabad", "Kheragarh", "Kiraoli"],
+    "Aligarh": ["Atrauli", "Gabhana", "Iglas", "Khair", "Koil"],
+    "Ambedkar Nagar": ["Akbarpur", "Allapur", "Bhiti", "Jalalpur", "Tanda"],
+    "Amethi": ["Amethi", "Gauriganj", "Musafirkhana", "Tiloi"],
+    "Amroha": ["Amroha", "Dhanaura", "Hasanpur", "Naugawan Sadat"],
+    "Auraiya": ["Ajitmal", "Auraiya", "Bidhuna"],
+    "Azamgarh": ["Azamgarh", "Burhanpur", "Lalganj", "Martinganjon", "Mehnagar", "Nizamabad", "Phulpur", "Sagri"],
+    "Ayodhya": ["Bikapur", "Faizabad", "Milkipur", "Rudauli", "Sohawal"],
+    "Baghpat": ["Baghpat", "Baraut", "Khekada"],
+    "Bahraich": ["Bahraich", "Kaiserganj", "Mahasi", "Mihinpurwa Motipur", "Nanpara", "Payagpur"],
+    "Ballia": ["Bairia", "Ballia", "Bansdih", "Belthara Road", "Rasra", "Sikanderpur"],
+    "Balrampur": ["Balrampur", "Tulsipur", "Utraula"],
+    "Banda": ["Atarra", "Baberu", "Banda", "Naraini", "Pailani"],
+    "Bara Banki": ["Fatehpur", "Haidergarh", "Nawabganj", "Ramnagar", "Ramsanehighat", "Sirauli Gauspur"],
+    "Bareilly": ["Aonla", "Baheri", "Bareilly", "Faridpur", "Meerganj", "Nawabganj"],
+    "Basti": ["Basti", "Bhanpur", "Harraiya", "Rudhauli"],
+    "Bhadohi": ["Aurai", "Bhadohi", "Gyanpur"],
+    "Bijnor": ["Bijnor", "Chandpur", "Dhampur", "Nagina", "Najibabad"],
+    "Budaun": ["Bilsi", "Bisauli", "Budaun", "Dataganj", "Sahaswan"],
+    "Bulandshahr": ["Anupshahr", "Bulandshahr", "Debai", "Khurja", "Shikarpur", "Siana", "Sikandrabad"],
+    "Rae Bareli": ["Dalmau", "Lalganj", "Maharajganj", "Rae Bareli", "Salon", "Unchahar"]
   },
   "Uttarakhand": {
     "Dehradun": ["Dehradun City", "Rishikesh"],
