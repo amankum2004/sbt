@@ -18,9 +18,14 @@ router.get('/by-email/:email', registershopController.getShopByEmail);
 
 router.patch('/update', registershopController.updateBarberProfile);
 
-
 router.put('/:shopId/status', updateShopStatus);
 router.get('/:shopId/status', getShopStatus);
+
+// Update shop coordinates route
+// router.put("/:shopId/coordinates", registershopController.updateShopCoordinates);
+
+// Bulk geocode shops route (admin)
+// router.post("/bulk-geocode", registershopController.bulkGeocodeShops);
 
 module.exports = router;
 // router.route('/services').post(registershopController.addService)

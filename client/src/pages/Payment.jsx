@@ -17,10 +17,32 @@ export const Payment = () => {
     customerEmail = '',
     customerName = '',
     shopName = '',
+    shopPhone = '',
     location: shopLocation = '',
     shopId = '',
     showtimeServices = {} // Make sure this is included
   } = location.state || {};
+
+  // Function to format time in AM/PM format
+  const formatTimeAMPM = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+  };
+
+  // Function to format date
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-IN', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
 
   useEffect(() => {
     console.log("Booking Details from location.state:", {
@@ -33,7 +55,7 @@ export const Payment = () => {
       selectedShowtimes,
       showtimeServices // Check if this exists
     });
-  }, [totalAmount, customerEmail, customerName, shopName, shopLocation, shopId, selectedShowtimes, showtimeServices]);
+  }, [totalAmount, customerEmail, customerName, shopName, shopPhone, shopLocation, shopId, selectedShowtimes, showtimeServices]);
 
   const confirmBooking = async () => {
     try {
@@ -67,6 +89,7 @@ export const Payment = () => {
         userId: user?.userId || user?._id,
         shopDetails: {
           shopName,
+          shopPhone,
           location: shopLocation,
           shopId: shopId
         },
@@ -130,8 +153,8 @@ export const Payment = () => {
               <h3 className="text-lg font-semibold text-gray-800 mb-2">Selected Time Slots</h3>
               {selectedShowtimes?.map((slot, index) => (
                 <div key={index} className="bg-gray-50 p-3 rounded mb-2">
-                  <p><strong>Date:</strong> {new Date(slot.showtimeDate).toLocaleDateString()}</p>
-                  <p><strong>Time:</strong> {new Date(slot.showtimeDate).toLocaleTimeString()}</p>
+                  <p><strong>Date:</strong> {formatDate(slot.showtimeDate)}</p>
+                  <p><strong>Time:</strong> {formatTimeAMPM(slot.showtimeDate)}</p>
                   {showtimeServices[slot.showtimeId] && (
                     <p><strong>Service:</strong> {showtimeServices[slot.showtimeId].service} - ₹{showtimeServices[slot.showtimeId].price}</p>
                   )}

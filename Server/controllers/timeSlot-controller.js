@@ -127,6 +127,40 @@ exports.createTemplate = async (req, res) => {
   }
 };
 
+
+exports.updateTemplate = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const updateData = req.body;
+
+        const updatedTemplate = await TimeSlot.findByIdAndUpdate(
+            id,
+            updateData,
+            { new: true, runValidators: true }
+        );
+
+        if (!updatedTemplate) {
+            return res.status(404).json({ 
+                success: false, 
+                message: 'Template not found' 
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            data: updatedTemplate,
+            message: 'Template updated successfully'
+        });
+    } catch (error) {
+        console.error('Error updating template:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error updating template',
+            error: error.message
+        });
+    }
+};
+
 // AUTOMATIC TIMESLOT CREATION  
 const generateShowtimes = (date, startTime, endTime, slotInterval) => {
   const showtimes = [];

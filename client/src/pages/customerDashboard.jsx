@@ -281,14 +281,6 @@ const CustomerDashboard = () => {
 
         {/* Appointment Details - Stacked on mobile, grid on desktop */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4 p-3 sm:p-4 bg-gray-50 rounded-lg">
-          {/* Booked On */}
-          <div className="text-center">
-            <p className="text-xs sm:text-sm text-gray-600 font-medium mb-1">Booked On</p>
-            <p className="text-sm sm:text-base font-semibold text-gray-800">
-              {formatDateTime(appointment.bookedAt)}
-            </p>
-          </div>
-
           {/* Appointment Date */}
           <div className="text-center">
             <p className="text-xs sm:text-sm text-gray-600 font-medium mb-1">Appointment Date</p>
@@ -314,6 +306,14 @@ const CustomerDashboard = () => {
               )}
             </div>
           </div>
+
+          {/* Booked On */}
+          {/* <div className="text-center">
+            <p className="text-xs sm:text-sm text-gray-600 font-medium mb-1">Booked On</p>
+            <p className="text-sm sm:text-base font-semibold text-gray-800">
+              {formatDateTime(appointment.bookedAt)}
+            </p>
+          </div> */}
 
           {/* Cancel Appointment Button */}
           <div className="text-center flex items-center justify-center">

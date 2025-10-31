@@ -1143,3 +1143,14 @@ export const stateDistrictCityData = {
     "North 24 Parganas": ["Barasat", "Bongaon"]
   }
 };
+
+
+
+// MapMyIndia Configuration
+export const mapMyIndiaConfig = {
+  apiKey: import.meta.env.REACT_APP_MAPMYINDIA_API_KEY, // Your API Key
+  baseUrl: 'https://apis.mapmyindia.com/advancedmaps/v1',
+  geocodeUrl: 'https://atlas.mapmyindia.com/api/places/geocode',
+  directionsUrl: 'https://apis.mapmyindia.com/advancedmaps/v1/route'
+};
+
