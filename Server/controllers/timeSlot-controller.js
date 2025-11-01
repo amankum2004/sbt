@@ -1,6 +1,7 @@
 const TimeSlot = require('../models/timeSlot-model');
 const Template = require('../models/timeSlotTemplate-model');
-const moment = require("moment");
+// const moment = require("moment");
+const moment = require('moment-timezone');
 
 // const Shops = require('../models/timeSlot-model')
 // const {getShopByEmail} = require('../controllers/registerShop-controller')
@@ -113,11 +114,12 @@ exports.getTimeSlots = async (req, res) => {
   }
 };
 
+
 exports.createTemplate = async (req, res) => {
   try {
     const template = await Template.create(req.body);
 
-    // Trigger immediate generation for next 7 days
+    // Trigger immediate generation for next 7 days with timezone
     await exports.generateSlotsFor7Days(template);
 
     res.status(201).json(template);
@@ -162,22 +164,112 @@ exports.updateTemplate = async (req, res) => {
 };
 
 // AUTOMATIC TIMESLOT CREATION  
-const generateShowtimes = (date, startTime, endTime, slotInterval) => {
+const generateShowtimes = (date, startTime, endTime, slotInterval, timezone = 'Asia/Kolkata') => {
   const showtimes = [];
-  const start = moment(`${date} ${startTime}`);
-  const end = moment(`${date} ${endTime}`);
+  
+  // Use timezone-aware parsing
+  const start = moment.tz(`${date} ${startTime}`, 'YYYY-MM-DD HH:mm', timezone);
+  const end = moment.tz(`${date} ${endTime}`, 'YYYY-MM-DD HH:mm', timezone);
 
   if (!start.isValid() || !end.isValid()) {
-  throw new Error("Invalid startTime or endTime format");
-}
+    throw new Error("Invalid startTime or endTime format");
+  }
 
+  // Convert to UTC for consistent storage
   while (start < end) {
-    showtimes.push({ date: new Date(start) });
+    showtimes.push({ 
+      date: start.clone().utc().toDate(),
+      is_booked: false 
+    });
     start.add(slotInterval, "minutes");
   }
 
   return showtimes;
 };
+
+exports.generateSlotsFor7Days = async (singleTemplate = null) => {
+  try {
+    const templates = singleTemplate ? [singleTemplate] : await Template.find();
+    const today = moment().tz('Asia/Kolkata').startOf("day"); // Use specific timezone
+    const cutoffFuture = today.clone().add(7, "days").endOf("day");
+
+    // Delete outdated or extra future slots
+    const deleteResult = await TimeSlot.deleteMany({
+      $or: [
+        { date: { $lt: today.utc().toDate() } }, // Convert to UTC for comparison
+        { date: { $gt: cutoffFuture.utc().toDate() } }
+      ]
+    });
+
+    for (let template of templates) {
+      for (let i = 0; i < 7; i++) {
+        const targetDate = today.clone().add(i, "days");
+        const dayName = targetDate.format("dddd");
+
+        if (!template.workingDays.includes(dayName)) continue;
+
+        const dateISO = targetDate.format("YYYY-MM-DD"); // Use string date for timezone-aware generation
+
+        let timeslotDoc = await TimeSlot.findOne({
+          shop_owner_id: template.shop_owner_id,
+          date: targetDate.utc().startOf('day').toDate() // Store date in UTC
+        });
+
+        const newShowtimes = generateShowtimes(
+          dateISO,
+          template.startTime,
+          template.endTime,
+          template.slotInterval,
+          'Asia/Kolkata' // Specify the timezone
+        );
+
+        if (!timeslotDoc) {
+          await TimeSlot.create({
+            shop_owner_id: template.shop_owner_id,
+            name: template.name,
+            email: template.email,
+            phone: template.phone,
+            date: targetDate.utc().startOf('day').toDate(), // Store in UTC
+            showtimes: newShowtimes
+          });
+        } else {
+          const newSlots = newShowtimes.filter(slot => {
+            return !timeslotDoc.showtimes.some(existing =>
+              moment(existing.date).isSame(moment(slot.date))
+            );
+          });
+          timeslotDoc.showtimes.push(...newSlots);
+          await timeslotDoc.save();
+        }
+      }
+    }
+    return {
+      success: true,
+      deletedOldOrExtraSlots: deleteResult.deletedCount,
+    };
+  } catch (error) {
+    console.error("Slot generation failed from generateSlotsFor7Days:", error);
+    throw error;
+  }
+};
+
+
+// const generateShowtimes = (date, startTime, endTime, slotInterval) => {
+//   const showtimes = [];
+//   const start = moment(`${date} ${startTime}`);
+//   const end = moment(`${date} ${endTime}`);
+
+//   if (!start.isValid() || !end.isValid()) {
+//   throw new Error("Invalid startTime or endTime format");
+// }
+
+//   while (start < end) {
+//     showtimes.push({ date: new Date(start) });
+//     start.add(slotInterval, "minutes");
+//   }
+
+//   return showtimes;
+// };
 
 exports.generateSlotsFor7Days = async (singleTemplate = null) => {
   try {

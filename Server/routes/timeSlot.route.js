@@ -4,7 +4,6 @@ const timeSlotController = require("@/controllers/timeSlot-controller")
 const router = express.Router();
 const TimeSlot = require('../models/timeSlot-model');
 
-// router.post('/timeslots', timeSlotController.createTimeSlot);
 router.route('/timeslots').post(timeSlotController.createTimeSlot)
 
 // router.get('/timeslots/available', timeSlotController.getAvailableTimeSlots);
