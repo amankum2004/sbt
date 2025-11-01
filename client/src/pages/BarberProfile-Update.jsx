@@ -74,20 +74,20 @@ export const BarberProfileUpdate = () => {
         
         Swal.fire({
           title: "Location Captured Successfully!",
-          html: `
-            <div class="text-left">
-              <p><strong>Coordinates:</strong></p>
-              <p>Latitude: ${preciseLat}</p>
-              <p>Longitude: ${preciseLng}</p>
-              <p class="mt-2"><strong>Accuracy:</strong> ${Math.round(accuracy)} meters</p>
-              ${accuracy > 50 ? 
-                '<p class="text-yellow-600 mt-2">⚠️ Location accuracy is low. Consider moving to an open area.</p>' : 
-                '<p class="text-green-600 mt-2">✓ Good location accuracy</p>'
-              }
-            </div>
-          `,
+          // html: `
+          //   <div class="text-left">
+          //     <p><strong>Coordinates:</strong></p>
+          //     <p>Latitude: ${preciseLat}</p>
+          //     <p>Longitude: ${preciseLng}</p>
+          //     <p class="mt-2"><strong>Accuracy:</strong> ${Math.round(accuracy)} meters</p>
+          //     ${accuracy > 50 ? 
+          //       '<p class="text-yellow-600 mt-2">⚠️ Location accuracy is low. Consider moving to an open area.</p>' : 
+          //       '<p class="text-green-600 mt-2">✓ Good location accuracy</p>'
+          //     }
+          //   </div>
+          // `,
           icon: "success",
-          confirmButtonText: "Great!",
+          confirmButtonText: "Ok",
           confirmButtonColor: "#10B981"
         });
       },
@@ -278,7 +278,7 @@ export const BarberProfileUpdate = () => {
         <div className="text-center mb-8">
           <div className="bg-white rounded-2xl shadow-sm p-6 mx-auto max-w-2xl">
             <h1 className="text-3xl font-bold text-gray-900 mb-3 bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-              Update Shop Profile
+              Update Shop Details
             </h1>
             <p className="text-gray-600 text-lg">
               Keep your shop information up to date for better customer experience
@@ -332,11 +332,11 @@ export const BarberProfileUpdate = () => {
                     <div className="space-y-2">
                       <div className="flex items-center text-green-600">
                         <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
-                        <span className="font-semibold">Location Successfully Captured</span>
+                        <span className="font-semibold">Location Captured Successfully</span>
                       </div>
-                      <div className="text-xs text-gray-600 ml-5">
+                      {/* <div className="text-xs text-gray-600 ml-5">
                         Latitude: {data.lat}, Longitude: {data.lng}
-                      </div>
+                      </div> */}
                     </div>
                   ) : (
                     <div className="flex items-center text-yellow-600">
@@ -607,7 +607,7 @@ export const BarberProfileUpdate = () => {
                   <span>Updating...</span>
                 </div>
               ) : (
-                'Update Shop Profile'
+                'Submit'
               )}
             </button>
           </div>

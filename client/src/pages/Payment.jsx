@@ -144,7 +144,7 @@ export const Payment = () => {
               
               <div>
                 <h3 className="text-lg font-semibold text-gray-800 mb-2">Salon Details</h3>
-                <p><strong>Salon:</strong> {shopName}</p>
+                <p><strong>Salon name:</strong> {shopName}</p>
                 <p><strong>Location:</strong> {shopLocation}</p>
               </div>
             </div>

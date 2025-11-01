@@ -230,20 +230,20 @@ export const BarberProfile = () => {
                 </div>
               </div>
               
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
                 {loading && (
                   <div className="flex items-center gap-2 text-amber-600 text-sm bg-amber-50 px-3 py-1.5 rounded-full">
                     <div className="w-2 h-2 bg-amber-600 rounded-full animate-pulse"></div>
                     Loading shop data...
                   </div>
                 )}
-                <button 
+                {/* <button 
                   onClick={manuallyCheckShop}
                   className="text-gray-600 hover:text-blue-600 transition-colors duration-300 flex items-center gap-2 text-sm bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded-lg"
                 >
                   <MdRefresh className="text-base" />
                   Refresh
-                </button>
+                </button> */}
               </div>
             </div>
 
@@ -303,13 +303,13 @@ export const BarberProfile = () => {
                     <span className="font-medium">Shop Dashboard</span>
                   </Link>
                   
-                  <Link
+                  {/* <Link
                     to="/customerDashboard"
                     className="bg-purple-500 hover:bg-purple-600 text-white p-4 rounded-xl flex items-center justify-center gap-3 transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-1"
                   >
                     <FaCalendarAlt className="text-lg" />
                     <span className="font-medium">My Appointments</span>
-                  </Link>
+                  </Link> */}
                 </div>
               </div>
             ) : (
