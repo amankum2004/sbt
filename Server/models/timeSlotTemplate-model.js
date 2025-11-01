@@ -14,6 +14,8 @@ const templateSchema = new mongoose.Schema({
   startTime: String,
   endTime: String,
   slotInterval: Number,
+},{
+  timestamps: true
 });
 
 const Template = mongoose.model("Template", templateSchema);

@@ -13,6 +13,7 @@ router.route('/shops/:shopOwnerId/available').get(timeSlotController.getTimeSlot
 // automatic timeSlot creation
 router.post("/template/create", timeSlotController.createTemplate);
 router.put("/template/:id", timeSlotController.updateTemplate); // Add this line
+router.get("/template/:shopId", timeSlotController.getTemplateByShopId);
 
 router.get("/timeslots/:shopId", async (req, res) => {
   const slots = await TimeSlot.find({ shop_owner_id: req.params.shopId });

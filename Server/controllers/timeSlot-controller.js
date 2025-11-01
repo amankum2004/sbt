@@ -1,38 +1,13 @@
 const TimeSlot = require('../models/timeSlot-model');
 const Template = require('../models/timeSlotTemplate-model');
 // const moment = require("moment");
+const mongoose = require('mongoose');
 const moment = require('moment-timezone');
-
 // const Shops = require('../models/timeSlot-model')
 // const {getShopByEmail} = require('../controllers/registerShop-controller')
 
-// exports.createTimeSlot = async (req, res) => {
-//   // const { shop_owner_id, start_time, end_time } = req.body;
-//   const {shop_owner_id, name, email, phone, date ,showtimes} = req.body;
-//   try {
-//     // const newTimeSlot = new TimeSlot({ shop_owner_id, start_time, end_time });
-//     const newTimeSlot = new TimeSlot({shop_owner_id, name, email, phone, date, showtimes });
-//     await newTimeSlot.save();
-//     res.status(201).json({ message: 'Time slot created successfully' });
-//   } catch (error) {
-//     res.status(500).json({ message: error.message });
-//   }
-// };
 
-// exports.getTimeSlots = async (req, res) => {
-//   try {
-//     // const  id  = req.params.id;
-//     // const timeSlots = await TimeSlot.find({}, {is_booked: false });
-//     const timeSlots = await TimeSlot.find();
-//     if(!timeSlots || timeSlots.length===0){
-//       return res.status(404).json({message:"No time slots found"});
-//     }
-//     console.log(timeSlots);
-//     res.status(200).json(timeSlots);
-//   } catch (error) {
-//     res.status(500).json({ message: error.message });
-//   }
-// };
+// TimeSlots CRUD Operations
 
 // exports.updateTimeSlot = async (req, res) => {
 //   const { id } = req.params
@@ -83,16 +58,6 @@ exports.createTimeSlot = async (req, res) => {
   }
 };
 
-// exports.getTimeSlots = async (req, res) => {
-//   try {
-//     const { shopOwnerId } = req.params;
-//     const timeSlots = await TimeSlot.find({ shop_owner_id: shopOwnerId });
-//     res.status(200).json(timeSlots);
-//   } catch (error) {
-//     res.status(500).json({ message: 'Failed to retrieve time slots', error });
-//   }
-// };
-
 exports.getTimeSlots = async (req, res) => {
   try {
     const { shopOwnerId } = req.params;
@@ -115,6 +80,7 @@ exports.getTimeSlots = async (req, res) => {
 };
 
 
+// Template CRUD Operations
 exports.createTemplate = async (req, res) => {
   try {
     const template = await Template.create(req.body);
@@ -122,10 +88,19 @@ exports.createTemplate = async (req, res) => {
     // Trigger immediate generation for next 7 days with timezone
     await exports.generateSlotsFor7Days(template);
 
-    res.status(201).json(template);
+    res.status(201).json({
+      success: true,  // Make sure this is included
+      data: template,
+      message: 'Template created successfully and time slots generated'
+    });
+    // res.status(201).json(template);
   } catch (err) {
     console.error("Template creation failed:", err);
-    res.status(500).json({ error: "Failed to create template" });
+    res.status(500).json({ 
+      success: false,  // Make sure this is included
+      error: "Failed to create template" 
+    });
+    // res.status(500).json({ error: "Failed to create template" });
   }
 };
 
@@ -135,26 +110,65 @@ exports.updateTemplate = async (req, res) => {
         const { id } = req.params;
         const updateData = req.body;
 
-        const updatedTemplate = await TimeSlot.findByIdAndUpdate(
-            id,
-            updateData,
-            { new: true, runValidators: true }
-        );
+        console.log('🔄 Updating template with ID:', id);
+        console.log('📝 Update data:', updateData);
 
-        if (!updatedTemplate) {
+        // Get the old template first to compare changes
+        const oldTemplate = await Template.findById(id);
+        if (!oldTemplate) {
             return res.status(404).json({ 
                 success: false, 
                 message: 'Template not found' 
             });
         }
 
+        console.log('📋 Old template working days:', oldTemplate.workingDays);
+        console.log('📋 New template working days:', updateData.workingDays);
+
+        // Check if working days changed
+        const workingDaysChanged = 
+            JSON.stringify(oldTemplate.workingDays.sort()) !== 
+            JSON.stringify(updateData.workingDays.sort());
+
+        // Update the template
+        const updatedTemplate = await Template.findByIdAndUpdate(
+            id,
+            updateData,
+            { 
+                new: true,
+                runValidators: true 
+            }
+        );
+
+        console.log('✅ Template updated successfully');
+
+        // Trigger slot regeneration with the updated template
+        console.log('🔄 Starting slot regeneration...');
+        const regenerationResult = await exports.generateSlotsFor7Days(updatedTemplate);
+
+        let message = 'Template updated successfully';
+        if (workingDaysChanged) {
+            const oldDaysCount = oldTemplate.workingDays.length;
+            const newDaysCount = updatedTemplate.workingDays.length;
+            message += `. Working days changed from ${oldDaysCount} to ${newDaysCount} days.`;
+            
+            if (regenerationResult.deletedSlotsForNonWorkingDays > 0) {
+                message += ` Removed ${regenerationResult.deletedSlotsForNonWorkingDays} slots for non-working days.`;
+            }
+        }
+
+        message += ` Generated ${regenerationResult.totalSlotsCreated} new time slots.`;
+
         res.status(200).json({
             success: true,
             data: updatedTemplate,
-            message: 'Template updated successfully'
+            regenerationResult: regenerationResult,
+            workingDaysChanged: workingDaysChanged,
+            message: message
         });
+
     } catch (error) {
-        console.error('Error updating template:', error);
+        console.error('❌ Error updating template:', error);
         res.status(500).json({
             success: false,
             message: 'Error updating template',
@@ -163,236 +177,466 @@ exports.updateTemplate = async (req, res) => {
     }
 };
 
+// exports.updateTemplate = async (req, res) => {
+//     try {
+//         const { id } = req.params;
+//         const updateData = req.body;
+
+//         console.log('🔄 Updating template with ID:', id);
+//         console.log('📝 Update data:', updateData);
+
+//         // First, check if the ID is valid
+//         if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+//             console.log('❌ Invalid template ID format:', id);
+//             return res.status(400).json({ 
+//                 success: false, 
+//                 message: 'Invalid template ID format' 
+//             });
+//         }
+
+//          // Try to find the template first to see if it exists
+//         const existingTemplate = await Template.findById(id);
+
+//         if (!existingTemplate) {
+//             console.log('❌ Template not found with ID:', id);
+//             // Let's see what templates exist for this shop
+//             const shopTemplates = await Template.find({ shop_owner_id: updateData.shop_owner_id });
+//             console.log('🔍 Available templates for this shop:', shopTemplates.map(t => ({
+//                 _id: t._id,
+//                 workingDays: t.workingDays
+//             })));
+            
+//             return res.status(404).json({ 
+//                 success: false, 
+//                 message: `Template not found with ID: ${id}`,
+//                 availableTemplates: shopTemplates.map(t => t._id)
+//             });
+//         }
+
+//         console.log('✅ Found existing template:', {
+//             _id: existingTemplate._id,
+//             workingDays: existingTemplate.workingDays,
+//             startTime: existingTemplate.startTime,
+//             endTime: existingTemplate.endTime,
+//             slotInterval: existingTemplate.slotInterval
+//         });
+
+//         // Update the template
+//         const updatedTemplate = await Template.findByIdAndUpdate(
+//             id,
+//             updateData,
+//             { 
+//                 new: true,
+//                 runValidators: true 
+//             }
+//         );
+
+//         console.log('✅ Template updated successfully');
+//         console.log('📋 Updated template:', {
+//             workingDays: updatedTemplate.workingDays,
+//             startTime: updatedTemplate.startTime,
+//             endTime: updatedTemplate.endTime,
+//             slotInterval: updatedTemplate.slotInterval
+//         });
+
+//         // Trigger slot regeneration with the updated template
+//         console.log('🔄 Starting slot regeneration...');
+//         const regenerationResult = await exports.generateSlotsFor7Days(updatedTemplate);
+
+//         res.status(200).json({
+//             success: true,
+//             data: updatedTemplate,
+//             regenerationResult: regenerationResult,
+//             message: 'Template updated successfully and time slots regenerated'
+//         });
+
+//     } catch (error) {
+//         console.error('❌ Error updating template:', error);
+//         res.status(500).json({
+//             success: false,
+//             message: 'Error updating template',
+//             error: error.message
+//         });
+//     }
+// };
+
+// In your timeSlot-controller.js
+exports.getTemplateByShopId = async (req, res) => {
+    try {
+        const { shopId } = req.params;
+
+        console.log('🔍 Searching for template with shop ID:', shopId);
+
+        // Validate shop ID
+        if (!shopId || !mongoose.Types.ObjectId.isValid(shopId)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid shop ID format'
+            });
+        }
+
+        // Find template by shop_owner_id
+        const template = await Template.findOne({ shop_owner_id: shopId });
+
+        if (!template) {
+            console.log('❌ No template found for shop ID:', shopId);
+            return res.status(404).json({
+                success: false,
+                message: 'No template found for this shop'
+            });
+        }
+
+        console.log('✅ Template found:', {
+            _id: template._id,
+            shop_owner_id: template.shop_owner_id,
+            workingDays: template.workingDays,
+            startTime: template.startTime,
+            endTime: template.endTime,
+            slotInterval: template.slotInterval
+        });
+
+        res.status(200).json({
+            success: true,
+            data: template,
+            message: 'Template found successfully'
+        });
+
+    } catch (error) {
+        console.error('❌ Error fetching template by shop ID:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching template',
+            error: error.message
+        });
+    }
+};
+
+
+
 // AUTOMATIC TIMESLOT CREATION  
 const generateShowtimes = (date, startTime, endTime, slotInterval, timezone = 'Asia/Kolkata') => {
   const showtimes = [];
+  
+  console.log('🕒 Generating showtimes with:', { date, startTime, endTime, slotInterval, timezone });
   
   // Use timezone-aware parsing
   const start = moment.tz(`${date} ${startTime}`, 'YYYY-MM-DD HH:mm', timezone);
   const end = moment.tz(`${date} ${endTime}`, 'YYYY-MM-DD HH:mm', timezone);
 
+  console.log('📅 Parsed times - Start:', start.format(), 'End:', end.format());
+  console.log('⏱️ Time difference (minutes):', end.diff(start, 'minutes'));
+
   if (!start.isValid() || !end.isValid()) {
+    console.error('❌ Invalid times:', { startValid: start.isValid(), endValid: end.isValid() });
     throw new Error("Invalid startTime or endTime format");
   }
 
-  // Convert to UTC for consistent storage
-  while (start < end) {
+  if (start >= end) {
+    console.error('❌ Start time is after end time');
+    return [];
+  }
+
+  let slotCount = 0;
+  const current = start.clone();
+  
+  while (current < end) {
     showtimes.push({ 
-      date: start.clone().utc().toDate(),
+      date: current.clone().utc().toDate(),
       is_booked: false 
     });
-    start.add(slotInterval, "minutes");
+    current.add(slotInterval, "minutes");
+    slotCount++;
+    
+    // Safety check to prevent infinite loop
+    if (slotCount > 500) {
+      console.error('❌ Too many slots, breaking loop');
+      break;
+    }
+  }
+
+  console.log(`✅ Generated ${slotCount} slots`);
+  
+  if (showtimes.length > 0) {
+    console.log('📊 First slot:', moment(showtimes[0].date).format('YYYY-MM-DD HH:mm'));
+    console.log('📊 Last slot:', moment(showtimes[showtimes.length-1].date).format('YYYY-MM-DD HH:mm'));
+  } else {
+    console.log('❌ No slots generated!');
   }
 
   return showtimes;
 };
 
+
 exports.generateSlotsFor7Days = async (singleTemplate = null) => {
   try {
     const templates = singleTemplate ? [singleTemplate] : await Template.find();
-    const today = moment().tz('Asia/Kolkata').startOf("day"); // Use specific timezone
+    const today = moment().tz('Asia/Kolkata').startOf("day");
     const cutoffFuture = today.clone().add(7, "days").endOf("day");
 
-    // Delete outdated or extra future slots
-    const deleteResult = await TimeSlot.deleteMany({
-      $or: [
-        { date: { $lt: today.utc().toDate() } }, // Convert to UTC for comparison
-        { date: { $gt: cutoffFuture.utc().toDate() } }
-      ]
-    });
+    console.log('🔍 Starting slot regeneration process...');
+    console.log('📅 Date range:', today.format('YYYY-MM-DD'), 'to', cutoffFuture.format('YYYY-MM-DD'));
+    console.log('🏪 Templates to process:', templates.length);
+
+    let totalSlotsCreated = 0;
+    let totalDaysProcessed = 0;
+    let deletedSlotsCount = 0;
 
     for (let template of templates) {
+      console.log(`\n🔄 Processing template for shop: ${template.shop_owner_id}`);
+      console.log('📋 Template working days:', template.workingDays);
+      console.log('⏰ Template times:', {
+        startTime: template.startTime,
+        endTime: template.endTime,
+        slotInterval: template.slotInterval
+      });
+
+      // Step 1: Delete time slots for days that are no longer working days
+      const futureSlots = await TimeSlot.find({
+        shop_owner_id: template.shop_owner_id,
+        date: { 
+          $gte: today.utc().toDate(),
+          $lte: cutoffFuture.utc().toDate()
+        }
+      });
+
+      console.log(`🔍 Found ${futureSlots.length} existing future slots`);
+
+      // Identify slots to delete (for days that are no longer working days)
+      const slotsToDelete = [];
+      for (let slot of futureSlots) {
+        const slotDate = moment(slot.date).tz('Asia/Kolkata');
+        const dayName = slotDate.format("dddd");
+        const capitalizedDayName = dayName.charAt(0).toUpperCase() + dayName.slice(1);
+        
+        if (!template.workingDays.includes(capitalizedDayName)) {
+          slotsToDelete.push(slot._id);
+          console.log(`🗑️ Marking slot for deletion: ${slotDate.format('YYYY-MM-DD')} (${capitalizedDayName}) - no longer a working day`);
+        }
+      }
+
+      // Delete the identified slots
+      if (slotsToDelete.length > 0) {
+        const deleteResult = await TimeSlot.deleteMany({
+          _id: { $in: slotsToDelete }
+        });
+        deletedSlotsCount += deleteResult.deletedCount;
+        console.log(`✅ Deleted ${deleteResult.deletedCount} slots for non-working days`);
+      }
+
+      // Step 2: Generate new slots for current working days
       for (let i = 0; i < 7; i++) {
         const targetDate = today.clone().add(i, "days");
         const dayName = targetDate.format("dddd");
+        const capitalizedDayName = dayName.charAt(0).toUpperCase() + dayName.slice(1);
+        const dateString = targetDate.format("YYYY-MM-DD");
 
-        if (!template.workingDays.includes(dayName)) continue;
+        console.log(`\n📅 Checking ${dateString} (${capitalizedDayName})`);
 
-        const dateISO = targetDate.format("YYYY-MM-DD"); // Use string date for timezone-aware generation
+        if (!template.workingDays.includes(capitalizedDayName)) {
+          console.log(`⏭️ Skipping ${dateString} (${capitalizedDayName}) - not a working day`);
+          continue;
+        }
+
+        console.log(`✅ ${dateString} (${capitalizedDayName}) is a working day! Processing...`);
+
+        const dateISO = targetDate.format("YYYY-MM-DD");
+        const utcDate = targetDate.utc().startOf('day').toDate();
 
         let timeslotDoc = await TimeSlot.findOne({
           shop_owner_id: template.shop_owner_id,
-          date: targetDate.utc().startOf('day').toDate() // Store date in UTC
+          date: utcDate
         });
+
+        console.log('🔍 Existing timeslot document:', timeslotDoc ? `Found (${timeslotDoc._id})` : 'Not found');
 
         const newShowtimes = generateShowtimes(
           dateISO,
           template.startTime,
           template.endTime,
           template.slotInterval,
-          'Asia/Kolkata' // Specify the timezone
+          'Asia/Kolkata'
         );
 
+        console.log(`🕒 Generated ${newShowtimes.length} slots for ${dateString}`);
+
         if (!timeslotDoc) {
-          await TimeSlot.create({
+          const newTimeslot = await TimeSlot.create({
             shop_owner_id: template.shop_owner_id,
             name: template.name,
             email: template.email,
             phone: template.phone,
-            date: targetDate.utc().startOf('day').toDate(), // Store in UTC
+            date: utcDate,
             showtimes: newShowtimes
           });
+          console.log('✅ Created new timeslot document:', newTimeslot._id);
+          totalSlotsCreated += newShowtimes.length;
         } else {
-          const newSlots = newShowtimes.filter(slot => {
-            return !timeslotDoc.showtimes.some(existing =>
-              moment(existing.date).isSame(moment(slot.date))
-            );
-          });
-          timeslotDoc.showtimes.push(...newSlots);
-          await timeslotDoc.save();
+          // Replace all showtimes with new ones (in case times changed)
+          timeslotDoc.showtimes = newShowtimes;
+          const savedDoc = await timeslotDoc.save();
+          console.log('✅ Updated existing timeslot document:', savedDoc._id);
+          totalSlotsCreated += newShowtimes.length;
         }
+        
+        totalDaysProcessed++;
       }
     }
+    
+    console.log(`\n🎉 Slot regeneration completed!`);
+    console.log(`📊 Summary: ${totalDaysProcessed} days processed, ${totalSlotsCreated} total slots created/updated`);
+    console.log(`🗑️ Deleted ${deletedSlotsCount} slots for non-working days`);
+    
     return {
       success: true,
-      deletedOldOrExtraSlots: deleteResult.deletedCount,
+      deletedSlotsForNonWorkingDays: deletedSlotsCount,
+      templatesProcessed: templates.length,
+      daysProcessed: totalDaysProcessed,
+      totalSlotsCreated: totalSlotsCreated
     };
   } catch (error) {
-    console.error("Slot generation failed from generateSlotsFor7Days:", error);
+    console.error("❌ Slot generation failed:", error);
     throw error;
   }
 };
 
-
-// const generateShowtimes = (date, startTime, endTime, slotInterval) => {
-//   const showtimes = [];
-//   const start = moment(`${date} ${startTime}`);
-//   const end = moment(`${date} ${endTime}`);
-
-//   if (!start.isValid() || !end.isValid()) {
-//   throw new Error("Invalid startTime or endTime format");
-// }
-
-//   while (start < end) {
-//     showtimes.push({ date: new Date(start) });
-//     start.add(slotInterval, "minutes");
-//   }
-
-//   return showtimes;
-// };
-
-exports.generateSlotsFor7Days = async (singleTemplate = null) => {
-  try {
-    const templates = await Template.find();
-    const today = moment().startOf("day");
-    const cutoffFuture = today.clone().add(7, "days").endOf("day");
-
-    // Delete outdated or extra future slots
-    const deleteResult = await TimeSlot.deleteMany({
-      $or: [
-        { date: { $lt: today.toDate() } },
-        { date: { $gt: cutoffFuture.toDate() } }
-      ]
-    });
-
-    for (let template of templates) {
-      for (let i = 0; i < 7; i++) {
-        const targetDate = today.clone().add(i, "days");
-        const dayName = targetDate.format("dddd");
-
-        if (!template.workingDays.includes(dayName)) continue;
-
-        const dateISO = targetDate.clone().startOf("day").toDate();
-
-        let timeslotDoc = await TimeSlot.findOne({
-          shop_owner_id: template.shop_owner_id,
-          date: dateISO
-        });
-
-        const newShowtimes = generateShowtimes(
-          targetDate.format("YYYY-MM-DD"),
-          template.startTime,
-          template.endTime,
-          template.slotInterval
-        );
-
-        if (!timeslotDoc) {
-          await TimeSlot.create({
-            shop_owner_id: template.shop_owner_id,
-            name: template.name,
-            email: template.email,
-            phone: template.phone,
-            date: dateISO,
-            showtimes: newShowtimes
-          });
-        } else {
-          const newSlots = newShowtimes.filter(slot => {
-            return !timeslotDoc.showtimes.some(existing =>
-              moment(existing.date).isSame(moment(slot.date))
-            );
-          });
-          timeslotDoc.showtimes.push(...newSlots);
-          await timeslotDoc.save();
-        }
-      }
-    }
-    return {
-      success: true,
-      deletedOldOrExtraSlots: deleteResult.deletedCount,
-    };
-  } catch (error) {
-    console.error("Slot generation failed from generateSlotsFor7Days:", error);
-    throw error;
-  }
-};
-
-
-
-
-// exports.getTimeSlots = async (req, res) => {
+// exports.generateSlotsFor7Days = async (singleTemplate = null) => {
 //   try {
-//     const { shopOwnerId, date } = req.query;
+//     const templates = singleTemplate ? [singleTemplate] : await Template.find();
+//     const today = moment().tz('Asia/Kolkata').startOf("day");
+//     const cutoffFuture = today.clone().add(7, "days").endOf("day");
 
-//     // Find all time slots for the shop owner on the given date
-//     const timeSlots = await TimeSlot.findOne({
-//       shop_owner_id: shopOwnerId,
-//       date: new Date(date)
+//     console.log('🔍 Starting slot regeneration process...');
+//     console.log('📅 Date range:', today.format('YYYY-MM-DD'), 'to', cutoffFuture.format('YYYY-MM-DD'));
+//     console.log('🏪 Templates to process:', templates.length);
+
+//     // Delete outdated or extra future slots for the specific template(s)
+//     const shopOwnerIds = templates.map(t => t.shop_owner_id);
+    
+//     console.log('🗑️ Deleting old slots for shop IDs:', shopOwnerIds);
+    
+//     const deleteResult = await TimeSlot.deleteMany({
+//       shop_owner_id: { $in: shopOwnerIds },
+//       $or: [
+//         { date: { $lt: today.utc().toDate() } },
+//         { date: { $gt: cutoffFuture.utc().toDate() } }
+//       ]
 //     });
 
-//     if (!timeSlots) {
-//       return res.status(404).json({ message: 'No time slots found for the selected date.' });
+//     console.log('✅ Deleted old slots count:', deleteResult.deletedCount);
+
+//     let totalSlotsCreated = 0;
+//     let totalDaysProcessed = 0;
+
+//     const normalizeDayName = (dayName) => {
+//       return dayName.toLowerCase();
+//     };
+
+//     for (let template of templates) {
+//       console.log(`\n🔄 Processing template for shop: ${template.shop_owner_id}`);
+//       console.log('📋 Template details:', {
+//         workingDays: template.workingDays,
+//         startTime: template.startTime,
+//         endTime: template.endTime,
+//         slotInterval: template.slotInterval
+//       });
+      
+//       for (let i = 0; i < 7; i++) {
+//         const targetDate = today.clone().add(i, "days");
+//         const dayName = targetDate.format("dddd"); // This returns "sunday", "monday", etc (lowercase)
+//         const normalizedDayName = normalizeDayName(dayName);
+//         const normalizedWorkingDays = template.workingDays.map(day => normalizeDayName(day));
+        
+//         // const capitalizedDayName = dayName.charAt(0).toUpperCase() + dayName.slice(1); // Capitalize it
+//         const dateString = targetDate.format("YYYY-MM-DD");
+//         // console.log(`📅 Checking ${dateString} (${dayName} -> ${capitalizedDayName}) against:`, template.workingDays);
+        
+//         console.log(`📅 Checking ${dateString} (${dayName}) against:`, template.workingDays);
+//         console.log(`🔍 Normalized: ${normalizedDayName} vs`, normalizedWorkingDays);
+
+//         if (!normalizedWorkingDays.includes(normalizedDayName)) {
+//           console.log(`⏭️ Skipping ${dateString} (${dayName}) - not in working days`);
+//           continue;
+//         }
+
+//         const dateISO = targetDate.format("YYYY-MM-DD");
+//         const utcDate = targetDate.utc().startOf('day').toDate();
+
+//         let timeslotDoc = await TimeSlot.findOne({
+//           shop_owner_id: template.shop_owner_id,
+//           date: utcDate
+//         });
+
+//         console.log('🔍 Existing timeslot document:', timeslotDoc ? 'Found' : 'Not found');
+
+//         const newShowtimes = generateShowtimes(
+//           dateISO,
+//           template.startTime,
+//           template.endTime,
+//           template.slotInterval,
+//           'Asia/Kolkata'
+//         );
+
+//         console.log(`🕒 Generated ${newShowtimes.length} slots for ${dateString}`);
+        
+//         if (newShowtimes.length > 0) {
+//           console.log('📊 Sample slots:', newShowtimes.slice(0, 3).map(s => 
+//             moment(s.date).format('HH:mm')
+//           ));
+//         } else {
+//           console.log('❌ No slots generated! Check time range and interval');
+//         }
+
+//         if (!timeslotDoc) {
+//           const newTimeslot = await TimeSlot.create({
+//             shop_owner_id: template.shop_owner_id,
+//             name: template.name,
+//             email: template.email,
+//             phone: template.phone,
+//             date: utcDate,
+//             showtimes: newShowtimes
+//           });
+//           console.log('✅ Created new timeslot document:', newTimeslot._id);
+//           console.log('📄 Document details:', {
+//             date: newTimeslot.date,
+//             showtimesCount: newTimeslot.showtimes.length
+//           });
+//           totalSlotsCreated += newShowtimes.length;
+//         } else {
+//           // Replace all showtimes with new ones
+//           timeslotDoc.showtimes = newShowtimes;
+//           const savedDoc = await timeslotDoc.save();
+//           console.log('✅ Updated existing timeslot document:', savedDoc._id);
+//           console.log('📄 Updated details:', {
+//             date: savedDoc.date,
+//             showtimesCount: savedDoc.showtimes.length
+//           });
+//           totalSlotsCreated += newShowtimes.length;
+//         }
+        
+//         totalDaysProcessed++;
+//       }
 //     }
-
-//     // Filter out booked showtimes
-//     const availableShowtimes = timeSlots.flatMap((slot) =>
-//       slot.showtimes.filter((showtime) => !showtime.is_booked)
-//     );
-
-//     res.status(200).json(availableShowtimes);
+    
+//     console.log(`\n🎉 Slot regeneration completed!`);
+//     console.log(`📊 Summary: ${totalDaysProcessed} days processed, ${totalSlotsCreated} total slots created/updated`);
+    
+//     return {
+//       success: true,
+//       deletedOldOrExtraSlots: deleteResult.deletedCount,
+//       templatesProcessed: templates.length,
+//       daysProcessed: totalDaysProcessed,
+//       totalSlotsCreated: totalSlotsCreated
+//     };
 //   } catch (error) {
-//     res.status(500).json({ message: 'Failed to fetch available showtimes', error });
+//     console.error("❌ Slot generation failed:", error);
+//     throw error;
 //   }
 // };
 
-// // Book a specific showtime
-// exports.bookShowtime = async (req, res) => {
-//   try {
-//     const { slotId, showtimeId } = req.body;
 
-//     // Find the time slot and the specific showtime
-//     const timeSlot = await TimeSlot.findById(slotId);
-//     if (!timeSlot) {
-//       return res.status(404).json({ message: 'Time slot not found' });
-//     }
 
-//     const showtime = timeSlot.showtimes.id(showtimeId);
-//     if (!showtime) {
-//       return res.status(404).json({ message: 'Showtime not found' });
-//     }
 
-//     if (showtime.is_booked) {
-//       return res.status(400).json({ message: 'Showtime already booked' });
-//     }
 
-//     // Mark the showtime as booked
-//     showtime.is_booked = true;
-//     await timeSlot.save();
-
-//     res.status(200).json({ message: 'Showtime booked successfully', showtime });
-//   } catch (error) {
-//     res.status(500).json({ message: 'Failed to book showtime', error });
-//   }
-// };
 
 // Get a specific time slot by ID
 exports.getTimeSlotById = async (req, res) => {

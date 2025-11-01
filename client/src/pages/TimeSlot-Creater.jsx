@@ -85,17 +85,35 @@ export const TemplateForm = () => {
 
                     // Check for existing template - FIXED THIS PART
                     try {
-                        const templateRes = await api.get(`/time/timeslots/${shopData._id}`);
-                        // console.log('Template response:', templateRes);
+                        console.log('🔍 Fetching template for shop ID:', shopData._id);
+                        const templateRes = await api.get(`/time/template/${shopData._id}`);
+                        console.log('📋 Template response:', templateRes.data);
                         
                         // Check if template exists (not empty array and has data)
-                        if (templateRes.data && 
-                            Array.isArray(templateRes.data) && 
-                            templateRes.data.length > 0) {
-                            
+                        // if (templateRes.data && Array.isArray(templateRes.data) && templateRes.data.length > 0) {
+                        if (templateRes.data && templateRes.data.success) {
                             // Get the first template (assuming one template per shop)
-                            const template = templateRes.data[0];
-                            setExistingTemplate(template);
+                            // const template = templateRes.data[0];
+                            const template = templateRes.data.data;
+                            
+                            console.log('📋 Found existing template:', {
+                                _id: template._id,
+                                workingDays: template.workingDays,
+                                startTime: template.startTime,
+                                endTime: template.endTime,
+                                slotInterval: template.slotInterval,
+                                // isDefault: templateRes.data.isDefault
+                            });
+
+                            // setExistingTemplate(template);
+                             // Only set as existing template if it's not a default one
+                            if (!templateRes.data.isDefault && template._id) {
+                                setExistingTemplate(template);
+                                console.log('✅ Setting existing template');
+                            } else {
+                                setExistingTemplate(null);
+                                console.log('🆕 No existing template, will create new one');
+                            }
                             
                             // Pre-fill form with existing template data
                             setForm(prev => ({
@@ -164,28 +182,86 @@ export const TemplateForm = () => {
         setMessage(null);
 
         try {
+            let response;
             if (existingTemplate) {
                 // Update existing template
-                await api.put(`/time/template/${existingTemplate._id}`, form);
-                setMessage("Time template updated successfully!");
-                setMessageType("success");
-                Swal.fire({ title: "Success", text: "Template updated successfully", icon: "success" });
+                response = await api.put(`/time/template/${existingTemplate._id}`, form);
+                console.log('Update response:', response);
+
+                // More flexible success checking
+                const isSuccess = response.data?.success || 
+                             (response.data && !response.data.error) || 
+                             response.status === 200;
+            
+                if (isSuccess) {
+                    setMessage("Time template updated successfully! Time slots are being regenerated.");
+                    setMessageType("success");
+                    Swal.fire({ 
+                        title: "Success", 
+                        text: "Template updated successfully and time slots are being regenerated", 
+                        icon: "success" 
+                    }).then(() => {
+                        navigate('/barberprofile');
+                    });
+                    return; // Important: return here to prevent further execution
+                } else {
+                    throw new Error(response.data?.message || response.data?.error || "Update failed on server");
+                }
             } else {
                 // Create new template
-                await api.post("time/template/create", form);
-                setMessage("Time template created successfully!");
-                setMessageType("success");
-                Swal.fire({ title: "Success", text: "Template created successfully", icon: "success" });
+                response = await api.post("time/template/create", form);
+                console.log('Create response:', response.data);
+
+                // More flexible success checking for creation
+                const isSuccess = response.data?.success || 
+                             (response.data && !response.data.error) || 
+                             response.status === 201;
+            
+                if (isSuccess) {
+                    setMessage("Time template created successfully!");
+                    setMessageType("success");
+                    Swal.fire({ 
+                        title: "Success", 
+                        text: "Template created successfully", 
+                        icon: "success" 
+                    }).then(() => {
+                        navigate('/barberprofile');
+                    });
+                    return; // Important: return here to prevent further execution
+                } else {
+                    throw new Error(response.data?.message || response.data?.error || "Creation failed on server");
+                }
+            }   
+        } catch (err) {
+            console.error("❌ Template operation failed:", err);
+        
+            // More detailed error handling
+            let errorMessage = "An unexpected error occurred";
+            
+            if (err.response) {
+                // Server responded with error status
+                console.error('Server error response:', err.response);
+                errorMessage = err.response.data?.message || 
+                            err.response.data?.error || 
+                            `Server error: ${err.response.status}`;
+            } else if (err.request) {
+                // Request was made but no response received
+                console.error('No response received:', err.request);
+                errorMessage = "No response from server. Please check your connection.";
+            } else {
+                // Something else happened
+                console.error('Request configuration error:', err.message);
+                errorMessage = err.message || "Request configuration error";
             }
             
-            navigate('/barberprofile'); // Navigate to dashboard after success
-        } catch (err) {
-            console.error("Template operation failed:", err);
-            const errorMessage = existingTemplate 
-            ? "Error updating template. Please try again."
-            : "Error creating template. Please check your inputs.";
             setMessage(errorMessage);
             setMessageType("error");
+            
+            Swal.fire({ 
+                title: "Error", 
+                text: errorMessage, 
+                icon: "error" 
+            });
         } finally {
             setIsSubmitting(false);
             setTimeout(() => setMessage(null), 5000);
@@ -375,11 +451,8 @@ export const TemplateForm = () => {
                                 <option value={10}>10 minutes</option>
                                 <option value={15}>15 minutes</option>
                                 <option value={20}>20 minutes</option>
-                                {/* <option value={25}>25 minutes</option> */}
                                 <option value={30}>30 minutes</option>
-                                {/* <option value={35}>35 minutes</option> */}
                                 <option value={40}>40 minutes</option>
-                                {/* <option value={45}>45 minutes</option> */}
                                 <option value={50}>50 minutes</option>
                                 <option value={60}>60 minutes</option>
                             </select>

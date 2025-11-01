@@ -112,6 +112,123 @@ const BarberDashboard = () => {
     checkShopStatus();
   }, [user, navigate]);
 
+  // Enhanced time formatting function
+  const formatTime = (timeString) => {
+    if (!timeString) return 'N/A';
+    
+    // If it's already in AM/PM format, return as is
+    if (typeof timeString === 'string' && (timeString.includes('AM') || timeString.includes('PM'))) {
+      return timeString;
+    }
+    
+    // If it's a date string, format it
+    try {
+      const date = new Date(timeString);
+      if (!isNaN(date.getTime())) {
+        return date.toLocaleTimeString('en-US', {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: true
+        });
+      }
+    } catch (error) {
+      console.log('Error formatting date:', error);
+    }
+    
+    // If it's just a time string like "08:00", convert to AM/PM
+    if (typeof timeString === 'string' && timeString.includes(':')) {
+      const [hours, minutes] = timeString.split(':');
+      const hour = parseInt(hours);
+      const ampm = hour >= 12 ? 'PM' : 'AM';
+      const formattedHour = hour % 12 || 12;
+      return `${formattedHour}:${minutes} ${ampm}`;
+    }
+    
+    return 'N/A';
+  };
+
+  // Enhanced date formatting function
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return 'N/A';
+      
+      const today = new Date();
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      
+      // Check if it's today
+      if (date.toDateString() === today.toDateString()) {
+        return 'Today';
+      }
+      
+      // Check if it's tomorrow
+      if (date.toDateString() === tomorrow.toDateString()) {
+        return 'Tomorrow';
+      }
+      
+      return date.toLocaleDateString('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric'
+      });
+    } catch (error) {
+      console.log('Error formatting date:', error);
+      return 'N/A';
+    }
+  };
+
+  // Get appointment time from various possible properties
+  const getAppointmentTime = (appointment) => {
+    // Check multiple possible locations for time data
+    const possibleTimePaths = [
+      appointment.time, // Direct time property
+      appointment.appointmentTime, // Alternative time property
+      appointment.timeSlot?.time, // Time from timeSlot
+      appointment.timeSlot?.startTime, // Start time from timeSlot
+      appointment.showtimes?.[0]?.time, // Time from first showtime
+      appointment.showtimes?.[0]?.startTime, // Start time from first showtime
+      appointment.showtimes?.[0]?.date, // Date from showtime (will be formatted)
+      appointment.date, // Direct date property
+      appointment.startTime, // Start time property
+    ];
+    
+    for (const time of possibleTimePaths) {
+      if (time) {
+        const formattedTime = formatTime(time);
+        if (formattedTime !== 'N/A') {
+          return formattedTime;
+        }
+      }
+    }
+    
+    return 'N/A';
+  };
+
+  // Get appointment date from various possible properties
+  const getAppointmentDate = (appointment) => {
+    const possibleDatePaths = [
+      appointment.date,
+      appointment.appointmentDate,
+      appointment.timeSlot?.date,
+      appointment.showtimes?.[0]?.date,
+      appointment.createdAt,
+    ];
+    
+    for (const date of possibleDatePaths) {
+      if (date) {
+        const formattedDate = formatDate(date);
+        if (formattedDate !== 'N/A') {
+          return formattedDate;
+        }
+      }
+    }
+    
+    return 'N/A';
+  };
+
   // Show loading while checking shop status
   if (checkingShopStatus) {
     return (
@@ -249,24 +366,6 @@ const BarberDashboard = () => {
     }
   };
 
-  const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString('en-US', {
-      weekday: 'short',
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
-
-  const formatTime = (dateString) => {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
   const getStatusBadge = (status) => {
     if (status === 'cancelled') {
       return <span className="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium">Cancelled</span>;
@@ -299,117 +398,122 @@ const BarberDashboard = () => {
     const allAppointments = [...todaysAppointments, ...currentAppointments, ...pastAppointments];
     return allAppointments
       .filter(apt => apt.status === 'completed')
-      .reduce((total, apt) => total + (apt.totalAmount || 0), 0);
+      .reduce((total, apt) => total + (apt.totalAmount || apt.amount || 0), 0);
   };
 
-  const AppointmentCard = ({ appointment, showActions = true }) => (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4 mb-3 hover:shadow-md transition-shadow">
-      {/* Mobile: Stacked layout, Desktop: Horizontal layout */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        {/* Customer Info */}
-        <div className="flex items-center space-x-3 min-w-0 flex-1">
-          <div className="flex-shrink-0">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-100 rounded-full flex items-center justify-center">
-              <span className="text-blue-600 font-semibold text-sm sm:text-base">
-                {(appointment.userId?.name || appointment.customerName || 'C')[0].toUpperCase()}
-              </span>
+  const AppointmentCard = ({ appointment, showActions = true }) => {
+    const appointmentTime = getAppointmentTime(appointment);
+    const appointmentDate = getAppointmentDate(appointment);
+    
+    return (
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4 mb-3 hover:shadow-md transition-shadow">
+        {/* Mobile: Stacked layout, Desktop: Horizontal layout */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          {/* Customer Info */}
+          <div className="flex items-center space-x-3 min-w-0 flex-1">
+            <div className="flex-shrink-0">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                <span className="text-blue-600 font-semibold text-sm sm:text-base">
+                  {(appointment.userId?.name || appointment.customerName || 'C')[0].toUpperCase()}
+                </span>
+              </div>
+            </div>
+            <div className="min-w-0 flex-1">
+              <h3 className="text-sm sm:text-base font-semibold text-gray-800 truncate">
+                {appointment.userId?.name || appointment.customerName || 'Customer'}
+              </h3>
+              {appointment.userId?.phone && (
+                <p className="text-xs sm:text-sm text-gray-500 truncate">{appointment.userId.phone}</p>
+              )}
             </div>
           </div>
-          <div className="min-w-0 flex-1">
-            <h3 className="text-sm sm:text-base font-semibold text-gray-800 truncate">
-              {appointment.userId?.name || appointment.customerName || 'Customer'}
-            </h3>
-            {appointment.userId?.phone && (
-              <p className="text-xs sm:text-sm text-gray-500 truncate">{appointment.userId.phone}</p>
+
+          {/* Services - Hidden on small mobile, shown on larger screens */}
+          <div className="hidden xs:flex flex-1 px-2 min-w-0">
+            <div className="flex flex-wrap gap-1 sm:gap-2 justify-center">
+              {appointment.showtimes && appointment.showtimes.slice(0, 2).map((showtime, index) => (
+                <div key={index} className="flex items-center space-x-1 sm:space-x-2 bg-gray-50 px-2 sm:px-3 py-1 rounded text-xs">
+                  <span className="font-medium text-gray-700 truncate max-w-[60px] sm:max-w-[90px]">
+                    {showtime.service?.name || 'Service'}
+                  </span>
+                  <span className="text-green-600 font-semibold text-xs">
+                    ₹{showtime.service?.price || 0}
+                  </span>
+                </div>
+              ))}
+              {appointment.showtimes && appointment.showtimes.length > 2 && (
+                <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                  +{appointment.showtimes.length - 2} more
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Date, Time, Status and Actions */}
+          <div className="flex items-center justify-between sm:justify-end sm:space-x-3 gap-2">
+            {/* Date & Time - Hidden on very small screens */}
+            <div className="hidden xs:block text-right">
+              <p className="text-xs sm:text-sm font-semibold text-gray-600">
+                {appointmentDate}
+              </p>
+              <p className="text-xs sm:text-sm font-semibold text-black-500">
+                {appointmentTime}
+              </p>
+            </div>
+
+            {/* Status Badge */}
+            <div className="flex-shrink-0">
+              {getStatusBadge(appointment.status)}
+            </div>
+
+            {/* Status Dropdown - Only show for non-completed appointments */}
+            {showActions && appointment.status !== 'completed' && (
+              <div className="relative flex-shrink-0">
+                <select
+                  value=""
+                  onChange={(e) => updateAppointmentStatus(appointment._id, e.target.value)}
+                  className="text-xs sm:text-sm border border-gray-300 rounded px-2 sm:px-3 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                >
+                  <option value="">Change</option>
+                  {getStatusOptions(appointment.status).map(option => (
+                    <option key={option.value} value={option.value} className={option.color}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
             )}
           </div>
         </div>
 
-        {/* Services - Hidden on small mobile, shown on larger screens */}
-        <div className="hidden xs:flex flex-1 px-2 min-w-0">
-          <div className="flex flex-wrap gap-1 sm:gap-2 justify-center">
-            {appointment.showtimes && appointment.showtimes.slice(0, 2).map((showtime, index) => (
-              <div key={index} className="flex items-center space-x-1 sm:space-x-2 bg-gray-50 px-2 sm:px-3 py-1 rounded text-xs">
-                <span className="font-medium text-gray-700 truncate max-w-[60px] sm:max-w-[90px]">
-                  {showtime.service?.name || 'Service'}
-                </span>
-                <span className="text-green-600 font-semibold text-xs">
-                  ₹{showtime.service?.price || 0}
-                </span>
-              </div>
-            ))}
-            {appointment.showtimes && appointment.showtimes.length > 2 && (
-              <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                +{appointment.showtimes.length - 2} more
-              </span>
-            )}
-          </div>
-        </div>
-
-        {/* Date, Time, Status and Actions */}
-        <div className="flex items-center justify-between sm:justify-end sm:space-x-3 gap-2">
-          {/* Date & Time - Hidden on very small screens */}
-          <div className="hidden xs:block text-right">
-            <p className="text-xs sm:text-sm font-semibold text-gray-600">
-              {appointment.timeSlot?.date ? formatDate(appointment.timeSlot.date) : 'N/A'}
-            </p>
-            <p className="text-xs sm:text-sm font-semibold text-black-500">
-              {appointment.showtimes?.[0]?.date ? formatTime(appointment.showtimes[0].date) : 'N/A'}
-            </p>
-          </div>
-
-          {/* Status Badge */}
-          <div className="flex-shrink-0">
-            {getStatusBadge(appointment.status)}
-          </div>
-
-          {/* Status Dropdown - Only show for non-completed appointments */}
-          {showActions && appointment.status !== 'completed' && (
-            <div className="relative flex-shrink-0">
-              <select
-                value=""
-                onChange={(e) => updateAppointmentStatus(appointment._id, e.target.value)}
-                className="text-xs sm:text-sm border border-gray-300 rounded px-2 sm:px-3 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
-              >
-                <option value="">Change</option>
-                {getStatusOptions(appointment.status).map(option => (
-                  <option key={option.value} value={option.value} className={option.color}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
+        {/* Mobile-only: Services and Date/Time */}
+        <div className="xs:hidden mt-2 pt-2 border-t border-gray-100">
+          <div className="flex justify-between items-center">
+            <div className="flex flex-wrap gap-1">
+              {appointment.showtimes && appointment.showtimes.slice(0, 1).map((showtime, index) => (
+                <div key={index} className="flex items-center space-x-1 bg-gray-50 px-2 py-1 rounded text-xs">
+                  <span className="font-medium text-gray-700">
+                    {showtime.service?.name || 'Service'}
+                  </span>
+                  <span className="text-green-600 font-semibold">
+                    ₹{showtime.service?.price || 0}
+                  </span>
+                </div>
+              ))}
             </div>
-          )}
-        </div>
-      </div>
-
-      {/* Mobile-only: Services and Date/Time */}
-      <div className="xs:hidden mt-2 pt-2 border-t border-gray-100">
-        <div className="flex justify-between items-center">
-          <div className="flex flex-wrap gap-1">
-            {appointment.showtimes && appointment.showtimes.slice(0, 1).map((showtime, index) => (
-              <div key={index} className="flex items-center space-x-1 bg-gray-50 px-2 py-1 rounded text-xs">
-                <span className="font-medium text-gray-700">
-                  {showtime.service?.name || 'Service'}
-                </span>
-                <span className="text-green-600 font-semibold">
-                  ₹{showtime.service?.price || 0}
-                </span>
-              </div>
-            ))}
-          </div>
-          <div className="text-right">
-            <p className="text-xs text-gray-600">
-              {appointment.timeSlot?.date ? formatDate(appointment.timeSlot.date) : 'N/A'}
-            </p>
-            <p className="text-xs text-black-500">
-              {appointment.showtimes?.[0]?.date ? formatTime(appointment.showtimes[0].date) : 'N/A'}
-            </p>
+            <div className="text-right">
+              <p className="text-xs text-gray-600">
+                {appointmentDate}
+              </p>
+              <p className="text-xs text-black-500">
+                {appointmentTime}
+              </p>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   if (loading) {
     return (
@@ -426,9 +530,8 @@ const BarberDashboard = () => {
       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
         {/* Header */}
         <div className="mb-4 px-1">
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mt-12 sm:mt-12">Barber Dashboard</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mt-12 sm:mt-12">Customer Appointments</h1>
         </div>
-
 
         {/* Tabs */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
@@ -607,6 +710,11 @@ const BarberDashboard = () => {
 };
 
 export default BarberDashboard;
+
+
+
+
+
 
 
 
@@ -819,7 +927,38 @@ export default BarberDashboard;
 //             icon: 'success',
 //             confirmButtonText: 'OK'
 //           });
-//           fetchBarberData();
+
+//           await fetchBarberData();
+          
+//           // Update local state immediately for better UX
+//           if (newStatus === 'completed') {
+//             // Find the appointment in current arrays and move it to past
+//             const allAppointments = [...todaysAppointments, ...currentAppointments, ...pastAppointments];
+//             const updatedAppointment = allAppointments.find(apt => apt._id === appointmentId);
+            
+//             if (updatedAppointment) {
+//               // Update the appointment status
+//               updatedAppointment.status = 'completed';
+              
+//               // Remove from current arrays
+//               const newTodaysAppointments = todaysAppointments.filter(apt => apt._id !== appointmentId);
+//               const newCurrentAppointments = currentAppointments.filter(apt => apt._id !== appointmentId);
+              
+//               // Add to past appointments
+//               const newPastAppointments = [updatedAppointment, ...pastAppointments];
+              
+//               // Update state
+//               setTodaysAppointments(newTodaysAppointments);
+//               setCurrentAppointments(newCurrentAppointments);
+//               setPastAppointments(newPastAppointments);
+              
+//               // Switch to history tab to show the completed appointment
+//               setActiveTab('history');
+//             }
+//           } else {
+//             // For other status changes, just refetch data
+//             fetchBarberData();
+//           }
 //         }
 //       }
 //     } catch (error) {
@@ -947,8 +1086,8 @@ export default BarberDashboard;
 //             {getStatusBadge(appointment.status)}
 //           </div>
 
-//           {/* Status Dropdown */}
-//           {showActions && (
+//           {/* Status Dropdown - Only show for non-completed appointments */}
+//           {showActions && appointment.status !== 'completed' && (
 //             <div className="relative flex-shrink-0">
 //               <select
 //                 value=""
@@ -1010,7 +1149,7 @@ export default BarberDashboard;
 //       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
 //         {/* Header */}
 //         <div className="mb-4 px-1">
-//           <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mt-12 sm:mt-12">Barber Dashboard</h1>
+//           <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mt-12 sm:mt-12">Appointments</h1>
 //         </div>
 
 
@@ -1115,7 +1254,7 @@ export default BarberDashboard;
 //             )}
 //           </div>
 //         </div>
-
+        
 //         {/* Stats - Responsive Grid */}
 //         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-4 mb-4 sm:mb-6">
 //           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4">
@@ -1191,6 +1330,12 @@ export default BarberDashboard;
 // };
 
 // export default BarberDashboard;
+
+
+
+
+
+
 
 
 
