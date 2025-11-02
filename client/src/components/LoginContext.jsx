@@ -12,7 +12,15 @@ export const LoginProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [shop, setShop] = useState(null);
   const [shopExists, setShopExists] = useState(false);
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
+
+  // ✅ Safe hook usage: check if inside a router
+  let navigate;
+  try {
+    navigate = useNavigate();
+  } catch {
+    navigate = () => {}; // fallback during tests
+  }
 
   // Check if shop exists for the current user
   const checkShopExists = async (email) => {

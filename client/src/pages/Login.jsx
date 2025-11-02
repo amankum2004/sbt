@@ -8,10 +8,10 @@ import { GiComb } from "react-icons/gi";
 import { useLoading } from "../components/Loading";
 
 const Login = () => {
+  const navigate = useNavigate();
   const { showLoading, hideLoading } = useLoading();
   const { loggedIn, login, checkShopExists } = useLogin();
   const [, setClicked] = useState("");
-  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loginMethod, setLoginMethod] = useState('email'); // 'email' or 'phone'
