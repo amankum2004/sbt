@@ -199,7 +199,7 @@ export const Footer = () => {
                       { icon: FaFacebook, url: "https://www.facebook.com/profile.php?id=61583405962148", name: "Facebook" },
                       { icon: FaTwitter, url: "https://x.com/salonhub_co_in", name: "Twitter" },
                       { icon: FaInstagram, url: "https://www.instagram.com", name: "Instagram" },
-                      { icon: FaLinkedin, url: "https://www.linkedin.com", name: "LinkedIn" }
+                      { icon: FaLinkedin, url: "https://www.linkedin.com/company/salonhub-co-in/", name: "LinkedIn" }
                     ].map((social, index) => (
                       <a 
                         key={index}
