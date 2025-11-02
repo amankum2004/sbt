@@ -51,7 +51,7 @@ export const Footer = () => {
       
       <div className="w-full">
         {/* Trust Badges Section - New Addition for SEO */}
-        <div className="bg-white border-t border-gray-200 py-6">
+        {/* <div className="bg-white border-t border-gray-200 py-6">
           <div className="container mx-auto max-w-7xl px-4">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
               {[
@@ -68,7 +68,7 @@ export const Footer = () => {
               ))}
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* Main Footer */}
         <footer className="bg-gradient-to-r from-purple-900 to-pink-800 text-white pt-12 pb-8 px-4">
