@@ -71,14 +71,6 @@ const corsOptions = {
   app.use(bodyParser.urlencoded({ extended: true }));
   app.use(cookieParser());
   app.use(express.static(path.join(__dirname, '../client/dist')));
-
-  // // Create HTTP server
-  // const server = createServer(app);
-  // // Initialize Socket.io
-  // const io = initializeSocket(server);
-  // // Make io accessible to routes
-  // app.set('io', io);
-  
   
   app.use((req, _, next) => {
     if (!req.url.match(/(assets|images|index\.html|.*\.(svg|png|jpg|jpeg))$/)) {
@@ -86,10 +78,21 @@ const corsOptions = {
     }
     next()
   })
-
   
   app.use('/api', apiRoute);
   app.use('/api/cron', cronRoutes);
+
+  // Serve sitemap.xml correctly
+  app.get('/sitemap.xml', (req, res) => {
+    res.header('Content-Type', 'application/xml');
+    res.sendFile(path.join(__dirname, '../client/dist', 'sitemap.xml'));
+  });
+
+  // Serve robots.txt correctly (recommended)
+  app.get('/robots.txt', (req, res) => {
+    res.header('Content-Type', 'text/plain');
+    res.sendFile(path.join(__dirname, '../client/dist', 'robots.txt'));
+  });
   
   app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, '../client/dist', 'index.html'))
