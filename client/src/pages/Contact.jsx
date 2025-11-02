@@ -28,7 +28,7 @@ export const Contact = () => {
     "mainEntity": {
       "@type": "Organization",
       "name": "SalonHub",
-      "email": "sbthelp123@gmail.com",
+      "email": "salonhub.business@gmail.com",
       "telephone": "+91-8810269376",
       "address": {
         "@type": "PostalAddress",
@@ -115,8 +115,8 @@ export const Contact = () => {
             <div className="bg-white rounded-lg p-4 max-w-2xl mx-auto shadow-sm">
               <p className="text-gray-700">
                 <strong>Quick Support:</strong> For urgent salon booking issues, email us directly at{" "}
-                <a href="mailto:sbthelp123@gmail.com" className="text-purple-600 font-semibold">
-                  sbthelp123@gmail.com
+                <a href="mailto:salonhub.business@gmail.com" className="text-purple-600 font-semibold">
+                  salonhub.business@gmail.com
                 </a>
               </p>
             </div>
@@ -156,10 +156,10 @@ export const Contact = () => {
                   <div>
                     <h3 className="font-semibold text-lg mb-1">Email Support</h3>
                     <a 
-                      href="mailto:sbthelp123@gmail.com" 
+                      href="mailto:salonhub.business@gmail.com" 
                       className="text-purple-100 hover:text-white transition-colors text-lg font-medium"
                     >
-                      sbthelp123@gmail.com
+                      salonhub.business@gmail.com
                     </a>
                     <p className="text-purple-100 text-sm mt-1">
                       For salon bookings, customer support, and general inquiries
@@ -322,7 +322,7 @@ export const Contact = () => {
                 },
                 {
                   question: "How can salon owners partner with SalonHub?",
-                  answer: "Salon owners can email us at sbthelp123@gmail.com with their salon details to start the partnership process and reach more customers."
+                  answer: "Salon owners can email us at salonhub.business@gmail.com with their salon details to start the partnership process and reach more customers."
                 }
               ].map((faq, idx) => (
                 <div key={idx} className="border border-purple-100 rounded-lg p-6 hover:shadow-md transition-shadow">
@@ -343,7 +343,7 @@ export const Contact = () => {
               <div className="bg-white bg-opacity-20 p-4 rounded-lg">
                 <FaEnvelope className="text-2xl mx-auto mb-2" />
                 <h3 className="font-semibold mb-1">Email Support</h3>
-                <p className="text-sm opacity-90">sbthelp123@gmail.com</p>
+                <p className="text-sm opacity-90">salonhub.business@gmail.com</p>
               </div>
               <div className="bg-white bg-opacity-20 p-4 rounded-lg">
                 <FaPhone className="text-2xl mx-auto mb-2" />
@@ -480,10 +480,10 @@ export const Contact = () => {
 //                 <div>
 //                   <h3 className="font-semibold text-lg mb-1">Email</h3>
 //                   <a 
-//                     href="mailto:sbthelp123@gmail.com" 
+//                     href="mailto:salonhub.business@gmail.com" 
 //                     className="text-purple-100 hover:text-white transition-colors"
 //                   >
-//                     sbthelp123@gmail.com
+//                     salonhub.business@gmail.com
 //                   </a>
 //                 </div>
 //               </div>

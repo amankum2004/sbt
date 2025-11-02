@@ -22,7 +22,7 @@ export const Footer = () => {
     "description": "Book salon appointments online for haircuts, facials, spa, and beauty services across India. Best salon booking platform with verified professionals.",
     "url": "https://salonhub.co.in",
     "telephone": "+91-8810269376",
-    "email": "sbthelp123@gmail.com",
+    "email": "salonhub.business@gmail.com",
     "address": {
       "@type": "PostalAddress",
       "streetAddress": "Indian Institute of Technology Mandi",
@@ -182,11 +182,11 @@ export const Footer = () => {
                   <li className="flex items-center">
                     <FaEnvelope className="mr-3 text-pink-300 flex-shrink-0" />
                     <a 
-                      href="mailto:sbthelp123@gmail.com" 
+                      href="mailto:salonhub.business@gmail.com" 
                       className="text-pink-200 hover:text-white transition-colors text-sm"
                       title="Email SalonHub Support"
                     >
-                      sbthelp123@gmail.com
+                      salonhub.business@gmail.com
                     </a>
                   </li>
                 </ul>
@@ -196,10 +196,10 @@ export const Footer = () => {
                   <h4 className="text-md font-medium mb-3 text-pink-200">Follow SalonHub</h4>
                   <div className="flex space-x-3">
                     {[
-                      { icon: FaFacebook, url: "https://www.facebook.com/salonhub", name: "Facebook" },
-                      { icon: FaTwitter, url: "https://twitter.com/salonhub", name: "Twitter" },
-                      { icon: FaInstagram, url: "https://www.instagram.com/salonhub", name: "Instagram" },
-                      { icon: FaLinkedin, url: "https://www.linkedin.com/company/salonhub", name: "LinkedIn" }
+                      { icon: FaFacebook, url: "https://www.facebook.com/profile.php?id=61583405962148", name: "Facebook" },
+                      { icon: FaTwitter, url: "https://x.com/salonhub_co_in", name: "Twitter" },
+                      { icon: FaInstagram, url: "https://www.instagram.com", name: "Instagram" },
+                      { icon: FaLinkedin, url: "https://www.linkedin.com", name: "LinkedIn" }
                     ].map((social, index) => (
                       <a 
                         key={index}
@@ -368,8 +368,8 @@ export const Footer = () => {
 //                 </li>
 //                 <li className="flex items-center">
 //                   <FaEnvelope className="mr-3 text-pink-300" />
-//                   <a href="mailto:sbthelp123@gmail.com" className="text-pink-200 hover:text-white transition-colors">
-//                     sbthelp123@gmail.com
+//                   <a href="mailto:salonhub.business@gmail.com" className="text-pink-200 hover:text-white transition-colors">
+//                     salonhub.business@gmail.com
 //                   </a>
 //                 </li>
 //               </ul>
