@@ -127,9 +127,34 @@ export const Shops = () => {
         </div>
 
         {/* Location Filter */}
-                <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-          <div className="space-y-4">
-            {/* State Filter */}
+<div className="bg-white rounded-lg shadow-md p-6 mb-6">
+  <div className="space-y-3">
+    {[
+      { label: "State", value: selectedState, onChange: handleStateChange, options: Object.keys(stateDistrictCityData), disabled: false },
+      { label: "District", value: selectedDistrict, onChange: handleDistrictChange, options: districts, disabled: !selectedState },
+      { label: "City", value: selectedCity, onChange: handleCityChange, options: cities, disabled: !selectedDistrict },
+    ].map((dropdown, i) => (
+      <div key={i} className="flex items-center gap-3 w-full">
+        <label className="text-gray-700 font-medium w-24">{dropdown.label}</label>
+        <select
+          value={dropdown.value}
+          onChange={dropdown.onChange}
+          disabled={dropdown.disabled}
+          className="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-700"
+        >
+          <option value="">{`-- Select ${dropdown.label} --`}</option>
+          {dropdown.options.map((option, index) => (
+            <option key={index} value={option}>{option}</option>
+          ))}
+        </select>
+      </div>
+    ))}
+  </div>
+</div>
+
+
+        {/* <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+          <div className="space-y-2">
             <div className="flex items-center space-x-4">
               <label className="block text-gray-700 font-medium min-w-[80px]">State</label>
               <select 
@@ -144,7 +169,6 @@ export const Shops = () => {
               </select>
             </div>
 
-            {/* District Filter */}
             <div className="flex items-center space-x-4">
               <label className="block text-gray-700 font-medium min-w-[80px]">District</label>
               <select 
@@ -160,7 +184,6 @@ export const Shops = () => {
               </select>
             </div>
 
-            {/* City Filter */}
             <div className="flex items-center space-x-4">
               <label className="block text-gray-700 font-medium min-w-[80px]">City</label>
               <select 
@@ -176,7 +199,7 @@ export const Shops = () => {
               </select>
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* Results Count */}
         <div className="mb-6">
