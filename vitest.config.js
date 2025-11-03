@@ -3,7 +3,7 @@ import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   test: {
-    environment: "happy-dom", // or "jsdom"
+    environment: "jsdom", // or "jsdom"
     globals: true,            // allows using `expect`/`describe` without import
     setupFiles: "./test/setupTests.js",
     coverage: {
