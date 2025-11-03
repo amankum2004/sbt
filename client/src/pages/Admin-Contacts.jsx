@@ -14,7 +14,7 @@ export const AdminContacts = () => {
             setLoading(true);
             setError("");
             const response = await api.get("/admin/contacts")
-            console.log("Contact data: ", response.data);
+            // console.log("Contact data: ", response.data);
             
             if (response.data) {
                 setContactData(Array.isArray(response.data) ? response.data : []);
@@ -22,7 +22,7 @@ export const AdminContacts = () => {
                 setContactData([]);
             }
         } catch (error) {
-            console.log("Error fetching contacts:", error);
+            // console.log("Error fetching contacts:", error);
             setError(error.response?.data?.message || "Failed to fetch contacts data");
             toast.error("Failed to load contacts data");
             setContactData([]);
@@ -64,7 +64,7 @@ export const AdminContacts = () => {
                 }
             }
         } catch (error) {
-            console.log("Delete error:", error);
+            // console.log("Delete error:", error);
             toast.error(error.response?.data?.message || "Failed to delete contact");
             
             Swal.fire({
@@ -200,86 +200,3 @@ export const AdminContacts = () => {
 
 
 
-
-// import React from "react";
-// import { useEffect, useState } from "react"
-// import { toast } from "react-toastify"
-// import { api } from '../utils/api'
-
-// export const AdminContacts = () => {
-//     const [contactData, setContactData] = useState([]);
-//     // const { authorizationToken, API} = useAuth();
-//     const getContactsData = async () => {
-//         try {
-//             const response = await api.get("/admin/contacts")
-//             const data = await response.data;
-//             console.log("Contact data: ", response.data);
-//             if (response) {
-//                 setContactData(data);
-//             }
-//         } catch (error) {
-//             console.log(error);
-//         }
-//     }
-
-//     // DEFINING THE FUNCTION deleteContactById
-//     const deleteContactById = async (id) => {
-//         try {
-//             const response = await api.delete(`/admin/contacts/delete/${id}`)
-
-//             if (response.ok) {
-//                 getContactsData();
-//                 toast.success("Deleted Successfully");
-//             } else {
-//                 toast.error("Error in deletion");
-//             }
-//         } catch (error) {
-//             console.log(error);
-//         }
-//     }
-
-//     useEffect(() => {
-//         getContactsData();
-//     }, []);
-
-//     return <>
-
-//         <section className="flex flex-col items-center  min-h-screen  bg-gray-100">
-//             <div className="w-11/12 max-w-6xl p-6 bg-white shadow-lg rounded-lg">
-//             <h1 className="text-2xl font-bold text-center text-gray-800 mb-2">Contacts Data for Admin</h1>
-//             <div className="overflow-x-auto">
-//                 <table className="w-full border-collapse">
-//                     <thead>
-//                         <tr className="bg-gray-800 text-white">
-//                             <th className="py-3 px-4 text-left uppercase text-sm font-semibold">Name</th>
-//                             <th className="py-3 px-4 text-left uppercase text-sm font-semibold">Email</th>
-//                             <th className="py-3 px-4 text-left uppercase text-sm font-semibold">Message</th>
-//                             <th className="py-3 px-4 text-left uppercase text-sm font-semibold">Action</th>
-//                         </tr>
-//                     </thead>
-//                     <tbody>
-//                         {contactData.map((curContactData, index) => {
-//                             const { name, email, message, _id } = curContactData;
-//                             return (
-//                                 <tr key={index} className="border-b hover:bg-gray-100">
-//                                     <td className="py-3 px-4 text-gray-700">{name}</td>
-//                                     <td className="py-3 px-4 text-gray-700">{email}</td>
-//                                     <td className="py-3 px-4 text-gray-700">{message}</td>
-//                                     <td className="py-3 px-4">
-//                                         <button
-//                                             className="bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 active:bg-red-700 transition duration-300 transform hover:-translate-y-1"
-//                                             onClick={() => deleteContactById(_id)}
-//                                         >
-//                                             Delete
-//                                         </button>
-//                                     </td>
-//                                 </tr>
-//                             );
-//                         })}
-//                     </tbody>
-//                 </table>
-//             </div>
-//             </div>
-//         </section>
-//     </>
-// }

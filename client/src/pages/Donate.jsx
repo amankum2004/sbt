@@ -82,7 +82,7 @@ const Donate = () => {
         order_id: order.id,
         handler: async function (response) {
           try {
-            console.log("Razorpay Response: ", response);
+            // console.log("Razorpay Response: ", response);
             
             const paymentData = {
               payment_id: response.razorpay_payment_id,

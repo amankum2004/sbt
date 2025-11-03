@@ -45,10 +45,10 @@ export const RegisterShop = () => {
     const lat = Number(latitude);
     const lng = Number(longitude);
     
-    console.log("Full Precision Coordinates:");
-    console.log("As String - Lat:", latString, "Lng:", lngString);
-    console.log("As Number - Lat:", lat, "Lng:", lng);
-    console.log("String length - Lat:", latString.length, "Lng:", lngString.length);
+    // console.log("Full Precision Coordinates:");
+    // console.log("As String - Lat:", latString, "Lng:", lngString);
+    // console.log("As Number - Lat:", lat, "Lng:", lng);
+    // console.log("String length - Lat:", latString.length, "Lng:", lngString.length);
     
     return { lat, lng, latString, lngString };
   };
@@ -238,16 +238,16 @@ export const RegisterShop = () => {
     }
 
     // Log the coordinates being sent
-    console.log("Submitting coordinates:", {
-      lat: formData.lat,
-      lng: formData.lng,
-      latString: formData.latString,
-      lngString: formData.lngString,
-      stringLength: {
-        lat: formData.latString?.length,
-        lng: formData.lngString?.length
-      }
-    });
+    // console.log("Submitting coordinates:", {
+    //   lat: formData.lat,
+    //   lng: formData.lng,
+    //   latString: formData.latString,
+    //   lngString: formData.lngString,
+    //   stringLength: {
+    //     lat: formData.latString?.length,
+    //     lng: formData.lngString?.length
+    //   }
+    // });
 
     try {
       const response = await api.post(`/shop/registershop`, formData, {

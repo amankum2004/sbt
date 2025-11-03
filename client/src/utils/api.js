@@ -20,7 +20,7 @@ api.interceptors.request.use(
   (config) => {
     // Log request in development
     if (import.meta.env.VITE_environment === 'development') {
-      console.log(`🔄 API Call: ${config.method?.toUpperCase()} ${config.url}`, config.data || '')
+      // console.log(`🔄 API Call: ${config.method?.toUpperCase()} ${config.url}`, config.data || '')
     }
     
     // Add timestamp to avoid caching issues
@@ -44,7 +44,7 @@ api.interceptors.response.use(
   (response) => {
     // Log successful response in development
     if (import.meta.env.VITE_environment === 'development') {
-      console.log(`✅ API Success: ${response.config.method?.toUpperCase()} ${response.config.url}`, response.data)
+      // console.log(`✅ API Success: ${response.config.method?.toUpperCase()} ${response.config.url}`, response.data)
     }
     return response
   },

@@ -23,6 +23,7 @@ import { AdminUsers } from "./pages/Admin-Users"
 import { AdminContacts } from "./pages/Admin-Contacts"
 import { AdminServices } from "./pages/Admin-Services"
 import { AdminUserUpdate } from "./pages/Admin-User-Update"
+import {AdminViewDonations} from "./pages/AdminViewDonations";
 import { Shops } from "./pages/Shops"
 import { RegisterShop } from "./pages/RegisterShop"
 import { AdminShops } from "./pages/Admin-Shops"
@@ -107,6 +108,7 @@ function ProtectedRoutes() {
         <Route path="requests" element={<AdminPendingShops/>}/>
         <Route path="users/:id/edit" element={<AdminUserUpdate/>}/>
         <Route path="shops/:id/edit" element={<AdminShopUpdate/>}/>
+        <Route path="donations" element={<AdminViewDonations/>}/>
       </Route>
       
       {/* Catch all for protected routes - redirect to home or show error */}

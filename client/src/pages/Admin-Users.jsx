@@ -13,7 +13,7 @@ export const AdminUsers = () => {
             setLoading(true);
             const response = await api.get(`/admin/users`);
             const data = response.data;
-            console.log('Users data:', data);
+            // console.log('Users data:', data);
             
             if (Array.isArray(data)) {
                 setUsers(data);

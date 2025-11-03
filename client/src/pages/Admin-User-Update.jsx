@@ -25,12 +25,12 @@ export const AdminUserUpdate = () => {
         try {
             setFetchLoading(true);
             setError("");
-            console.log('Fetching user data for ID:', params.id);
+            // console.log('Fetching user data for ID:', params.id);
             
             const response = await api.get(`/admin/users/${params.id}`);
             
-            console.log('Full API response:', response);
-            console.log('User data received:', response.data);
+            // console.log('Full API response:', response);
+            // console.log('User data received:', response.data);
             
             if (response.data) {
                 setData({
@@ -39,12 +39,12 @@ export const AdminUserUpdate = () => {
                     phone: response.data.phone || "",
                     usertype: response.data.usertype || "customer"
                 });
-                console.log('Data set successfully:', {
-                    name: response.data.name,
-                    email: response.data.email,
-                    phone: response.data.phone,
-                    usertype: response.data.usertype
-                });
+                // console.log('Data set successfully:', {
+                //     name: response.data.name,
+                //     email: response.data.email,
+                //     phone: response.data.phone,
+                //     usertype: response.data.usertype
+                // });
             } else {
                 throw new Error('No user data received from server');
             }
@@ -67,7 +67,7 @@ export const AdminUserUpdate = () => {
     };
 
     useEffect(() => {
-        console.log('Component mounted with params:', params);
+        // console.log('Component mounted with params:', params);
         
         if (!params.id) {
             setError("User ID is required");
@@ -108,9 +108,9 @@ export const AdminUserUpdate = () => {
 
         try {
             setLoading(true);
-            console.log('Submitting data:', data);
+            // console.log('Submitting data:', data);
             const response = await api.patch(`/admin/users/update/${params.id}`,data);
-            console.log('Update response:', response);
+            // console.log('Update response:', response);
 
             if (response.status === 200) {
                 Swal.fire({title: 'Success',text: 'User updated successfully!',icon: 'success'});

@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { NavLink, Outlet, Navigate } from "react-router-dom";
-import { FaUser, FaHome, FaRegListAlt, FaBars, FaTimes, FaEnvelope } from "react-icons/fa";
+import { FaUser,FaStore,FaBell,FaMoneyBillWave, FaHome, FaRegListAlt, FaBars, FaTimes, FaEnvelope } from "react-icons/fa";
 import { useLogin } from "../components/LoginContext";
 import { api } from "../utils/api";
 
@@ -34,7 +34,7 @@ export const AdminLayout = () => {
         const fetchRequestCount = async () => {
             try {
                 const res = await api.get("/admin/pending");
-                console.log("Pending Requests Response", res.data);
+                // console.log("Pending Requests Response", res.data);
                 setRequestCount(res.data.length || 0);
             } catch (err) {
                 console.error("Failed to fetch request count", err);
@@ -57,7 +57,7 @@ export const AdminLayout = () => {
 
     const renderRequestsMenu = () => (
         <div className="flex items-center space-x-2">
-            <FaRegListAlt />
+            <FaBell />
             <span>Requests</span>
             {requestCount > 0 && (
                 <span className="bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-full">
@@ -81,11 +81,11 @@ export const AdminLayout = () => {
             <header className="bg-gray-800 text-white shadow-lg">
                 <div className="container mx-auto px-4">
                     <nav className="flex items-center justify-between py-4">
-                        <h2 className="text-xl md:text-2xl font-bold">Admin Dashboard</h2>
+                        <h2 className="mt-12 text-xl md:text-md font-bold">Admin Dashboard</h2>
                             
-                        {/* Hamburger Button */}
+                        {/* Hamburger Button - Only for mobile navigation */}
                         <button
-                            className="md:hidden text-white text-2xl focus:outline-none"
+                            className="mt-12 md:hidden text-white text-2xl focus:outline-none"
                             onClick={() => setMenuOpen(true)}
                             aria-label="Open menu"
                         >
@@ -93,17 +93,87 @@ export const AdminLayout = () => {
                         </button>
                     </nav>
                 </div>
+
+                {/* Desktop Navigation - Now inside header */}
+                <div className="hidden md:block bg-gray-900">
+                    <div className="container mx-auto px-4">
+                        <nav>
+                            <ul className="flex space-x-1">
+                                <li>
+                                    <NavLink
+                                        to="/admin"
+                                        className={getNavLinkClass}
+                                        end
+                                    >
+                                        <FaHome /> <span>Home</span>
+                                    </NavLink>
+                                </li>
+                                <li>
+                                    <NavLink
+                                        to="/admin/users"
+                                        className={getNavLinkClass}
+                                    >
+                                        <FaUser /> <span>Users</span>
+                                    </NavLink>
+                                </li>
+                                <li>
+                                    <NavLink
+                                        to="/admin/contacts"
+                                        className={getNavLinkClass}
+                                    >
+                                        <FaEnvelope /> <span>Contacts</span>
+                                    </NavLink>
+                                </li>
+                                <li>
+                                    <NavLink
+                                        to="/admin/services"
+                                        className={getNavLinkClass}
+                                    >
+                                        <FaRegListAlt /> <span>Services</span>
+                                    </NavLink>
+                                </li>
+                                <li>
+                                    <NavLink
+                                        to="/admin/donations"
+                                        className={getNavLinkClass}
+                                    >
+                                        <FaMoneyBillWave /> <span>Donations</span>
+                                    </NavLink>
+                                </li>
+                                <li>
+                                    <NavLink
+                                        to="/admin/shops"
+                                        className={getNavLinkClass}
+                                    >
+                                        <FaStore /> <span>Shops</span>
+                                    </NavLink>
+                                </li>
+                                <li>
+                                    <NavLink
+                                        to="/admin/requests"
+                                        className={getNavLinkClass}
+                                    >
+                                        {renderRequestsMenu()}
+                                    </NavLink>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
             </header>
 
             {/* Mobile Sidebar Overlay */}
             {menuOpen && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden" />
+                <div
+                    className="fixed inset-0 bg-black bg-opacity-50 z-[60] md:hidden"
+                    onClick={() => setMenuOpen(false)} // tap outside to close
+                />
             )}
 
             {/* Sidebar for Mobile */}
             <div
                 ref={menuRef}
-                className={`fixed top-0 right-0 h-full w-64 bg-gray-800 text-white z-50 transform transition-transform duration-300 ease-in-out ${
+                className={`fixed top-0 right-0 h-full w-64 bg-gray-800 text-white shadow-2xl z-[70] transform transition-transform duration-300 ease-in-out ${
                     menuOpen ? "translate-x-0" : "translate-x-full"
                 } md:hidden`}
             >
@@ -158,11 +228,20 @@ export const AdminLayout = () => {
                         </li>
                         <li>
                             <NavLink
+                                to="/admin/donations"
+                                onClick={() => setMenuOpen(false)}
+                                className={getNavLinkClass}
+                            >
+                                <FaMoneyBillWave /> <span>Donations</span>
+                            </NavLink>
+                        </li>
+                        <li>
+                            <NavLink
                                 to="/admin/shops"
                                 onClick={() => setMenuOpen(false)}
                                 className={getNavLinkClass}
                             >
-                                <FaRegListAlt /> <span>Shops</span>
+                                <FaStore /> <span>Shops</span>
                             </NavLink>
                         </li>
                         <li>
@@ -178,99 +257,15 @@ export const AdminLayout = () => {
                 </nav>
             </div>
 
-            {/* Desktop Navigation */}
-            <div className="hidden md:block bg-gray-800 text-white">
-                <div className="container mx-auto px-4">
-                    <nav>
-                        <ul className="flex space-x-1">
-                            <li>
-                                <NavLink
-                                    to="/admin"
-                                    className={getNavLinkClass}
-                                    end
-                                >
-                                    <FaHome /> <span>Home</span>
-                                </NavLink>
-                            </li>
-                            <li>
-                                <NavLink
-                                    to="/admin/users"
-                                    className={getNavLinkClass}
-                                >
-                                    <FaUser /> <span>Users</span>
-                                </NavLink>
-                            </li>
-                            <li>
-                                <NavLink
-                                    to="/admin/contacts"
-                                    className={getNavLinkClass}
-                                >
-                                    <FaEnvelope /> <span>Contacts</span>
-                                </NavLink>
-                            </li>
-                            <li>
-                                <NavLink
-                                    to="/admin/services"
-                                    className={getNavLinkClass}
-                                >
-                                    <FaRegListAlt /> <span>Services</span>
-                                </NavLink>
-                            </li>
-                            <li>
-                                <NavLink
-                                    to="/admin/shops"
-                                    className={getNavLinkClass}
-                                >
-                                    <FaRegListAlt /> <span>Shops</span>
-                                </NavLink>
-                            </li>
-                            <li>
-                                <NavLink
-                                    to="/admin/requests"
-                                    className={getNavLinkClass}
-                                >
-                                    {renderRequestsMenu()}
-                                </NavLink>
-                            </li>
-                        </ul>
-                    </nav>
-                </div>
-            </div>
-
             {/* Main Content */}
-             <main className="container mx-auto px-4 py-6">
+            <main className="container mx-auto px-4 py-6">
                 <Outlet />
             </main>
-            {/* <main className="container mx-auto px-4 py-6">
-                <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-                    <h1 className="text-2xl font-bold text-gray-800 mb-4">
-                        Welcome to Admin Dashboard, {user?.name || 'Admin'}!
-                    </h1>
-                    <p className="text-gray-600 mb-4">
-                        This is your administration panel where you can manage users, services, 
-                        shops, and pending requests. Use the navigation above to access different sections.
-                    </p>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                        <div className="bg-blue-50 p-4 rounded-lg">
-                            <h3 className="font-semibold text-blue-800">Pending Requests</h3>
-                            <p className="text-2xl font-bold">{requestCount}</p>
-                            <p className="text-sm text-blue-600">Need your attention</p>
-                        </div>
-                        <div className="bg-green-50 p-4 rounded-lg">
-                            <h3 className="font-semibold text-green-800">Quick Actions</h3>
-                            <p className="text-sm text-green-600">Manage your platform</p>
-                        </div>
-                        <div className="bg-purple-50 p-4 rounded-lg">
-                            <h3 className="font-semibold text-purple-800">Recent Activity</h3>
-                            <p className="text-sm text-purple-600">Monitor user actions</p>
-                        </div>
-                    </div>
-                </div>
-                <Outlet />
-            </main> */}
         </div>
     );
 };
+
+
+
 
 

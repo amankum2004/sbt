@@ -186,7 +186,7 @@ export const TemplateForm = () => {
             if (existingTemplate) {
                 // Update existing template
                 response = await api.put(`/time/template/${existingTemplate._id}`, form);
-                console.log('Update response:', response);
+                // console.log('Update response:', response);
 
                 // More flexible success checking
                 const isSuccess = response.data?.success || 
@@ -210,7 +210,7 @@ export const TemplateForm = () => {
             } else {
                 // Create new template
                 response = await api.post("time/template/create", form);
-                console.log('Create response:', response.data);
+                // console.log('Create response:', response.data);
 
                 // More flexible success checking for creation
                 const isSuccess = response.data?.success || 

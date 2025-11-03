@@ -82,7 +82,7 @@ export const LoginProvider = ({ children }) => {
             // Auto-check shop existence for shop owners
             // console.log("Auto-checking shop existence for shop owner");
             checkShopExists(token.email).then(result => {
-              console.log("Auto-check result:", result);
+              // console.log("Auto-check result:", result);
               if (result.exists) {
                 setShop(result.shop);
                 setShopExists(true);

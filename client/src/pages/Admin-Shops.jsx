@@ -11,7 +11,7 @@ export const AdminShops = () => {
         try {
             const response = await api.get(`/admin/shops`)
             const data = await response.data;
-            console.log(`shops ${data}`);
+            // console.log(`shops ${data}`);
             setShop(data);
         }
         catch (error) {
@@ -22,10 +22,10 @@ export const AdminShops = () => {
     // DELETE THE USER ON DELETE BUTTON 
     const deleteShop = async(id) => {
         try {
-            console.log(id);
+            // console.log(id);
             const response = await api.delete(`/admin/shops/delete/${id}`)
             const data = await response.json();
-            console.log(`shops after deletion ${data}`);
+            // console.log(`shops after deletion ${data}`);
             
             if(response){
                 getAllShopsData();

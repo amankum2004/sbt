@@ -157,7 +157,7 @@ const sendConfirmationEmail = async (customerEmail, customerName, shopName, loca
         
         <div style="background: #f8f9fa; padding: 15px; text-align: center; border-radius: 0 0 10px 10px; border-top: 1px solid #e0e0e0;">
           <p style="margin: 0; color: #666; font-size: 12px;">
-            Need help? Contact us at support@salonhub.co.in
+            Need help? Contact us at salonhub.business@gmail.com
           </p>
         </div>
       </div>

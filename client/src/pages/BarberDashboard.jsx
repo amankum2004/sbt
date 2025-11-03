@@ -21,7 +21,7 @@ const BarberDashboard = () => {
   const fetchAppointments = async () => {
     try {
       const response = await api.get(`/appoint/barber-appointments/${user.shop._id}`);
-      console.log('Appointments response:', response.data);
+      // console.log('Appointments response:', response.data);
       if (response.data.success) {
         const todaysAppts = response.data.todaysAppointments || [];
         const upcomingAppts = response.data.upcomingAppointments || [];
@@ -29,13 +29,13 @@ const BarberDashboard = () => {
         const stats = response.data.stats || {};
         const shop = response.data.shop || {};
         
-        console.log('Setting appointments:', {
-          today: todaysAppts.length,
-          upcoming: upcomingAppts.length,
-          past: pastAppts.length,
-          stats: stats,
-          shop: shop
-        });
+        // console.log('Setting appointments:', {
+        //   today: todaysAppts.length,
+        //   upcoming: upcomingAppts.length,
+        //   past: pastAppts.length,
+        //   stats: stats,
+        //   shop: shop
+        // });
         
         setTodaysAppointments(todaysAppts);
         setCurrentAppointments(upcomingAppts);
@@ -57,10 +57,10 @@ const BarberDashboard = () => {
   const fetchTodaysAppointments = async () => {
     try {
       const response = await api.get(`/appoint/barber-appointments/${user.shop._id}/today`);
-      console.log("Today's Appointments response:", response.data);
+      // console.log("Today's Appointments response:", response.data);
       if (response.data.success) {
         const todayAppts = response.data.todaysAppointments || [];
-        console.log('Setting today appointments:', todayAppts.length);
+        // console.log('Setting today appointments:', todayAppts.length);
         setTodaysAppointments(todayAppts);
       }
     } catch (error) {
@@ -88,7 +88,7 @@ const BarberDashboard = () => {
         try {
           const shopRes = await api.get(`/shop/by-email/${user.email}`);
           const latestShopData = shopRes.data;
-          console.log('Latest shop data:', latestShopData);
+          // console.log('Latest shop data:', latestShopData);
           setShopId(latestShopData._id);
 
           const isApproved = latestShopData?.isApproved || false;
