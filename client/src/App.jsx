@@ -67,6 +67,7 @@ function AppRoutes()  {
       <Route path="/learning" element={<LearningGuide />}/>
       <Route path="/privacy-policy" element={<PrivacyPolicy/>}/>
       <Route path="/login" element={user ? <Navigate to="/" replace /> : <Login />} />
+      <Route path="/updatePassword" element={<UpdatePassword />}/>
       
       {/* Protected Routes - All wrapped in ProtectedRoute */}
       <Route path="/*" element={
@@ -86,7 +87,6 @@ function ProtectedRoutes() {
   return (
     <Routes>
       {/* All protected individual routes */}
-      <Route path="/updatePassword" element={<UpdatePassword />}/>
       <Route path="/nearbyShops" element={<Shops/>}/>
       <Route path="/registershop" element={<RegisterShop/>}/>
       <Route path="/customerprofile" element={<CustomerProfile/>}/>
