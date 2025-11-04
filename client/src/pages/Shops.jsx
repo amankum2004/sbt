@@ -120,7 +120,7 @@ export const Shops = () => {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-2">
-          <h3 className="text-3xl font-bold text-gray-900 mt-10">Best salons and barber shops in your area.</h3>
+          <p className="text-lg font-bold text-gray-900 mt-10">Best salons in your area.</p>
           {/* <p className="text-gray-600 max-w-2xl mx-auto">
             Best salons and barber shops in your area.
           </p> */}
@@ -230,7 +230,7 @@ export const Shops = () => {
             {shop.map((curShop, index) => (
               <div key={index} className="bg-white rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition-shadow duration-300">
                 {/* Shop Header */}
-                <div className="p-6 border-b border-gray-100">
+                <div className="p-4 border-b border-gray-100">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center space-x-3">
                       <div className="p-2 bg-blue-100 rounded-lg">
@@ -279,18 +279,18 @@ export const Shops = () => {
                 </div>
 
                 {/* Shop Details */}
-                <div className="p-6 space-y-1">
+                <div className="p-4 space-y-1">
                   {/* Location Details */}
                   <div className="space-y-1">
                     <div className="flex items-center space-x-2">
                       <FaRoad className="text-gray-400 flex-shrink-0" />
-                      <span className="text-sm text-gray-600">
+                      <span className="text-sm text-gray-800">
                         <span className="font-medium">Street:</span> {curShop.street},{curShop.pin}
                       </span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <FaMapPin className="text-gray-400 flex-shrink-0" />
-                      <span className="text-sm text-gray-600">
+                      <span className="text-sm text-gray-800">
                         <span className="font-medium">State:</span> {`${curShop.state}, ${curShop.district}, ${curShop.city}`}
                       </span>
                     </div>
