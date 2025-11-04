@@ -125,7 +125,7 @@ export const Home = () => {
                                 ["Search Salons", "Find beauty salons near you offering hair, skin, and beauty services you need."],
                                 ["Select Time Slot", "Select your preferred time slot, arrive at the salon, and enjoy your beauty treatment with ease."],
                                 ["Choose Service", "Choose your preferred salon, services like haircut, facial, or massage, and convenient time slot."],
-                                ["Confirm Booking", "Book your appointment and get instant confirmation with all details."],
+                                ["Confirm Booking", "Book your appointment and get instant confirmation with all details."]
                             ].map(([title, desc], index) => (
                                 <motion.div
                                     key={title}
