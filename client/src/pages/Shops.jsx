@@ -120,37 +120,37 @@ export const Shops = () => {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-2">
-          <h1 className="text-3xl font-bold text-gray-900 mt-10">Find Nearby Shops</h1>
-          <p className="text-gray-600 max-w-2xl mx-auto">
+          <h3 className="text-3xl font-bold text-gray-900 mt-10">Best salons and barber shops in your area.</h3>
+          {/* <p className="text-gray-600 max-w-2xl mx-auto">
             Best salons and barber shops in your area.
-          </p>
+          </p> */}
         </div>
 
         {/* Location Filter */}
-<div className="bg-white rounded-lg shadow-md p-6 mb-6">
-  <div className="space-y-3">
-    {[
-      { label: "State", value: selectedState, onChange: handleStateChange, options: Object.keys(stateDistrictCityData), disabled: false },
-      { label: "District", value: selectedDistrict, onChange: handleDistrictChange, options: districts, disabled: !selectedState },
-      { label: "City", value: selectedCity, onChange: handleCityChange, options: cities, disabled: !selectedDistrict },
-    ].map((dropdown, i) => (
-      <div key={i} className="flex items-center gap-3 w-full">
-        <label className="text-gray-700 font-medium w-24">{dropdown.label}</label>
-        <select
-          value={dropdown.value}
-          onChange={dropdown.onChange}
-          disabled={dropdown.disabled}
-          className="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-700"
-        >
-          <option value="">{`-- Select ${dropdown.label} --`}</option>
-          {dropdown.options.map((option, index) => (
-            <option key={index} value={option}>{option}</option>
-          ))}
-        </select>
-      </div>
-    ))}
-  </div>
-</div>
+        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+          <div className="space-y-3">
+            {[
+              { label: "State", value: selectedState, onChange: handleStateChange, options: Object.keys(stateDistrictCityData), disabled: false },
+              { label: "District", value: selectedDistrict, onChange: handleDistrictChange, options: districts, disabled: !selectedState },
+              { label: "City", value: selectedCity, onChange: handleCityChange, options: cities, disabled: !selectedDistrict },
+            ].map((dropdown, i) => (
+              <div key={i} className="flex items-center gap-3 w-full">
+                <label className="text-gray-700 font-medium w-24">{dropdown.label}</label>
+                <select
+                  value={dropdown.value}
+                  onChange={dropdown.onChange}
+                  disabled={dropdown.disabled}
+                  className="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-700"
+                >
+                  <option value="">{`-- Select ${dropdown.label} --`}</option>
+                  {dropdown.options.map((option, index) => (
+                    <option key={index} value={option}>{option}</option>
+                  ))}
+                </select>
+              </div>
+            ))}
+          </div>
+        </div>
 
 
         {/* <div className="bg-white rounded-lg shadow-md p-6 mb-6">
@@ -202,7 +202,7 @@ export const Shops = () => {
         </div> */}
 
         {/* Results Count */}
-        <div className="mb-6">
+        <div className="mb-3">
           <h2 className="text-2xl font-bold text-gray-800">
             Available Shops {shop.length > 0 && `(${shop.length})`}
           </h2>
