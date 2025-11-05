@@ -70,12 +70,12 @@ export const Shops = () => {
       let shops = response.data;
 
       // Log coordinates for debugging
-      console.log("Shops with high-precision coordinates:", shops.map(s => ({
-        name: s.shopname,
-        lat: s.lat,
-        lng: s.lng,
-        directionsUrl: getHighPrecisionDirectionsUrl(s)
-      })));
+      // console.log("Shops with high-precision coordinates:", shops.map(s => ({
+      //   name: s.shopname,
+      //   lat: s.lat,
+      //   lng: s.lng,
+      //   directionsUrl: getHighPrecisionDirectionsUrl(s)
+      // })));
 
       if (userLocation) {
         shops = shops.map((shop) => {
@@ -151,55 +151,6 @@ export const Shops = () => {
             ))}
           </div>
         </div>
-
-
-        {/* <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <div className="space-y-2">
-            <div className="flex items-center space-x-4">
-              <label className="block text-gray-700 font-medium min-w-[80px]">State</label>
-              <select 
-                value={selectedState} 
-                onChange={handleStateChange} 
-                className="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="">-- Select State --</option>
-                {Object.keys(stateDistrictCityData).map((state) => (
-                  <option key={state} value={state}>{state}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="flex items-center space-x-4">
-              <label className="block text-gray-700 font-medium min-w-[80px]">District</label>
-              <select 
-                value={selectedDistrict} 
-                onChange={handleDistrictChange} 
-                className="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                disabled={!selectedState}
-              >
-                <option value="">-- Select District --</option>
-                {districts.map((district, i) => (
-                  <option key={i} value={district}>{district}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="flex items-center space-x-4">
-              <label className="block text-gray-700 font-medium min-w-[80px]">City</label>
-              <select 
-                value={selectedCity} 
-                onChange={handleCityChange} 
-                className="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                disabled={!selectedDistrict}
-              >
-                <option value="">-- Select City --</option>
-                {cities.map((city, i) => (
-                  <option key={i} value={city}>{city}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-        </div> */}
 
         {/* Results Count */}
         <div className="mb-3">
