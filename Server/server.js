@@ -39,7 +39,9 @@ const corsOptions = {
     const allowedOrigins = [
       'http://localhost:5173', 
       'https://salonbookingtime.vercel.app', 
-      'https://www.salonhub.co.in'
+      'https://www.salonhub.co.in',
+      'https://salonhub.co.in',
+      'https://sbt-1.onrender.com'  // Add this temporarily
     ];
     
     // Allow requests with no origin (e.g., mobile apps or same-origin requests)
