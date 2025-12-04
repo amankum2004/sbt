@@ -77,6 +77,15 @@ const corsOptions = {
     }
     next()
   })
+
+// Add this test route
+app.get('/api', (req, res) => {
+  console.log('Direct API route hit!');
+  res.json({ 
+    message: 'API is working',
+    timestamp: new Date().toISOString()
+  });
+});
   
   app.use('/api', apiRoute);
   app.use('/api/cron', cronRoutes);
