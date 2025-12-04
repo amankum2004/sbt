@@ -81,8 +81,20 @@ const corsOptions = {
   app.use('/api', apiRoute);
   app.use('/api/cron', cronRoutes);
 
+  // Debug middleware - add this
+app.use((req, res, next) => {
+  console.log(`Request URL: ${req.url}, API Route matched: ${req.url.startsWith('/api')}`);
+  next();
+});
+
   // Static frontend AFTER API routes
   app.use(express.static(path.join(__dirname, '../client/dist')));
+
+  // More debugging
+app.use((req, res, next) => {
+  console.log(`After static: ${req.url} - Not served by API`);
+  next();
+});
 
   // Serve sitemap.xml correctly
   app.get('/sitemap.xml', (req, res) => {
