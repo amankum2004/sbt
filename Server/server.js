@@ -26,7 +26,7 @@ config({ path: path.resolve(__dirname, envFile) });
 
 const apiRoute = require('@/routes')
 
-const PORT = process.env.PORT ?? 8000
+const PORT = process.env.PORT ?? 5000
 
 mongoose
 .connect(`${process.env.MongoDB}`)
@@ -70,7 +70,6 @@ const corsOptions = {
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded({ extended: true }));
   app.use(cookieParser());
-  app.use(express.static(path.join(__dirname, '../client/dist')));
   
   app.use((req, _, next) => {
     if (!req.url.match(/(assets|images|index\.html|.*\.(svg|png|jpg|jpeg))$/)) {
@@ -81,6 +80,9 @@ const corsOptions = {
   
   app.use('/api', apiRoute);
   app.use('/api/cron', cronRoutes);
+
+  // Static frontend AFTER API routes
+  app.use(express.static(path.join(__dirname, '../client/dist')));
 
   // Serve sitemap.xml correctly
   app.get('/sitemap.xml', (req, res) => {
@@ -94,6 +96,7 @@ const corsOptions = {
     res.sendFile(path.join(__dirname, '../client/dist', 'robots.txt'));
   });
   
+  // React fallback LAST 
   app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, '../client/dist', 'index.html'))
   })
