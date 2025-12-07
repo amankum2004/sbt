@@ -15,6 +15,7 @@ import { Footer } from "./components/Footer"
 import Donate from "./pages/Donate";
 import LearningGuide from "./pages/learning-guide";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
+import Poster from "./pages/Poster";
 
 // Protected components
 import { UpdatePassword } from "./pages/UpdatePassword"
@@ -68,6 +69,7 @@ function AppRoutes()  {
       <Route path="/privacy-policy" element={<PrivacyPolicy/>}/>
       <Route path="/login" element={user ? <Navigate to="/" replace /> : <Login />} />
       <Route path="/updatePassword" element={<UpdatePassword />}/>
+      <Route path="/poster" element={<Poster />} />
       
       {/* Protected Routes - All wrapped in ProtectedRoute */}
       <Route path="/*" element={
