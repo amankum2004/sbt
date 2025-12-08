@@ -178,7 +178,6 @@ server.listen(PORT, '0.0.0.0', () => {
   console.log(`🏥 Health: http://65.1.28.220:${PORT}/api/health`);
   console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
 });
-EOF
 
 
 
