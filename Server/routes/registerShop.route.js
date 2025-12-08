@@ -1,6 +1,6 @@
 const express = require("express")
 const router = express.Router();
-const registershopController = require("@/controllers/registerShop-controller")
+const registershopController = require("../controllers/registerShop-controller")
 const { updateShopStatus, getShopStatus } = require('../controllers/registerShop-controller');
 // const {shopSchema} = require("../validators/auth-validator");
 // const validate = require("../middlewares/validate-middleware");

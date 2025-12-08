@@ -1,7 +1,7 @@
 const nodemailer = require('nodemailer');
 const otpGenerator = require( 'otp-generator');
-const OTP = require('@/models/user/otp-model');
-const User = require('@/models/user/user-model');
+const OTP = require('../../models/user/otp-model');
+const User = require('../../models/user/user-model');
 const {mailOtp} = require('../../utils/mail')
 
 
