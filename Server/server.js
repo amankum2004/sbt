@@ -22,35 +22,35 @@ const apiRoute = require('@/routes')
 
 const PORT = process.env.PORT ?? 5000
 
-mongoose
-.connect(`${process.env.MongoDB}`)
+console.log(`Starting server in ${process.env.NODE_ENV || 'development'} mode`);
+
+// MongoDB connection
+mongoose.connect(`${process.env.MongoDB}`)
 .then(() => console.log(`Connected to MongoDB (${process.env.NODE_ENV})`))
 .catch((error) => console.error('MongoDB connection error:', error));
 
-
+// CORS configuration
 const corsOptions = {
-  origin: (origin, callback) => {
+  origin: function (origin, callback) {
     const allowedOrigins = [
       'http://localhost:5173', 
       'https://salonbookingtime.vercel.app', 
       'https://www.salonhub.co.in',
       'https://salonhub.co.in',
       'https://api.salonhub.co.in',
-      'http://65.1.28.220',  // Add your EC2 IP for testing
-      'http://localhost:3000'  // For testing
+      'http://65.1.28.220',
+      'http://localhost:3000'
     ];
     
-    // Allow requests with no origin (e.g., mobile apps or same-origin requests)
-    if (!origin) {
-      return callback(null, true);
-    }
+    // Allow requests with no origin
+    if (!origin) return callback(null, true);
     
-    // Allow all origins in development
+    // Allow all in development
     if (process.env.NODE_ENV === 'development') {
       return callback(null, true);
     }
     
-    // Check if the request origin is in the allowedOrigins list
+    // Check allowed origins
     if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
@@ -59,59 +59,85 @@ const corsOptions = {
     }
   },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
 };
-  
-app.options('*', cors(corsOptions));
-app.use(cors(corsOptions));
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(cookieParser());
-  
-app.use((req, _, next) => {
-  if (!req.url.match(/(assets|images|index\.html|.*\.(svg|png|jpg|jpeg))$/)) {
-    console.log(`${req.method} ${req.url}`)
-  }
-  next()
-})
 
-// Add root API endpoint
+// Apply middleware
+app.use(cors(corsOptions));
+app.use(bodyParser.json({ limit: '10mb' }));
+app.use(bodyParser.urlencoded({ extended: true, limit: '10mb' }));
+app.use(cookieParser());
+
+// Request logging
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.originalUrl}`);
+  next();
+});
+
+// API routes
 app.get('/api', (req, res) => {
-  console.log('API root endpoint hit');
   res.json({ 
-    message: 'SalonHub API is running',
+    message: 'SalonHub API Server',
+    status: 'running',
     version: '1.0',
-    timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development'
+    environment: process.env.NODE_ENV,
+    timestamp: new Date().toISOString()
   });
 });
 
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'healthy',
+    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Main API routes
 app.use('/api', apiRoute);
 app.use('/api/cron', cronRoutes);
 
-// Remove all static file serving and React fallback
-// Don't serve client/dist since frontend is on Vercel
+// 404 handler for API routes
+app.use('/api/*', (req, res) => {
+  res.status(404).json({
+    error: 'Endpoint not found',
+    path: req.originalUrl
+  });
+});
 
-// Handle 404 for non-API routes
+// Handle non-API routes
 app.use((req, res) => {
-  if (req.url.startsWith('/api')) {
-    res.status(404).json({ 
-      error: 'API endpoint not found',
-      path: req.url 
+  if (req.url === '/') {
+    res.json({
+      message: 'SalonHub Backend API',
+      documentation: 'Use /api for API endpoints',
+      frontend: 'Hosted separately on Vercel'
     });
   } else {
-    res.status(404).json({ 
+    res.status(404).json({
       error: 'Not found',
-      message: 'This is a backend API server. Frontend is hosted separately.'
+      message: 'This is an API server. Please use /api endpoints.'
     });
   }
 });
 
-https.listen(PORT, () => {
-  console.log(`Backend server running on port ${PORT}`)
-  console.log(`API available at http://localhost:${PORT}/api`)
-})
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Server error:', err);
+  res.status(500).json({
+    error: 'Internal server error',
+    message: process.env.NODE_ENV === 'production' ? 'Something went wrong' : err.message
+  });
+});
+
+// Start server
+https.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`📡 API available at http://localhost:${PORT}/api`);
+  console.log(`🌐 Accessible at http://65.1.28.220:${PORT}/api`);
+});
 
 
 
