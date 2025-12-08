@@ -42,6 +42,11 @@
   },
   "_moduleAliases": {
     "@": "./",
+    "@routes": "./routes",
+    "@models": "./models",
+    "@controllers": "./controllers",
+    "@middlewares": "./middlewares",
+    "@utils": "./utils",
     "@constants": "../constants"
   }
 }
