@@ -1,8 +1,3 @@
-// # Backup current server.js
-// cp server.js server.js.backup2
-
-// Create a clean server.js without module-alias
-// cat > server.js << 'EOF'
 const { config } = require('dotenv')
 const express = require("express")
 const app = express();
@@ -12,68 +7,121 @@ const cors = require("cors")
 const { createServer } = require("http");
 const path = require('path')
 const cookieParser = require('cookie-parser')
+const https = createServer(app);
+const cronRoutes = require("./utils/scheduler");
+require('./utils/slot-creation');
 
-// Load environment variables
-const envFile = process.env.NODE_ENV === 'production' 
-  ? '.env.production' 
+// Load environment file based on NODE_ENV
+const envFile = process.env.NODE_ENV === 'production'
+  ? '.env.production'
   : '.env.development';
 config({ path: path.resolve(__dirname, envFile) });
 
-const PORT = process.env.PORT || 5000;
+// Load routes using relative path instead of module alias
+const apiRoute = require('./routes')
 
-console.log(`Starting server in ${process.env.NODE_ENV || 'development'} mode`);
+const PORT = process.env.PORT ?? 5000
+
+console.log(`🚀 Starting SalonHub Backend in ${process.env.NODE_ENV || 'development'} mode`);
 
 // MongoDB connection
-mongoose.connect(process.env.MongoDB, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
+mongoose
+.connect(`${process.env.MongoDB}`)
 .then(() => console.log(`✅ Connected to MongoDB (${process.env.NODE_ENV})`))
-.catch((err) => console.error('❌ MongoDB connection error:', err));
+.catch((error) => console.error('❌ MongoDB connection error:', error));
 
-// CORS configuration - Allow all origins for now (we'll restrict later)
-app.use(cors({
-  origin: '*', // Allow all for testing
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
-}));
-
-// Handle preflight requests
-app.options('*', cors());
-
-// Middleware
-app.use(bodyParser.json({ limit: '10mb' }));
-app.use(bodyParser.urlencoded({ extended: true, limit: '10mb' }));
-app.use(cookieParser());
-
-// Logging middleware
+// Security: Block common attack patterns
 app.use((req, res, next) => {
-  console.log(`${new Date().toISOString()} - ${req.method} ${req.originalUrl}`);
+  const url = req.url.toLowerCase();
+  
+  // Block PHP exploit attempts
+  if (url.includes('php') || 
+      url.includes('eval-stdin') || 
+      url.includes('auto_prepend_file') ||
+      url.includes('thinkphp') ||
+      url.includes('pearcmd')) {
+    console.log(`🚫 Blocked attack attempt: ${req.method} ${req.url} from ${req.ip}`);
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+  
   next();
 });
 
+// CORS configuration
+const corsOptions = {
+  origin: (origin, callback) => {
+    const allowedOrigins = [
+      'http://localhost:5173', 
+      'https://salonbookingtime.vercel.app', 
+      'https://www.salonhub.co.in',
+      'https://salonhub.co.in',
+      'https://api.salonhub.co.in',
+      'http://65.1.28.220',  // Your EC2 IP
+      'http://localhost:3000' // For testing
+    ];
+    
+    // Allow requests with no origin (e.g., mobile apps or same-origin requests)
+    if (!origin) {
+      return callback(null, true);
+    }
+    
+    // Allow all origins in development
+    if (process.env.NODE_ENV === 'development') {
+      return callback(null, true);
+    }
+    
+    // Check if the request origin is in the allowedOrigins list
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.log(`❌ CORS blocked: ${origin} from ${req.ip || 'unknown'}`);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+};
+
+app.options('*', cors(corsOptions)); // Handle preflight requests
+  
+app.use(cors(corsOptions));
+app.use(bodyParser.json({ limit: '10mb' }));
+app.use(bodyParser.urlencoded({ extended: true, limit: '10mb' }));
+app.use(cookieParser());
+  
+// Request logging (filter out attack attempts)
+app.use((req, _, next) => {
+  const url = req.url.toLowerCase();
+  if (!url.includes('php') && !url.includes('eval') && !url.includes('thinkphp')) {
+    console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+  }
+  next();
+});
+
+// ================= API ROUTES =================
 // Root endpoint
 app.get('/', (req, res) => {
   res.json({
-    message: 'SalonHub Backend API',
+    app: 'SalonHub API',
     version: '1.0',
-    status: 'running',
+    status: 'online',
     environment: process.env.NODE_ENV || 'development',
+    timestamp: new Date().toISOString(),
     endpoints: {
       api: '/api',
       health: '/api/health',
-      docs: 'Coming soon'
+      documentation: 'API documentation coming soon'
     }
   });
 });
 
-// API root endpoint
+// API test endpoint
 app.get('/api', (req, res) => {
-  res.json({
-    message: 'SalonHub API Server',
-    status: 'online',
+  res.json({ 
+    message: 'SalonHub API is working!',
     timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development',
     uptime: process.uptime()
   });
 });
@@ -84,82 +132,71 @@ app.get('/api/health', (req, res) => {
     status: 'healthy',
     database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
     server_time: new Date().toISOString(),
-    memory_usage: process.memoryUsage()
+    memory_usage: {
+      rss: `${Math.round(process.memoryUsage().rss / 1024 / 1024)}MB`,
+      heapTotal: `${Math.round(process.memoryUsage().heapTotal / 1024 / 1024)}MB`,
+      heapUsed: `${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)}MB`
+    }
   });
 });
 
-// Try to load routes with relative paths
+// Main API routes
 try {
-  console.log('Attempting to load routes...');
-  
-  // Try different path variations
-  let apiRoute;
-  try {
-    apiRoute = require('./routes');
-    console.log('✅ Routes loaded from ./routes');
-  } catch (err1) {
-    try {
-      apiRoute = require('./routes/index');
-      console.log('✅ Routes loaded from ./routes/index');
-    } catch (err2) {
-      console.log('⚠️ Could not load routes:', err1.message);
-      console.log('Creating basic routes...');
-      
-      // Create basic router
-      const { Router } = require('express');
-      apiRoute = Router();
-      
-      // Add some test routes
-      apiRoute.get('/test', (req, res) => {
-        res.json({ message: 'Test route working!', timestamp: new Date().toISOString() });
-      });
-      
-      apiRoute.get('/auth/check', (req, res) => {
-        res.json({ 
-          authenticated: false, 
-          message: 'Authentication endpoint',
-          timestamp: new Date().toISOString()
-        });
-      });
-      
-      apiRoute.post('/auth/login', (req, res) => {
-        res.json({ 
-          message: 'Login endpoint - POST data received',
-          body: req.body,
-          timestamp: new Date().toISOString()
-        });
-      });
-    }
-  }
-  
-  // Use the routes
+  console.log('Loading API routes...');
   app.use('/api', apiRoute);
-  
+  console.log('✅ API routes loaded successfully');
 } catch (error) {
-  console.error('❌ Failed to setup routes:', error.message);
+  console.error('❌ Failed to load API routes:', error.message);
+  
+  // Create fallback routes
+  const router = express.Router();
+  router.get('/test', (req, res) => {
+    res.json({ message: 'API test endpoint', timestamp: new Date().toISOString() });
+  });
+  app.use('/api', router);
 }
 
+// Cron routes
+try {
+  app.use('/api/cron', cronRoutes);
+  console.log('✅ Cron routes loaded');
+} catch (error) {
+  console.log('⚠️ Cron routes not available:', error.message);
+}
+
+// ================= ERROR HANDLING =================
 // 404 handler for API routes
 app.use('/api/*', (req, res) => {
   res.status(404).json({
     error: 'API endpoint not found',
     path: req.originalUrl,
-    available_endpoints: ['/api', '/api/health', '/api/test', '/api/auth/check']
+    timestamp: new Date().toISOString()
   });
 });
 
-// General 404 handler
+// Handle non-API routes (since frontend is on Vercel)
 app.use('*', (req, res) => {
-  res.status(404).json({
-    error: 'Route not found',
-    message: 'This is an API server. Please use valid endpoints.',
-    try_these: ['/', '/api', '/api/health']
-  });
+  if (req.url === '/robots.txt') {
+    res.type('text/plain').send('User-agent: *\nAllow: /api\nDisallow: /');
+  } else if (req.url === '/sitemap.xml') {
+    res.type('application/xml').send('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>');
+  } else {
+    res.status(404).json({
+      error: 'Not found',
+      message: 'This is a backend API server. Frontend is hosted separately on Vercel.',
+      api_endpoints: {
+        root: '/',
+        api: '/api',
+        health: '/api/health'
+      },
+      frontend: 'https://salonbookingtime.vercel.app'
+    });
+  }
 });
 
-// Error handling middleware
+// Global error handler
 app.use((err, req, res, next) => {
-  console.error('❌ Server error:', err);
+  console.error('💥 Server error:', err.message);
   res.status(500).json({
     error: 'Internal server error',
     message: process.env.NODE_ENV === 'production' ? 'Something went wrong' : err.message,
@@ -167,28 +204,27 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Create server
-const server = createServer(app);
-
-server.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📍 Local: http://localhost:${PORT}`);
-  console.log(`🌐 Public: http://65.1.28.220:${PORT}`);
-  console.log(`🔗 API: http://65.1.28.220:${PORT}/api`);
-  console.log(`🏥 Health: http://65.1.28.220:${PORT}/api/health`);
-  console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
+// ================= START SERVER =================
+https.listen(PORT, '0.0.0.0', () => {
+  console.log(`
+╔══════════════════════════════════════════════════╗
+║            🚀 SALONHUB BACKEND API               ║
+╠══════════════════════════════════════════════════╣
+║ Port:        ${PORT}                                
+║ Local:       http://localhost:${PORT}               
+║ Public:      http://65.1.28.220:${PORT}             
+║ API Base:    http://65.1.28.220:${PORT}/api        
+║ Environment: ${process.env.NODE_ENV || 'development'}
+║ Time:        ${new Date().toLocaleString()}        
+╚══════════════════════════════════════════════════╝
+  `);
+  
+  console.log(`✅ Server started successfully!`);
+  console.log(`📡 Available endpoints:`);
+  console.log(`   • Root:        http://localhost:${PORT}/`);
+  console.log(`   • API:         http://localhost:${PORT}/api`);
+  console.log(`   • Health:      http://localhost:${PORT}/api/health`);
 });
-
-
-
-
-
-
-
-
-
-
-
 
 
 // require('module-alias/register')
