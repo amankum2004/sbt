@@ -159,7 +159,7 @@ export const Shops = () => {
       </h2>
       {userLocation && (
         <p className="text-gray-600 text-sm mt-0.5">
-          Sorted by distance from your location
+          Nearest shops from your location
         </p>
       )}
     </div>
