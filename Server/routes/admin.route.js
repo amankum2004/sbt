@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const adminController = require("../controllers/admin-controller");
+const reviewController = require('../controllers/review-controller');
+const {authenticate, authorize} = require('../middlewares/auth')
 // const authMiddleware = require("@/middlewares/auth-middleware");
 // const adminMiddleware = require("@/middlewares/admin-middleware");
 
@@ -43,6 +45,9 @@ router.get("/pending", adminController.getPendingShops);
 router.post("/approve/:id", adminController.approveShop);
 router.delete("/reject/:id", adminController.rejectShop);
 
-
+// Admin review management
+router.get('/reviews/all-reviews', authenticate, authorize('admin'), reviewController.getAllReviews);
+router.put('/reviews/:reviewId/status', authenticate, authorize('admin'), reviewController.updateReviewStatus);
+router.put('/reviews/:reviewId/update', authenticate, authorize('admin'), reviewController.updateReviewAdmin);
 
 module.exports = router;

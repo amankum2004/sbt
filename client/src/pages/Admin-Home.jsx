@@ -8,6 +8,7 @@ import {
   FaBell,
   FaEnvelope,
   FaMoneyBillWave,
+  FaStar,
 } from "react-icons/fa";
 
 export const AdminHome = () => {
@@ -102,6 +103,19 @@ export const AdminHome = () => {
             <div>
               <h3 className="font-semibold text-gray-800">Requests</h3>
               <p className="text-2xl font-bold">Pending Actions</p>
+            </div>
+          </div>
+        </Link>
+
+        <Link
+          to="/admin/reviews"
+          className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
+        >
+          <div className="flex items-center">
+            <FaStar className="text-red-500 text-2xl mr-4" />
+            <div>
+              <h3 className="font-semibold text-gray-800">Reviews</h3>
+              <p className="text-2xl font-bold">Manage reviews</p>
             </div>
           </div>
         </Link>

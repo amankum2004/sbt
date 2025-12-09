@@ -39,6 +39,8 @@ import { TemplateForm } from "./pages/TimeSlot-Creater";
 import { AdminHome } from "./pages/Admin-Home";
 import BarberDashboard from "./pages/BarberDashboard";
 import CustomerDashboard from "./pages/customerDashboard";
+import AdminReviews from "./pages/Admin-Reviews";
+import ShopReviews from "./pages/ShopReviews";
 
 function App() {
   return (
@@ -99,6 +101,8 @@ function ProtectedRoutes() {
       <Route path="/barber-profile-update" element={<BarberProfileUpdate/>}/>
       <Route path="/payment" element={<Payment/>}/>
       <Route path="/nearbyShops/:shopId/shopinfo" element={<DateTimeSelection/>}/>
+      {/* reviews */}
+      {/* <Route path="/my-reviews" element={<UserReviews />} /> */}
       
       {/* Protected Admin Routes */}
       <Route path="/admin/*" element={<AdminLayout />}>
@@ -111,6 +115,8 @@ function ProtectedRoutes() {
         <Route path="users/:id/edit" element={<AdminUserUpdate/>}/>
         <Route path="shops/:id/edit" element={<AdminShopUpdate/>}/>
         <Route path="donations" element={<AdminViewDonations/>}/>
+        <Route path="reviews" element={<AdminReviews />} />
+        <Route path=":shopId/review" element={<ShopReviews />} />
       </Route>
       
       {/* Catch all for protected routes - redirect to home or show error */}

@@ -3,6 +3,9 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useLogin } from '../components/LoginContext';
 import { api } from '../utils/api';
 import { useLoading } from "../components/Loading";
+import RatingSummary from "../components/RatingSummary";
+import ReviewList from "../components/ReviewList";
+import { Link } from 'react-router-dom';
 
 const DateTimeSelection = () => {
   const { showLoading, hideLoading } = useLoading();
@@ -300,7 +303,29 @@ const DateTimeSelection = () => {
         </div>
       </div> */}
 
-      <div className="flex flex-col lg:flex-row gap-6">
+      {/*  REVIEWS - Add to your shop details page */}
+      <div className="mt-8">
+        <RatingSummary
+          averageRating={shopDetails.averageRating}
+          totalReviews={shopDetails.totalReviews}
+          ratingBreakdown={shopDetails.ratingBreakdown}
+        />
+        
+        {/* <div className="mt-6">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-xl font-bold">Recent Reviews</h3>
+            <Link
+              to={`/shop/${shopId}/reviews`}
+              className="text-blue-600 hover:text-blue-800"
+            >
+              View All Reviews
+            </Link>
+          </div>
+          <ReviewList shopId={shopId} limit={3} />
+        </div> */}
+      </div>
+
+      <div className="flex flex-col lg:flex-row gap-6 mt-2">
         {/* Left - Calendar & Services */}
         <div className="w-full lg:w-2/5 bg-white rounded-lg p-4 border border-gray-300 shadow-sm">
           {/* Date Selector Button */}

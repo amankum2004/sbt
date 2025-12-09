@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { NavLink, Outlet, Navigate } from "react-router-dom";
-import { FaUser,FaStore,FaBell,FaMoneyBillWave, FaHome, FaRegListAlt, FaBars, FaTimes, FaEnvelope } from "react-icons/fa";
+import { FaUser, FaStore, FaBell, FaMoneyBillWave, FaHome, FaStar, FaRegListAlt, FaBars, FaTimes, FaEnvelope } from "react-icons/fa";
 import { useLogin } from "../components/LoginContext";
 import { api } from "../utils/api";
 
@@ -17,13 +17,13 @@ export const AdminLayout = () => {
                 setMenuOpen(false);
             }
         };
-        
+
         if (menuOpen) {
             document.addEventListener("mousedown", handleOutsideClick);
         } else {
             document.removeEventListener("mousedown", handleOutsideClick);
         }
-        
+
         return () => {
             document.removeEventListener("mousedown", handleOutsideClick);
         };
@@ -68,11 +68,10 @@ export const AdminLayout = () => {
     );
 
     // Active link style function
-    const getNavLinkClass = ({ isActive }) => 
-        `flex items-center space-x-2 p-4 md:p-2 transition ${
-            isActive 
-                ? "bg-blue-600 text-white" 
-                : "text-white hover:bg-gray-700"
+    const getNavLinkClass = ({ isActive }) =>
+        `flex items-center space-x-2 p-4 md:p-2 transition ${isActive
+            ? "bg-blue-600 text-white"
+            : "text-white hover:bg-gray-700"
         }`;
 
     return (
@@ -82,7 +81,7 @@ export const AdminLayout = () => {
                 <div className="container mx-auto px-4">
                     <nav className="flex items-center justify-between py-4">
                         <h2 className="mt-12 text-xl md:text-md font-bold">Admin Dashboard</h2>
-                            
+
                         {/* Hamburger Button - Only for mobile navigation */}
                         <button
                             className="mt-12 md:hidden text-white text-2xl focus:outline-none"
@@ -156,6 +155,15 @@ export const AdminLayout = () => {
                                         {renderRequestsMenu()}
                                     </NavLink>
                                 </li>
+                                <li>
+                                    <NavLink
+                                        to="/admin/reviews"
+                                        className={getNavLinkClass}
+                                    >
+                                        <FaStar />
+                                        Reviews
+                                    </NavLink>
+                                </li>
                             </ul>
                         </nav>
                     </div>
@@ -173,14 +181,13 @@ export const AdminLayout = () => {
             {/* Sidebar for Mobile */}
             <div
                 ref={menuRef}
-                className={`fixed top-0 right-0 h-full w-64 bg-gray-800 text-white shadow-2xl z-[70] transform transition-transform duration-300 ease-in-out ${
-                    menuOpen ? "translate-x-0" : "translate-x-full"
-                } md:hidden`}
+                className={`fixed top-0 right-0 h-full w-64 bg-gray-800 text-white shadow-2xl z-[70] transform transition-transform duration-300 ease-in-out ${menuOpen ? "translate-x-0" : "translate-x-full"
+                    } md:hidden`}
             >
                 <div className="flex justify-between items-center p-4 border-b border-gray-700">
                     <h3 className="text-xl font-semibold">Menu</h3>
-                    <button 
-                        onClick={() => setMenuOpen(false)} 
+                    <button
+                        onClick={() => setMenuOpen(false)}
                         className="text-white text-2xl"
                         aria-label="Close menu"
                     >
@@ -251,6 +258,16 @@ export const AdminLayout = () => {
                                 className={getNavLinkClass}
                             >
                                 {renderRequestsMenu()}
+                            </NavLink>
+                        </li>
+                        <li>
+                            <NavLink
+                                to="/admin/reviews"
+                                onClick={() => setMenuOpen(false)}
+                                className={getNavLinkClass}
+                            >
+                                <FaStar />
+                                Reviews
                             </NavLink>
                         </li>
                     </ul>

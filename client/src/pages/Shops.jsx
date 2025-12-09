@@ -4,6 +4,7 @@ import { api } from "../utils/api";
 import { FaMapMarkerAlt, FaStore, FaUser, FaPhone, FaRoad, FaCity, FaMapPin } from "react-icons/fa";
 import { stateDistrictCityData } from "../utils/locationData";
 import { useLoading } from "../components/Loading";
+import StarRating from "../components/StarRating";
 
 export const Shops = () => {
   const [shop, setShop] = useState([]);
@@ -116,180 +117,214 @@ export const Shops = () => {
   }, [selectedState, selectedDistrict, selectedCity, userLocation]);
 
   return (
-    <div className="min-h-screen bg-gray-50 py-6 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-2">
-          <p className="text-lg font-bold text-gray-900 mt-10">Best salons in your area.</p>
-          {/* <p className="text-gray-600 max-w-2xl mx-auto">
-            Best salons and barber shops in your area.
-          </p> */}
-        </div>
+    <div className="min-h-screen bg-gray-50 py-4 px-4 sm:px-6 lg:px-8">
+  <div className="max-w-7xl mx-auto">
+    {/* Header */}
+    <div className="text-center mb-4">
+      <p className="text-xl font-bold text-gray-900 mt-12">Best salons in your area</p>
+    </div>
 
-        {/* Location Filter */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <div className="space-y-3">
-            {[
-              { label: "State", value: selectedState, onChange: handleStateChange, options: Object.keys(stateDistrictCityData), disabled: false },
-              { label: "District", value: selectedDistrict, onChange: handleDistrictChange, options: districts, disabled: !selectedState },
-              { label: "City", value: selectedCity, onChange: handleCityChange, options: cities, disabled: !selectedDistrict },
-            ].map((dropdown, i) => (
-              <div key={i} className="flex items-center gap-3 w-full">
-                <label className="text-gray-700 font-medium w-24">{dropdown.label}</label>
-                <select
-                  value={dropdown.value}
-                  onChange={dropdown.onChange}
-                  disabled={dropdown.disabled}
-                  className="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-700"
-                >
-                  <option value="">{`-- Select ${dropdown.label} --`}</option>
-                  {dropdown.options.map((option, index) => (
-                    <option key={index} value={option}>{option}</option>
-                  ))}
-                </select>
-              </div>
-            ))}
+    {/* Location Filter */}
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-4">
+      <div className="space-y-4">
+        {[
+          { label: "State", value: selectedState, onChange: handleStateChange, options: Object.keys(stateDistrictCityData), disabled: false },
+          { label: "District", value: selectedDistrict, onChange: handleDistrictChange, options: districts, disabled: !selectedState },
+          { label: "City", value: selectedCity, onChange: handleCityChange, options: cities, disabled: !selectedDistrict },
+        ].map((dropdown, i) => (
+          <div key={i} className="flex items-center gap-4 w-full">
+            <label className="text-gray-700 font-medium text-sm whitespace-nowrap min-w-[80px]">
+              {dropdown.label}:
+            </label>
+            <select
+              value={dropdown.value}
+              onChange={dropdown.onChange}
+              disabled={dropdown.disabled}
+              className="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-700 bg-white"
+            >
+              <option value="">Select {dropdown.label}</option>
+              {dropdown.options.map((option, index) => (
+                <option key={index} value={option}>{option}</option>
+              ))}
+            </select>
           </div>
-        </div>
-
-        {/* Results Count */}
-        <div className="mb-3">
-          <h2 className="text-2xl font-bold text-gray-800">
-            Available Shops {shop.length > 0 && `(${shop.length})`}
-          </h2>
-          {userLocation && (
-            <p className="text-gray-600 mt-1">
-              Sorted by distance from your location
-            </p>
-          )}
-        </div>
-
-        {/* Shops Grid */}
-        {shop.length === 0 ? (
-          <div className="bg-white rounded-lg shadow-md p-8 text-center">
-            <div className="text-gray-400 text-6xl mb-4">🏪</div>
-            <h3 className="text-xl font-semibold text-gray-600 mb-2">No Shops Found</h3>
-            <p className="text-gray-500">
-              {selectedState || selectedDistrict || selectedCity 
-                ? "No shops found for your selected location. Try different filters."
-                : "No shops available in the system yet."
-              }
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {shop.map((curShop, index) => (
-              <div key={index} className="bg-white rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition-shadow duration-300">
-                {/* Shop Header */}
-                <div className="p-4 border-b border-gray-100">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center space-x-3">
-                      <div className="p-2 bg-blue-100 rounded-lg">
-                        <FaStore className="text-blue-600 text-xl" />
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-800 truncate max-w-[200px]">
-                          {curShop.shopname}
-                        </h3>
-                        {/* {userLocation && curShop.distance && curShop.distance !== Infinity && (
-                          <p className="text-sm text-green-600 font-medium">
-                            {curShop.distance < 1 
-                              ? `${(curShop.distance * 1000).toFixed(0)}m away` 
-                              : `${curShop.distance.toFixed(1)}km away`
-                            }
-                          </p>
-                        )} */}
-                      </div>
-                    </div>
-                    {curShop.status && (
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        curShop.status === 'open' 
-                          ? 'bg-green-100 text-green-800'
-                          : curShop.status === 'break'
-                          ? 'bg-yellow-100 text-yellow-800'
-                          : 'bg-red-100 text-red-800'
-                      }`}>
-                        {curShop.status === 'open' ? '✅ Open' : 
-                         curShop.status === 'break' ? '⏸️ Break' : '❌ Closed'}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Owner Info */}
-                  <div className="flex items-center text-gray-600">
-                    <div className="flex items-center space-x-2 mr-10">
-                      <FaUser className="text-gray-400" />
-                      <span className="font-medium">{curShop.name}</span>
-                    </div>
-
-                    <div className="flex items-center space-x-2">
-                      <FaPhone className="text-gray-400" />
-                      <span className="font-medium">{curShop.phone}</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Shop Details */}
-                <div className="p-4 space-y-1">
-                  {/* Location Details */}
-                  <div className="space-y-1">
-                    <div className="flex items-center space-x-2">
-                      <FaRoad className="text-gray-400 flex-shrink-0" />
-                      <span className="text-sm text-gray-800">
-                        <span className="font-medium">Street:</span> {curShop.street},{curShop.pin}
-                      </span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <FaMapPin className="text-gray-400 flex-shrink-0" />
-                      <span className="text-sm text-gray-800">
-                        <span className="font-medium">State:</span> {`${curShop.state}, ${curShop.district}, ${curShop.city}`}
-                      </span>
-                    </div>
-                    {/* <div className="flex items-center space-x-2">
-                      <FaCity className="text-gray-400 flex-shrink-0" />
-                      <span className="text-sm text-gray-600">
-                        <span className="font-medium">City:</span> {curShop.city}
-                      </span>
-                    </div> */}
-                  </div>
-
-                  {/* Actions */}
-                  <div className="pt-4 border-t border-gray-100">
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-
-                      {/* Action Buttons */}
-                      <div className="flex space-x-2">
-                        {/* Directions Button */}
-                        {curShop.lat && curShop.lng && (
-                          <a
-                            href={getHighPrecisionDirectionsUrl(curShop)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center space-x-1 px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors text-sm font-medium"
-                            title="Get directions"
-                          >
-                            <FaMapMarkerAlt className="text-sm" />
-                            <span>Directions</span>
-                          </a>
-                        )}
-                        
-                        {/* Book Button */}
-                        <Link
-                          to={`/nearbyShops/${curShop._id}/shopinfo`}
-                          className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors text-sm font-medium"
-                        >
-                          Book Now
-                        </Link>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+        ))}
       </div>
     </div>
+
+    {/* Results Count */}
+    <div className="mb-4">
+      <h2 className="text-xl font-bold text-gray-800">
+        Available Shops {shop.length > 0 && <span className="text-blue-600">({shop.length})</span>}
+      </h2>
+      {userLocation && (
+        <p className="text-gray-600 text-sm mt-0.5">
+          Sorted by distance from your location
+        </p>
+      )}
+    </div>
+
+    {/* Shops Grid */}
+    {shop.length === 0 ? (
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
+        <div className="text-gray-300 text-5xl mb-3">🏪</div>
+        <h3 className="text-lg font-semibold text-gray-700 mb-2">No Shops Found</h3>
+        <p className="text-gray-500 text-sm">
+          {selectedState || selectedDistrict || selectedCity 
+            ? "Try different location filters"
+            : "No shops available yet"
+          }
+        </p>
+      </div>
+    ) : (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {shop.map((curShop, index) => (
+          <div key={index} className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-300 overflow-hidden">
+            {/* Shop Header */}
+            <div className="p-4">
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-blue-50 rounded-lg">
+                    <FaStore className="text-blue-500 text-lg" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-base font-semibold text-gray-800 truncate">
+                      {curShop.shopname}
+                    </h3>
+                    {/* {userLocation && curShop.distance && curShop.distance !== Infinity && (
+                      <p className="text-xs text-green-600 font-medium mt-0.5">
+                        {curShop.distance < 1 
+                          ? `${(curShop.distance * 1000).toFixed(0)}m away` 
+                          : `${curShop.distance.toFixed(1)}km away`
+                        }
+                      </p>
+                    )} */}
+                  </div>
+                </div>
+                {curShop.status && (
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ${
+                    curShop.status === 'open' 
+                      ? 'bg-green-50 text-green-700 border border-green-200'
+                      : curShop.status === 'break'
+                      ? 'bg-yellow-50 text-yellow-700 border border-yellow-200'
+                      : 'bg-red-50 text-red-700 border border-red-200'
+                  }`}>
+                    {curShop.status === 'open' ? 'Open' : 
+                     curShop.status === 'break' ? 'Break' : 'Closed'}
+                  </span>
+                )}
+              </div>
+
+              {/* Ratings Section - Compact */}
+              <div className="mt-2 mb-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <div className="flex">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <span key={star} className="text-yellow-500">
+                          {star <= (curShop.averageRating || 0) 
+                            ? '★' 
+                            : star <= (curShop.averageRating || 0) + 0.5 
+                            ? '★' 
+                            : '☆'}
+                        </span>
+                      ))}
+                    </div>
+                    <span className="text-sm font-medium text-gray-700 ml-1">
+                      {curShop.averageRating?.toFixed(1) || '0.0'}
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      ({curShop.totalReviews || 0})
+                    </span>
+                  </div>
+                  
+                  {/* Rating badge - only show for high ratings */}
+                  {curShop.averageRating >= 4.5 && (
+                    <span className="bg-gradient-to-r from-yellow-50 to-orange-50 text-yellow-700 text-xs font-bold px-2 py-1 rounded-full border border-yellow-200">
+                      ⭐ Top
+                    </span>
+                  )}
+                </div>
+                
+                {/* Rating breakdown preview - only on desktop */}
+                <div className="hidden sm:block text-xs text-gray-500 mt-1">
+                  {curShop.ratingBreakdown?.[5] || 0} five-star reviews
+                </div>
+              </div>
+
+              {/* Owner Info */}
+              <div className="flex items-center text-gray-600 text-sm mb-3">
+                <div className="flex items-center space-x-2 mr-6">
+                  <FaUser className="text-gray-400 text-sm" />
+                  <span className="font-medium truncate max-w-[80px]">{curShop.name}</span>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <FaPhone className="text-gray-400 text-sm" />
+                  <span className="font-medium">{curShop.phone}</span>
+                </div>
+              </div>
+
+              {/* Shop Details */}
+              <div className="space-y-2 text-sm">
+                {/* Location Details */}
+                <div className="space-y-1.5">
+                  <div className="flex items-start space-x-2">
+                    <FaRoad className="text-gray-400 text-sm mt-0.5 flex-shrink-0" />
+                    <span className="text-gray-700">
+                      <span className="font-medium">Street:</span> {curShop.street}
+                    </span>
+                  </div>
+                  <div className="flex items-start space-x-2">
+                    <FaMapPin className="text-gray-400 text-sm mt-0.5 flex-shrink-0" />
+                    <span className="text-gray-700">
+                      <span className="font-medium">Area:</span> {`${curShop.city}, ${curShop.district}`}
+                    </span>
+                  </div>
+                  <div className="flex items-start space-x-2">
+                    <FaMapMarkerAlt className="text-gray-400 text-sm mt-0.5 flex-shrink-0" />
+                    <span className="text-gray-700">
+                      <span className="font-medium">State:</span> {curShop.state} • {curShop.pin}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="mt-4 pt-3 border-t border-gray-100">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                  <div className="flex gap-2">
+                    {/* Directions Button */}
+                    {curShop.lat && curShop.lng && (
+                      <a
+                        href={getHighPrecisionDirectionsUrl(curShop)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex-1 flex items-center justify-center space-x-1 px-3 py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition-colors text-sm font-medium border border-blue-200"
+                        title="Get directions"
+                      >
+                        <FaMapMarkerAlt className="text-sm" />
+                        <span>Directions</span>
+                      </a>
+                    )}
+                    
+                    {/* Book Button */}
+                    <Link
+                      to={`/nearbyShops/${curShop._id}/shopinfo`}
+                      className="flex-1 flex items-center justify-center px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 text-sm font-medium shadow-sm hover:shadow"
+                    >
+                      Book Now
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
+</div>
   );
 };
 

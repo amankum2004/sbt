@@ -18,11 +18,17 @@ export const api = axios.create({
 // Request interceptor - for logging and modifying requests
 api.interceptors.request.use(
   (config) => {
+    // ✅ ADD USER HEADER (NON-BREAKING)
+    const user = localStorage.getItem("token");
+    if (user) {
+      config.headers["x-user"] = user;
+    }
+
     // Log request in development
     if (import.meta.env.VITE_environment === 'development') {
       // console.log(`🔄 API Call: ${config.method?.toUpperCase()} ${config.url}`, config.data || '')
     }
-    
+
     // Add timestamp to avoid caching issues
     if (config.method === 'get') {
       config.params = {
@@ -30,14 +36,15 @@ api.interceptors.request.use(
         _t: Date.now()
       }
     }
-    
-    return config
+
+    return config;
   },
   (error) => {
-    console.error('🚨 Request Error:', error)
-    return Promise.reject(error)
+    console.error('🚨 Request Error:', error);
+    return Promise.reject(error);
   }
-)
+);
+
 
 // Response interceptor - for handling responses and errors globally
 api.interceptors.response.use(

@@ -50,6 +50,9 @@ export const LoginProvider = ({ children }) => {
 
   useEffect(() => {
     try {
+      // const token = localStorage.getItem("token");
+      // const savedUser = JSON.parse(localStorage.getItem("user"));
+      // const savedShop = JSON.parse(localStorage.getItem("shop"));
       const token = JSON.parse(localStorage.getItem('token'));
       const savedShop = JSON.parse(localStorage.getItem('shop'));
       
@@ -116,7 +119,12 @@ export const LoginProvider = ({ children }) => {
   }, [loggedIn]);
 
   const login = async (userData) => {
-    // console.log("Login function called with:", userData);
+    // ✅ STORE JWT STRING
+    // localStorage.setItem("token", userData.token);
+
+    // ✅ STORE USER SEPARATELY
+    // localStorage.setItem("user", JSON.stringify(userData.user));
+    // // console.log("Login function called with:", userData);
     localStorage.setItem('token', JSON.stringify(userData));
     setLoggedIn(true);
     setUser(userData);
