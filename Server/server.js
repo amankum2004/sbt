@@ -48,62 +48,77 @@ app.use((req, res, next) => {
 });
 
 // CORS configuration
-const corsOptions = {
-  origin: (origin, callback) => {
-    const allowedOrigins = [
-      'http://localhost:5173', 
-      'https://salonbookingtime.vercel.app', 
-      'https://www.salonhub.co.in',
-      'https://salonhub.co.in',
-      'https://api.salonhub.co.in',
-      'http://65.1.28.220',  // Your EC2 IP
-      'http://localhost:3000', // For testing
-      'http://localhost:3000',      // React dev server
-      'http://localhost:5000',      // Other dev ports
-      'http://localhost:8080',      // Flutter web dev server
-      'http://localhost:54321',     // Flutter web alternative
-      'https://localhost:3000',     // HTTPS localhost
-      'https://localhost:5000',
-      'https://localhost:8080',
-      'https://salonhub.co.in',     // Your production domain
-      'https://www.salonhub.co.in', // WWW subdomain
-      'https://api.salonhub.co.in',  // API subdomain
-      'http://localhost', // Add this
-      'https://localhost', // Add this
-      // Add pattern for Flutter web dynamic ports
-      /^http:\/\/localhost:\d+$/, // All localhost ports
-      /^https:\/\/localhost:\d+$/, // All HTTPS localhost ports
-      /^http:\/\/127\.0\.0\.1:\d+$/, // All 127.0.0.1 ports
-      /^http:\/\/\[::1\]:\d+$/, // IPv6 localhost
+// const corsOptions = {
+//   origin: (origin, callback) => {
+//     const allowedOrigins = [
+//       'http://localhost:5173', 
+//       'https://salonbookingtime.vercel.app', 
+//       'https://www.salonhub.co.in',
+//       'https://salonhub.co.in',
+//       'https://api.salonhub.co.in',
+//       'http://65.1.28.220',  // Your EC2 IP
+//       'http://localhost:3000', // For testing
+//       'http://localhost:3000',      // React dev server
+//       'http://localhost:5000',      // Other dev ports
+//       'http://localhost:8080',      // Flutter web dev server
+//       'http://localhost:54321',     // Flutter web alternative
+//       'https://localhost:3000',     // HTTPS localhost
+//       'https://localhost:5000',
+//       'https://localhost:8080',
+//       'https://salonhub.co.in',     // Your production domain
+//       'https://www.salonhub.co.in', // WWW subdomain
+//       'https://api.salonhub.co.in',  // API subdomain
+//       'http://localhost', // Add this
+//       'https://localhost', // Add this
+//       // Add pattern for Flutter web dynamic ports
+//       /^http:\/\/localhost:\d+$/, // All localhost ports
+//       /^https:\/\/localhost:\d+$/, // All HTTPS localhost ports
+//       /^http:\/\/127\.0\.0\.1:\d+$/, // All 127.0.0.1 ports
+//       /^http:\/\/\[::1\]:\d+$/, // IPv6 localhost
+//     ];
+    
+//     // Allow requests with no origin (e.g., mobile apps or same-origin requests)
+//     if (!origin) {
+//       return callback(null, true);
+//     }
+    
+//     // Allow all origins in development
+//     if (process.env.NODE_ENV === 'development') {
+//       return callback(null, true);
+//     }
+    
+//     // Check if the request origin is in the allowedOrigins list
+//     if (allowedOrigins.includes(origin)) {
+//       callback(null, true);
+//     } else {
+//       console.log(`❌ CORS blocked: ${origin} from ${req.ip || 'unknown'}`);
+//       callback(new Error('Not allowed by CORS'));
+//     }
+//   },
+//   credentials: true,
+//   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'],
+//   allowedHeaders: ['Content-Type', 'Authorization','x-user', 'X-Requested-With'],
+// };
 
-    ];
-    
-    // Allow requests with no origin (e.g., mobile apps or same-origin requests)
-    if (!origin) {
-      return callback(null, true);
-    }
-    
-    // Allow all origins in development
-    if (process.env.NODE_ENV === 'development') {
-      return callback(null, true);
-    }
-    
-    // Check if the request origin is in the allowedOrigins list
-    if (allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      console.log(`❌ CORS blocked: ${origin} from ${req.ip || 'unknown'}`);
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization','x-user', 'X-Requested-With'],
-};
+// app.options('*', cors(corsOptions)); // Handle preflight requests
+// app.use(cors(corsOptions));
 
-app.options('*', cors(corsOptions)); // Handle preflight requests
-  
-app.use(cors(corsOptions));
+// Option 1: Allow all origins (temporarily for debugging)
+app.use(cors({
+  origin: '*', // Allow ALL origins
+  credentials: false,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS','HEAD'],
+}));
+
+// IMPORTANT: Handle preflight requests
+app.options('*', (req, res) => {
+  console.log('Preflight request for:', req.headers.origin);
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, Origin');
+  res.sendStatus(200);
+});
+
 app.use(bodyParser.json({ limit: '10mb' }));
 app.use(bodyParser.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
