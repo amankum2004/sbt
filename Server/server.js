@@ -57,7 +57,18 @@ const corsOptions = {
       'https://salonhub.co.in',
       'https://api.salonhub.co.in',
       'http://65.1.28.220',  // Your EC2 IP
-      'http://localhost:3000' // For testing
+      'http://localhost:3000', // For testing
+      'http://localhost:3000',      // React dev server
+      'http://localhost:5000',      // Other dev ports
+      'http://localhost:8080',      // Flutter web dev server
+      'http://localhost:54321',     // Flutter web alternative
+      'https://localhost:3000',     // HTTPS localhost
+      'https://localhost:5000',
+      'https://localhost:8080',
+      'https://salonhub.co.in',     // Your production domain
+      'https://www.salonhub.co.in', // WWW subdomain
+      'https://api.salonhub.co.in'  // API subdomain
+
     ];
     
     // Allow requests with no origin (e.g., mobile apps or same-origin requests)
