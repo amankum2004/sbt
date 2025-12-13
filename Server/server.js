@@ -67,7 +67,14 @@ const corsOptions = {
       'https://localhost:8080',
       'https://salonhub.co.in',     // Your production domain
       'https://www.salonhub.co.in', // WWW subdomain
-      'https://api.salonhub.co.in'  // API subdomain
+      'https://api.salonhub.co.in',  // API subdomain
+      'http://localhost', // Add this
+      'https://localhost', // Add this
+      // Add pattern for Flutter web dynamic ports
+      /^http:\/\/localhost:\d+$/, // All localhost ports
+      /^https:\/\/localhost:\d+$/, // All HTTPS localhost ports
+      /^http:\/\/127\.0\.0\.1:\d+$/, // All 127.0.0.1 ports
+      /^http:\/\/\[::1\]:\d+$/, // IPv6 localhost
 
     ];
     
