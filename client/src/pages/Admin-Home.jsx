@@ -41,7 +41,7 @@ export const AdminHome = () => {
       </div>
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6">
         <Link
           to="/admin/users"
           className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
