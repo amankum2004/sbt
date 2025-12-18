@@ -8,12 +8,20 @@ const {authenticate, authorize} = require('../middlewares/auth')
 router.get('/shop/:shopId', reviewController.getShopReviews);
 
 // Authenticated customer actions
-router.post('/submit-review', authenticate, authorize('user'), reviewController.submitReview);
-router.get('/user', authenticate, authorize('user'), reviewController.getUserReviews); // list of user's reviews
-router.get('/check-user-review', authenticate, authorize('user'), reviewController.checkUserReview); // expects ?shopId=...
-router.get('/shop/:shopId/user-review', authenticate, authorize('user'), reviewController.getUserReviewForShop);
-router.put('/:reviewId', authenticate, authorize('user'), reviewController.updateCustomerReview);
-router.delete('/:reviewId', authenticate, authorize('user'), reviewController.deleteReview);
+router.post('/submit-review', reviewController.submitReview);
+router.get('/user', reviewController.getUserReviews); // list of user's reviews
+router.get('/check-user-review', reviewController.checkUserReview); // expects ?shopId=...
+router.get('/shop/:shopId/user-review', reviewController.getUserReviewForShop);
+router.put('/:reviewId', reviewController.updateCustomerReview);
+router.delete('/:reviewId', reviewController.deleteReview);
+
+
+// router.post('/submit-review', authenticate, authorize('user'), reviewController.submitReview);
+// router.get('/user', authenticate, authorize('user'), reviewController.getUserReviews); // list of user's reviews
+// router.get('/check-user-review', authenticate, authorize('user'), reviewController.checkUserReview); // expects ?shopId=...
+// router.get('/shop/:shopId/user-review', authenticate, authorize('user'), reviewController.getUserReviewForShop);
+// router.put('/:reviewId', authenticate, authorize('user'), reviewController.updateCustomerReview);
+// router.delete('/:reviewId', authenticate, authorize('user'), reviewController.deleteReview);
 
 module.exports = router;
 
