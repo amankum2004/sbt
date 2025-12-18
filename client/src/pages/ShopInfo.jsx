@@ -48,6 +48,16 @@ const DateTimeSelection = () => {
       const response = await api.get(`/time/shops/${shopId}/available`);
       const slots = response.data || [];
 
+      // DEBUG: Log what we got
+      console.log('=== FETCHED TIME SLOTS ===');
+      slots.forEach((slot, index) => {
+        console.log(`Slot ${index}: ID=${slot._id}, Date=${slot.date}`);
+        console.log(`  Showtimes count: ${slot.showtimes?.length}`);
+        if (slot.showtimes?.[0]) {
+          console.log(`  First showtime ID: ${slot.showtimes[0]._id}`);
+        }
+      });
+
       // Sort timeSlots by date (ascending)
       slots.sort((a, b) => new Date(a.date) - new Date(b.date));
 

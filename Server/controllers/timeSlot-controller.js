@@ -314,56 +314,87 @@ exports.getTemplateByShopId = async (req, res) => {
 
 
 // AUTOMATIC TIMESLOT CREATION  
-const generateShowtimes = (date, startTime, endTime, slotInterval, timezone = 'Asia/Kolkata') => {
-  const showtimes = [];
+// const generateShowtimes = (date, startTime, endTime, slotInterval, timezone = 'Asia/Kolkata') => {
+//   const showtimes = [];
   
-  console.log('🕒 Generating showtimes with:', { date, startTime, endTime, slotInterval, timezone });
+//   console.log('🕒 Generating showtimes with:', { date, startTime, endTime, slotInterval, timezone });
   
-  // Use timezone-aware parsing
-  const start = moment.tz(`${date} ${startTime}`, 'YYYY-MM-DD HH:mm', timezone);
-  const end = moment.tz(`${date} ${endTime}`, 'YYYY-MM-DD HH:mm', timezone);
+//   // Use timezone-aware parsing
+//   const start = moment.tz(`${date} ${startTime}`, 'YYYY-MM-DD HH:mm', timezone);
+//   const end = moment.tz(`${date} ${endTime}`, 'YYYY-MM-DD HH:mm', timezone);
 
-  console.log('📅 Parsed times - Start:', start.format(), 'End:', end.format());
-  console.log('⏱️ Time difference (minutes):', end.diff(start, 'minutes'));
+//   console.log('📅 Parsed times - Start:', start.format(), 'End:', end.format());
+//   console.log('⏱️ Time difference (minutes):', end.diff(start, 'minutes'));
 
-  if (!start.isValid() || !end.isValid()) {
-    console.error('❌ Invalid times:', { startValid: start.isValid(), endValid: end.isValid() });
-    throw new Error("Invalid startTime or endTime format");
-  }
+//   if (!start.isValid() || !end.isValid()) {
+//     console.error('❌ Invalid times:', { startValid: start.isValid(), endValid: end.isValid() });
+//     throw new Error("Invalid startTime or endTime format");
+//   }
 
-  if (start >= end) {
-    console.error('❌ Start time is after end time');
-    return [];
-  }
+//   if (start >= end) {
+//     console.error('❌ Start time is after end time');
+//     return [];
+//   }
 
-  let slotCount = 0;
-  const current = start.clone();
+//   let slotCount = 0;
+//   const current = start.clone();
   
-  while (current < end) {
-    showtimes.push({ 
-      date: current.clone().utc().toDate(),
-      is_booked: false 
-    });
-    current.add(slotInterval, "minutes");
-    slotCount++;
+//   while (current < end) {
+//     showtimes.push({ 
+//       date: current.clone().utc().toDate(),
+//       is_booked: false 
+//     });
+//     current.add(slotInterval, "minutes");
+//     slotCount++;
     
-    // Safety check to prevent infinite loop
-    if (slotCount > 500) {
-      console.error('❌ Too many slots, breaking loop');
-      break;
-    }
-  }
+//     // Safety check to prevent infinite loop
+//     if (slotCount > 500) {
+//       console.error('❌ Too many slots, breaking loop');
+//       break;
+//     }
+//   }
 
-  console.log(`✅ Generated ${slotCount} slots`);
+//   console.log(`✅ Generated ${slotCount} slots`);
   
-  if (showtimes.length > 0) {
-    console.log('📊 First slot:', moment(showtimes[0].date).format('YYYY-MM-DD HH:mm'));
-    console.log('📊 Last slot:', moment(showtimes[showtimes.length-1].date).format('YYYY-MM-DD HH:mm'));
-  } else {
-    console.log('❌ No slots generated!');
-  }
+//   if (showtimes.length > 0) {
+//     console.log('📊 First slot:', moment(showtimes[0].date).format('YYYY-MM-DD HH:mm'));
+//     console.log('📊 Last slot:', moment(showtimes[showtimes.length-1].date).format('YYYY-MM-DD HH:mm'));
+//   } else {
+//     console.log('❌ No slots generated!');
+//   }
 
-  return showtimes;
+//   return showtimes;
+// };
+
+const generateShowtimes = (date, startTime, endTime, interval, timezone) => {
+  try {
+    const showtimes = [];
+    const start = moment.tz(`${date} ${startTime}`, 'YYYY-MM-DD HH:mm', timezone);
+    const end = moment.tz(`${date} ${endTime}`, 'YYYY-MM-DD HH:mm', timezone);
+
+    // If start time is after end time, adjust
+    if (start.isAfter(end)) {
+      end.add(1, 'day');
+    }
+
+    let current = start.clone();
+    
+    while (current.isBefore(end)) {
+      showtimes.push({
+        date: current.utc().toDate(),  // Store in UTC
+        is_booked: false  // Default to not booked
+        // Note: We're NOT creating _id here - let MongoDB create it when needed
+      });
+      
+      current.add(interval, 'minutes');
+    }
+
+    console.log(`Generated ${showtimes.length} showtimes for ${date} from ${startTime} to ${endTime}`);
+    return showtimes;
+  } catch (error) {
+    console.error('Error generating showtimes:', error);
+    throw error;
+  }
 };
 
 
@@ -380,15 +411,11 @@ exports.generateSlotsFor7Days = async (singleTemplate = null) => {
     let totalSlotsCreated = 0;
     let totalDaysProcessed = 0;
     let deletedSlotsCount = 0;
+    let slotsPreserved = 0;
 
     for (let template of templates) {
       console.log(`\n🔄 Processing template for shop: ${template.shop_owner_id}`);
       console.log('📋 Template working days:', template.workingDays);
-      console.log('⏰ Template times:', {
-        startTime: template.startTime,
-        endTime: template.endTime,
-        slotInterval: template.slotInterval
-      });
 
       // Step 1: Delete time slots for days that are no longer working days
       const futureSlots = await TimeSlot.find({
@@ -449,6 +476,7 @@ exports.generateSlotsFor7Days = async (singleTemplate = null) => {
 
         console.log('🔍 Existing timeslot document:', timeslotDoc ? `Found (${timeslotDoc._id})` : 'Not found');
 
+        // Generate new showtimes
         const newShowtimes = generateShowtimes(
           dateISO,
           template.startTime,
@@ -460,6 +488,7 @@ exports.generateSlotsFor7Days = async (singleTemplate = null) => {
         console.log(`🕒 Generated ${newShowtimes.length} slots for ${dateString}`);
 
         if (!timeslotDoc) {
+          // Create new timeslot with all new showtimes
           const newTimeslot = await TimeSlot.create({
             shop_owner_id: template.shop_owner_id,
             name: template.name,
@@ -471,11 +500,48 @@ exports.generateSlotsFor7Days = async (singleTemplate = null) => {
           console.log('✅ Created new timeslot document:', newTimeslot._id);
           totalSlotsCreated += newShowtimes.length;
         } else {
-          // Replace all showtimes with new ones (in case times changed)
-          timeslotDoc.showtimes = newShowtimes;
+          // DON'T replace all showtimes - only update times that don't exist
+          // Preserve existing showtime IDs and their is_booked status
+          
+          const existingShowtimes = timeslotDoc.showtimes || [];
+          const existingTimes = existingShowtimes.map(st => 
+            moment(st.date).format('HH:mm')
+          );
+          
+          let slotsAdded = 0;
+          let slotsPreservedThisDay = 0;
+          
+          for (const newShowtime of newShowtimes) {
+            const newTime = moment(newShowtime.date).format('HH:mm');
+            const existingShowtime = existingShowtimes.find(st => 
+              moment(st.date).format('HH:mm') === newTime
+            );
+            
+            if (existingShowtime) {
+              // Preserve existing showtime (keep its ID and is_booked status)
+              // Only update the date to ensure it's correct
+              existingShowtime.date = newShowtime.date;
+              slotsPreservedThisDay++;
+              slotsPreserved++;
+            } else {
+              // Add new showtime
+              timeslotDoc.showtimes.push(newShowtime);
+              slotsAdded++;
+              totalSlotsCreated++;
+            }
+          }
+          
+          // Remove showtimes that are no longer in the schedule
+          const newTimes = newShowtimes.map(st => moment(st.date).format('HH:mm'));
+          timeslotDoc.showtimes = timeslotDoc.showtimes.filter(st => {
+            const time = moment(st.date).format('HH:mm');
+            return newTimes.includes(time);
+          });
+          
+          console.log(`📊 ${dateString}: Preserved ${slotsPreservedThisDay} slots, added ${slotsAdded} new slots`);
+          
           const savedDoc = await timeslotDoc.save();
           console.log('✅ Updated existing timeslot document:', savedDoc._id);
-          totalSlotsCreated += newShowtimes.length;
         }
         
         totalDaysProcessed++;
@@ -483,15 +549,19 @@ exports.generateSlotsFor7Days = async (singleTemplate = null) => {
     }
     
     console.log(`\n🎉 Slot regeneration completed!`);
-    console.log(`📊 Summary: ${totalDaysProcessed} days processed, ${totalSlotsCreated} total slots created/updated`);
-    console.log(`🗑️ Deleted ${deletedSlotsCount} slots for non-working days`);
+    console.log(`📊 Summary:`);
+    console.log(`   - ${totalDaysProcessed} days processed`);
+    console.log(`   - ${totalSlotsCreated} new slots added`);
+    console.log(`   - ${slotsPreserved} existing slots preserved`);
+    console.log(`   - ${deletedSlotsCount} slots deleted for non-working days`);
     
     return {
       success: true,
       deletedSlotsForNonWorkingDays: deletedSlotsCount,
       templatesProcessed: templates.length,
       daysProcessed: totalDaysProcessed,
-      totalSlotsCreated: totalSlotsCreated
+      totalSlotsCreated: totalSlotsCreated,
+      slotsPreserved: slotsPreserved
     };
   } catch (error) {
     console.error("❌ Slot generation failed:", error);
