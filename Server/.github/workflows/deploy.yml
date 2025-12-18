@@ -1,0 +1,36 @@
+name: Deploy Backend to EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Zip backend files
+        run: zip -r backend.zip . -x node_modules\*
+
+      - name: Upload zip to S3
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ap-south-1
+        run: |
+          aws s3 cp backend.zip s3://salonhub-backend-deployments/backend.zip
+
+      - name: Trigger CodeDeploy
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ap-south-1
+        run: |
+          aws deploy create-deployment \
+            --application-name salonhub-backend \
+            --deployment-group-name salonhub-backend-group \
+            --s3-location bucket=salonhub-backend-deployments,key=backend.zip,bundleType=zip
