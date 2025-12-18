@@ -28,6 +28,7 @@ const Login = () => {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
+    console.log("Token on Login page load:", token);
     if (token) {
       loggedIn;
       navigate("/");
@@ -83,39 +84,87 @@ const Login = () => {
       const response = await api.post('/auth/login', loginData);
       hideLoading();
 
+      // Handle successful login
       if (response.data.success) {
+        // Call your client-side login function
         await login(response.data.user);
-        // Check if user is shopOwner and check shop existence
-        if (response.data.user.usertype === 'shopOwner') {
-          const shopCheck = await checkShopExists(response.data.user.email);
-
-          if (shopCheck.exists) {
-            // Store shop info in context
-            login({ ...response.data.user, shop: shopCheck.shop });
-          }
-        }
         
         Swal.fire({
           title: "Success",
-          text: "Login successful!",
+          text: response.data.message || "Login successful!",
           icon: "success",
           timer: 1500
         }).then(() => {
           navigate("/");
         });
+      } else {
+        // Handle cases where success is false in the response
+        Swal.fire({ 
+          title: "Error", 
+          text: response.data.error || "Login failed", 
+          icon: "error" 
+        });
+        setIsSubmitting(false);
       }
     } catch (err) {
       hideLoading();
       console.error('Login error:', err);
 
-      if (err.response?.status === 404) {
-        Swal.fire({ title: "Error", text: "User not found", icon: "error" });
-      } else if (err.response?.status === 401) {
-        Swal.fire({ title: "Error", text: "Invalid credentials", icon: "error" });
-      } else if (err.response?.data?.error) {
-        Swal.fire({ title: "Error", text: err.response.data.error, icon: "error" });
+      // DETAILED ERROR LOGGING
+      console.error('=== LOGIN ERROR DETAILS ===');
+      console.error('Error message:', err.message);
+      console.error('Full error object:', err);
+      console.error('Response:', err.response);
+      console.error('Request URL:', err.config?.url);
+      console.error('Request method:', err.config?.method);
+      console.error('Request data:', err.config?.data);
+      console.error('Status:', err.response?.status);
+      console.error('Status text:', err.response?.statusText);
+      console.error('Response data:', err.response?.data);
+      console.error('Response headers:', err.response?.headers);
+      console.error('=== END ERROR DETAILS ===');
+      
+      
+      // IMPORTANT: Check if error has response data first
+      if (err.response && err.response.data) {
+        // The backend returned an error response
+        const errorData = err.response.data;
+        
+        if (errorData.error) {
+          // Use the error message from backend
+          Swal.fire({ 
+            title: "Error", 
+            text: errorData.error, 
+            icon: "error" 
+          });
+        } else {
+          // Fallback to status-based messages
+          if (err.response.status === 404) {
+            Swal.fire({ title: "Error", text: "User not found", icon: "error" });
+          } else if (err.response.status === 401) {
+            Swal.fire({ title: "Error", text: "Invalid credentials", icon: "error" });
+          } else if (err.response.status === 400) {
+            Swal.fire({ title: "Error", text: "Validation error", icon: "error" });
+          } else {
+            Swal.fire({ title: "Error", text: "An error occurred", icon: "error" });
+          }
+        }
+      } else if (err.request) {
+        // The request was made but no response was received
+        console.error('No response received:', err.request);
+        Swal.fire({ 
+          title: "Network Error", 
+          text: "No response from server. Please check your connection.", 
+          icon: "error" 
+        });
       } else {
-        Swal.fire({ title: "Error", text: "Internal server error", icon: "error" });
+        // Something happened in setting up the request
+        console.error('Request setup error:', err.message);
+        Swal.fire({ 
+          title: "Error", 
+          text: "Internal server error", 
+          icon: "error" 
+        });
       }
       setIsSubmitting(false);
     }

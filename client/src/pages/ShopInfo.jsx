@@ -34,6 +34,11 @@ const DateTimeSelection = () => {
       setCurrentTime(new Date());
     }, 60000); // Update every minute
 
+    // Poll for time slot updates every 30 seconds
+    const slotTimer = setInterval(() => {
+    fetchTimeSlots(true);
+  }, 30000); // Refresh every 30 seconds
+
     return () => clearInterval(timer);
   }, [shopId]);
 
@@ -166,6 +171,21 @@ const DateTimeSelection = () => {
       },
     });
   };
+
+  useEffect(() => {
+  const handleVisibilityChange = () => {
+    if (document.visibilityState === 'visible') {
+      // User returned to the page, refresh slots
+      fetchTimeSlots();
+    }
+  };
+
+  document.addEventListener('visibilitychange', handleVisibilityChange);
+  
+  return () => {
+    document.removeEventListener('visibilitychange', handleVisibilityChange);
+  };
+}, []);
 
   // Calendar functions
   const getDaysInMonth = (date) => {

@@ -74,19 +74,31 @@ const login = async (req, res) => {
     try {
         // Validate input
         if (!password) {
-            return res.status(400).json({ error: "Password is required" });
+            return res.status(400).json({ 
+                success: false,
+                error: "Password is required" 
+            });
         }
 
         if (!contactType || (contactType !== 'email' && contactType !== 'phone')) {
-            return res.status(400).json({ error: "Valid contact type (email or phone) is required" });
+            return res.status(400).json({ 
+                success: false,
+                error: "Valid contact type (email or phone) is required" 
+            });
         }
 
         if (contactType === 'email' && !email) {
-            return res.status(400).json({ error: "Email is required" });
+            return res.status(400).json({ 
+                success: false,
+                error: "Email is required" 
+            });
         }
 
         if (contactType === 'phone' && !phone) {
-            return res.status(400).json({ error: "Phone number is required" });
+            return res.status(400).json({ 
+                success: false,
+                error: "Phone number is required" 
+            });
         }
 
         // Find user by email or phone
@@ -99,20 +111,23 @@ const login = async (req, res) => {
 
         if (!user) {
             return res.status(404).json({ 
+                success: false,
                 error: "User not found" 
             });
         }
 
         const passwordMatch = await bcrypt.compare(password, user.password);
         if (!passwordMatch) {
-            return res.status(401).json({ error: "Invalid credentials" });
+            return res.status(401).json({ 
+                success: false,
+                error: "Invalid credentials" 
+            });
         }
 
-         // ADD THIS: Find shop if user is shopOwner
+        // Find shop if user is shopOwner
         let shop = null;
         if (user.usertype === 'shopOwner') {
             shop = await Shop.findOne({ email: user.email });
-            console.log('Found shop for shopOwner:', shop);
         }
 
         const token = jwt.sign({ 
@@ -134,23 +149,29 @@ const login = async (req, res) => {
             maxAge: 30 * 24 * 60 * 60 * 1000
         });
 
-        // token,
-        res.status(200).json({
+        // Return success response
+        const userResponse = {
+            userId: user._id,
+            email: user.email,
+            usertype: user.usertype || 'customer',
+            name: user.name || 'user',
+            phone: user.phone || '',
+            exp: Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60,
+            shop: shop || null
+        };
+
+        return res.status(200).json({
             success: true,
-            user: {
-                userId: user._id,
-                email: user.email,
-                usertype: user.usertype || 'customer',
-                name: user.name || 'user',
-                phone: user.phone || '',
-                exp: Math.floor(Date.now() / 1000) + 24 * 60 * 60,
-                shop: shop // ADD THIS LINE
-            }
+            user: userResponse,
+            message: "Login successful"
         });
 
     } catch (error) {
         console.error("Error during login:", error);
-        res.status(500).json({ error: "Internal server error" });
+        return res.status(500).json({ 
+            success: false,
+            error: "Internal server error" 
+        });
     }
 };
 
