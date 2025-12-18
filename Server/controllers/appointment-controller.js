@@ -1,6 +1,6 @@
-const Appointment = require('../models/appointment-model');
-const TimeSlot = require('../models/timeSlot-model');
-const mongoose = require('mongoose');
+// const Appointment = require('../models/appointment-model');
+// const TimeSlot = require('../models/timeSlot-model');
+// const mongoose = require('mongoose');
 
 // exports.bookAppointment = async (shopId, timeSlotId, showtimeId, date, customerEmail, userId, serviceInfo, totalAmount) => {
 //   const session = await mongoose.startSession();
@@ -90,26 +90,55 @@ const mongoose = require('mongoose');
 //   }
 // };
 
+const Appointment = require('../models/appointment-model');
+const TimeSlot = require('../models/timeSlot-model');
+const mongoose = require('mongoose');
+
 exports.bookAppointment = async (shopId, timeSlotId, showtimeId, date, customerEmail, userId, serviceInfo, totalAmount) => {
   const session = await mongoose.startSession();
   session.startTransaction();
 
   try {
+    console.log('Booking parameters:', {
+      timeSlotId,
+      showtimeId,
+      date,
+      customerEmail,
+      userId,
+      serviceInfo,
+      totalAmount
+    });
+
+    // Find the time slot
     const timeSlot = await TimeSlot.findById(timeSlotId).session(session);
-    console.log('Found TimeSlot:', timeSlot);
+    console.log('Found TimeSlot ID:', timeSlot?._id);
+    console.log('TimeSlot showtimes count:', timeSlot?.showtimes?.length);
     
     if (!timeSlot) {
       throw new Error("Invalid TimeSlot ID");
     }
 
-    // Find the specific showtime in the array
-    const showtimeIndex = timeSlot.showtimes.findIndex(st => st._id.toString() === showtimeId);
-    
-    if (showtimeIndex === -1) {
-      throw new Error("Showtime not found");
+    // Debug: Log all showtime IDs
+    if (timeSlot.showtimes) {
+      console.log('Available showtime IDs in TimeSlot:');
+      timeSlot.showtimes.forEach((st, index) => {
+        console.log(`  [${index}] ID: ${st._id}, Date: ${st.date}, Booked: ${st.is_booked}`);
+      });
     }
 
-    if (timeSlot.showtimes[showtimeIndex].is_booked) {
+    // Find the specific showtime
+    const showtime = timeSlot.showtimes.find(st => 
+      st._id && st._id.toString() === showtimeId.toString()
+    );
+
+    console.log('Looking for showtimeId:', showtimeId);
+    console.log('Found showtime:', showtime);
+    
+    if (!showtime) {
+      throw new Error(`Showtime not found. Looking for ID: ${showtimeId}`);
+    }
+
+    if (showtime.is_booked) {
       throw new Error("Showtime is already booked");
     }
 
@@ -144,7 +173,7 @@ exports.bookAppointment = async (shopId, timeSlotId, showtimeId, date, customerE
       timeSlot: timeSlotId,
       showtimes: [{ 
         date: new Date(date), 
-        showtimeId: showtimeId,
+        showtimeId: showtime._id, // Use the actual showtime ID from the document
         service: {
           name: serviceName,
           price: servicePrice
@@ -160,8 +189,10 @@ exports.bookAppointment = async (shopId, timeSlotId, showtimeId, date, customerE
       throw new Error(`Appointment validation failed: ${validationError.message}`);
     }
 
-    // Mark showtime as booked - FIXED: Update the specific showtime in the array
-    timeSlot.showtimes[showtimeIndex].is_booked = true;
+    // Mark showtime as booked
+    console.log('Before marking as booked:', showtime.is_booked);
+    showtime.is_booked = true;
+    console.log('After marking as booked:', showtime.is_booked);
     
     // Mark the time slot as modified
     timeSlot.markModified('showtimes');
@@ -174,8 +205,12 @@ exports.bookAppointment = async (shopId, timeSlotId, showtimeId, date, customerE
     await session.commitTransaction();
     session.endSession();
 
-    console.log('Appointment created successfully:', appointment);
-    console.log('TimeSlot updated successfully:', timeSlot);
+    console.log('Appointment created successfully:', appointment._id);
+    console.log('TimeSlot updated successfully. Showtimes status:');
+    const updatedTimeSlot = await TimeSlot.findById(timeSlotId);
+    updatedTimeSlot.showtimes.forEach((st, index) => {
+      console.log(`  [${index}] ID: ${st._id}, Booked: ${st.is_booked}`);
+    });
     
     return appointment;
 

@@ -66,6 +66,12 @@ const DateTimeSelection = () => {
       const todayTimeSlot = sortedSlots.find(slot => 
         new Date(slot.date).toDateString() === new Date().toDateString()
       );
+
+      // In your fetchTimeSlots function, add:
+      console.log('Showtimes data:', selectedTimeSlot?.showtimes);
+      selectedTimeSlot?.showtimes?.forEach((st, i) => {
+        console.log(`Showtime ${i}: ID=${st._id}, Time=${st.date}, Booked=${st.is_booked}`);
+      });
       
       if (todayTimeSlot) {
         setSelectedDate(todayTimeSlot.date);
