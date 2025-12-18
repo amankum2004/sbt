@@ -37,7 +37,7 @@ const DateTimeSelection = () => {
     // Poll for time slot updates every 30 seconds
     const slotTimer = setInterval(() => {
     fetchTimeSlots(true);
-  }, 10000); // Refresh every 30 seconds
+  }, 300000); // Refresh every 30 seconds
 
     return () => clearInterval(timer);
   }, [shopId]);
@@ -376,7 +376,7 @@ const DateTimeSelection = () => {
   // Get button styling based on slot status
   const getTimeSlotButtonStyle = (showtime) => {
     if (showtime.is_booked) {
-      return 'bg-red-400 cursor-not-allowed opacity-60';
+      return 'bg-red-400 cursor-not-allowed opacity-100';
     }
     
     if (isTimeSlotInPast(showtime.date)) {
@@ -392,13 +392,12 @@ const DateTimeSelection = () => {
 
   // Get button text based on slot status
   const getTimeSlotButtonText = (showtime) => {
-    if (showtime.is_booked) {
-      return 'Booked';
-    }
-    
-    if (isTimeSlotInPast(showtime.date)) {
-      return 'Past';
-    }
+    // if (showtime.is_booked) {
+    //   return 'Booked';
+    // }
+    // if (isTimeSlotInPast(showtime.date)) {
+    //   return 'Past';
+    // }
     
     return new Date(showtime.date).toLocaleTimeString('en-US', {
       hour: '2-digit',
