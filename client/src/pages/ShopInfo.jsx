@@ -37,7 +37,7 @@ const DateTimeSelection = () => {
     // Poll for time slot updates every 30 seconds
     const slotTimer = setInterval(() => {
     fetchTimeSlots(true);
-  }, 30000); // Refresh every 30 seconds
+  }, 10000); // Refresh every 30 seconds
 
     return () => clearInterval(timer);
   }, [shopId]);
@@ -148,21 +148,60 @@ const DateTimeSelection = () => {
     setTotalAmount(servicePrices.reduce((sum, price) => sum + price, 0));
   };
 
-  const handleBookAppointment = () => {
-    const unselectedServices = selectedShowtimes.filter(
-      ({ showtimeId }) => !showtimeServices[showtimeId]
-    );
+  const handleBookAppointment = async () => {
+  const unselectedServices = selectedShowtimes.filter(
+    ({ showtimeId }) => !showtimeServices[showtimeId]
+  );
 
-    if (selectedShowtimes.length === 0) {
-      alert("Please select at least one time slot before booking.");
-      return;
-    }
+  if (selectedShowtimes.length === 0) {
+    alert("Please select at least one time slot before booking.");
+    return;
+  }
 
-    if (unselectedServices.length > 0) {
-      alert("Please select a service for each selected time slot.");
-      return;
-    }
+  if (unselectedServices.length > 0) {
+    alert("Please select a service for each selected time slot.");
+    return;
+  }
 
+  // DEBUG: Log what we're about to send
+  console.log('=== BOOKING REQUEST DATA ===');
+  console.log('Selected Showtimes:', selectedShowtimes);
+  console.log('Showtime Services:', showtimeServices);
+  console.log('Customer Email:', customerEmail);
+  console.log('User ID:', user?.userId);
+  console.log('Shop ID:', shopId);
+  console.log('Total Amount:', totalAmount);
+  
+  // Check if we have valid data
+  if (!selectedShowtimes[0]?.showtimeId) {
+    console.error('ERROR: No showtimeId in selectedShowtimes');
+    alert('Invalid time slot selection');
+    return;
+  }
+
+  if (!selectedShowtimes[0]?.timeSlotId) {
+    console.error('ERROR: No timeSlotId in selectedShowtimes');
+    alert('Invalid time slot selection');
+    return;
+  }
+
+  // Prepare booking data
+  const bookingData = {
+    shopId,
+    timeSlotId: selectedShowtimes[0].timeSlotId,
+    showtimeId: selectedShowtimes[0].showtimeId,
+    date: selectedShowtimes[0].showtimeDate,
+    customerEmail,
+    userId: user?.userId,
+    serviceInfo: showtimeServices[selectedShowtimes[0].showtimeId],
+    totalAmount
+  };
+
+  console.log('Booking Data to send:', bookingData);
+  console.log('=== END BOOKING DATA ===');
+
+  try {
+    // Navigate to payment with the data
     navigate('/payment', {
       state: {
         selectedShowtimes,
@@ -174,9 +213,44 @@ const DateTimeSelection = () => {
         location: `${shopDetails.street}, ${shopDetails.city}, ${shopDetails.district}, ${shopDetails.state} - ${shopDetails.pin}`,
         shopId: shopId,
         showtimeServices,
+        // Also pass bookingData for debugging
+        bookingData
       },
     });
-  };
+  } catch (error) {
+    console.error('Navigation error:', error);
+  }
+};
+
+  // const handleBookAppointment = () => {
+  //   const unselectedServices = selectedShowtimes.filter(
+  //     ({ showtimeId }) => !showtimeServices[showtimeId]
+  //   );
+
+  //   if (selectedShowtimes.length === 0) {
+  //     alert("Please select at least one time slot before booking.");
+  //     return;
+  //   }
+
+  //   if (unselectedServices.length > 0) {
+  //     alert("Please select a service for each selected time slot.");
+  //     return;
+  //   }
+
+  //   navigate('/payment', {
+  //     state: {
+  //       selectedShowtimes,
+  //       totalAmount,
+  //       customerEmail,
+  //       customerName,
+  //       shopName: shopDetails.shopname,
+  //       shopPhone: shopDetails.phone,
+  //       location: `${shopDetails.street}, ${shopDetails.city}, ${shopDetails.district}, ${shopDetails.state} - ${shopDetails.pin}`,
+  //       shopId: shopId,
+  //       showtimeServices,
+  //     },
+  //   });
+  // };
 
   useEffect(() => {
   const handleVisibilityChange = () => {
@@ -272,9 +346,22 @@ const DateTimeSelection = () => {
   
   // FIX: Ensure selectedDate is properly converted to string for comparison
   const selectedDateString = selectedDate ? new Date(selectedDate).toDateString() : null;
-  const selectedTimeSlot = timeSlots.find(slot => 
-    new Date(slot.date).toDateString() === selectedDateString
-  );
+  const selectedTimeSlot = timeSlots.find(slot => {
+    if (!slot.date || !selectedDate) return false;
+    
+    // Compare dates ignoring time
+    const slotDate = new Date(slot.date).toDateString();
+    const selectedDateStr = new Date(selectedDate).toDateString();
+    return slotDate === selectedDateStr;
+  });
+
+  // Add debug logging
+  console.log('Time Slots:', timeSlots);
+  console.log('Selected Date:', selectedDate);
+  console.log('Selected Time Slot Found:', selectedTimeSlot);
+  // const selectedTimeSlot = timeSlots.find(slot => 
+  //   new Date(slot.date).toDateString() === selectedDateString
+  // );
 
   // Get button styling based on slot status
   const getTimeSlotButtonStyle = (showtime) => {
