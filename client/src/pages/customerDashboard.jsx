@@ -268,19 +268,56 @@ const CustomerDashboard = () => {
     const eligibleForReview = isEligibleForReview(appointment);
     const hasReviewed = shop?._id && reviewsGiven[shop._id];
 
+    // Format date for display (full version for desktop)
+    const formatDate = (dateString) => {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', {
+            weekday: 'short',
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        });
+    };
+
+    // Short date format for mobile (e.g., "12 Dec, 2023")
+    const formatShortDate = (dateString) => {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric'
+        });
+    };
+
+    // Format time for display (full version for desktop)
+    const formatTime = (dateString) => {
+        const date = new Date(dateString);
+        return date.toLocaleTimeString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true
+        });
+    };
+
+    // Short time format for mobile (e.g., "2:30 PM")
+    const formatShortTime = (dateString) => {
+        const date = new Date(dateString);
+        return date.toLocaleTimeString('en-US', {
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true
+        }).replace(':00', ''); // Remove minutes if it's exactly on the hour
+    };
+
     return (
       <div className="bg-white rounded-lg shadow-md border border-gray-200 p-4 sm:p-6 mb-4 hover:shadow-lg transition-shadow">
-        {/* Header Section - Stacked on mobile, horizontal on desktop */}
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-4 sm:mb-6">
-          {/* Shop Info */}
           <div className="flex-1">
-            {/* Shop Name and Status */}
             <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-3">
               <h3 className="text-lg sm:text-xl font-semibold text-gray-800">
                 {shop?.shopname || 'Salon Name Not Available'}
               </h3>
               
-              {/* Shop Status Badge */}
               {shop?.status && (
                 <span className={`px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium ${
                   shop.status === 'open' 
@@ -353,70 +390,101 @@ const CustomerDashboard = () => {
           </div>
         </div>
 
-        {/* Appointment Details - Stacked on mobile, grid on desktop */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4 p-3 sm:p-4 bg-gray-50 rounded-lg">
-          {/* Appointment Date */}
-          <div className="text-center">
-            <p className="text-xs sm:text-sm text-gray-600 font-medium mb-1">Appointment Date</p>
-            <p className="text-sm sm:text-base font-semibold text-gray-800">
-              {appointment.timeSlot?.date ? formatDate(appointment.timeSlot.date) : 'N/A'}
-            </p>
-          </div>
-
-          {/* Scheduled Time(s) */}
-          <div className="text-center">
-            <p className="text-xs sm:text-sm text-gray-600 font-medium mb-1">Scheduled Time</p>
-            <div className="space-y-1">
-              {appointment.showtimes && appointment.showtimes.length > 0 ? (
-                appointment.showtimes.map((showtime, index) => (
-                  <div key={index} className="flex items-center justify-center space-x-2">
-                    <span className="text-sm sm:text-base font-semibold text-gray-800">
-                      {showtime.date ? formatTime(showtime.date) : 'N/A'}
+        {/* Appointment Date & Time in single row for all screens */}
+        <div className="mb-4 p-3 sm:p-4 bg-gray-50 rounded-lg">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            {/* Combined Date & Time Section - Takes full width on mobile, 2 cols on sm, 1 col on lg */}
+            <div className="col-span-1 sm:col-span-2 lg:col-span-1">
+              <div className="flex flex-row items-start gap-3 sm:gap-4">
+                {/* Appointment Date */}
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs text-gray-600 font-medium mb-1">
+                    <span className="hidden sm:inline">Appointment Date</span>
+                    <span className="sm:hidden">Date</span>
+                  </p>
+                  <p className="text-sm sm:text-base font-semibold text-gray-800 truncate">
+                    <span className="hidden sm:inline">
+                      {appointment.timeSlot?.date ? formatDate(appointment.timeSlot.date) : 'N/A'}
                     </span>
+                    <span className="sm:hidden">
+                      {appointment.timeSlot?.date ? formatShortDate(appointment.timeSlot.date) : 'N/A'}
+                    </span>
+                  </p>
+                </div>
+                
+                {/* Scheduled Time(s) */}
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs text-gray-600 font-medium mb-1">
+                    <span className="hidden sm:inline">Scheduled Time</span>
+                    <span className="sm:hidden">Time</span>
+                  </p>
+                  <div className="space-y-1">
+                    {appointment.showtimes && appointment.showtimes.length > 0 ? (
+                      appointment.showtimes.map((showtime, index) => (
+                        <div key={index} className="flex items-center space-x-2">
+                          <span className="text-sm sm:text-base font-semibold text-gray-800 truncate">
+                            <span className="hidden sm:inline">
+                              {showtime.date ? formatTime(showtime.date) : 'N/A'}
+                            </span>
+                            <span className="sm:hidden">
+                              {showtime.date ? formatShortTime(showtime.date) : 'N/A'}
+                            </span>
+                          </span>
+                          {appointment.showtimes.length > 1 && (
+                            <span className="text-xs text-gray-500">({index + 1})</span>
+                          )}
+                        </div>
+                      ))
+                    ) : (
+                      <span className="text-gray-500 text-xs sm:text-sm">No times scheduled</span>
+                    )}
                   </div>
-                ))
+                </div>
+              </div>
+            </div>
+
+            {/* Review Button or Status */}
+            <div className="col-span-1 lg:col-span-1 flex items-center justify-center sm:justify-start">
+              {eligibleForReview ? (
+                <button
+                  onClick={() => handleReviewClick(appointment)}
+                  className="px-3 sm:px-4 py-2 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white rounded-lg transition-all duration-200 text-xs sm:text-sm font-medium flex items-center justify-center gap-2 shadow-sm hover:shadow w-full sm:w-auto"
+                >
+                  <FaStar className="text-sm sm:text-base" />
+                  <span className="hidden sm:inline">Write Review</span>
+                  <span className="sm:hidden">Review</span>
+                </button>
+              ) : hasReviewed ? (
+                <div className="flex items-center gap-2 text-green-600 justify-center sm:justify-start w-full sm:w-auto">
+                  <FaStar className="text-sm sm:text-base" />
+                  <span className="text-xs sm:text-sm font-medium hidden sm:inline">Reviewed</span>
+                  <span className="text-xs sm:text-sm font-medium sm:hidden">Done</span>
+                </div>
               ) : (
-                <span className="text-gray-500 text-xs sm:text-sm">No times scheduled</span>
+                <div className="h-10 flex items-center justify-center w-full sm:w-auto">
+                  <span className="text-gray-400 text-xs sm:text-sm hidden sm:inline">Review not available</span>
+                  <span className="text-gray-400 text-xs sm:text-sm sm:hidden">No Review</span>
+                </div>
               )}
             </div>
-          </div>
 
-          {/* Review Button or Status */}
-          <div className="text-center flex items-center justify-center">
-            {eligibleForReview ? (
-              <button
-                onClick={() => handleReviewClick(appointment)}
-                className="px-4 py-2 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white rounded-lg transition-all duration-200 text-sm font-medium flex items-center gap-2 shadow-sm hover:shadow"
-              >
-                <FaStar />
-                Write Review
-              </button>
-            ) : hasReviewed ? (
-              <div className="flex items-center gap-2 text-green-600">
-                <FaStar />
-                <span className="text-sm font-medium">Reviewed</span>
-              </div>
-            ) : (
-              <div className="h-10 flex items-center justify-center">
-                <span className="text-gray-400 text-xs sm:text-sm">Review not available</span>
-              </div>
-            )}
-          </div>
-
-          {/* Cancel Appointment Button */}
-          <div className="text-center flex items-center justify-center">
-            {isCurrent && appointment.status === 'confirmed' ? (
-              <button
-                onClick={() => cancelAppointment(appointment._id)}
-                className="px-3 sm:px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors text-xs sm:text-sm font-medium w-full max-w-[120px] sm:max-w-[150px]"
-              >
-                Cancel
-              </button>
-            ) : (
-              <div className="h-10 flex items-center justify-center">
-                <span className="text-gray-400 text-xs sm:text-sm">Not available</span>
-              </div>
-            )}
+            {/* Cancel Appointment Button */}
+            <div className="col-span-1 lg:col-span-1 flex items-center justify-center">
+              {isCurrent && appointment.status === 'confirmed' ? (
+                <button
+                  onClick={() => cancelAppointment(appointment._id)}
+                  className="px-3 sm:px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors text-xs sm:text-sm font-medium w-full sm:max-w-[150px]"
+                >
+                  <span className="hidden sm:inline">Cancel Appointment</span>
+                  <span className="sm:hidden">Cancel</span>
+                </button>
+              ) : (
+                <div className="h-10 flex items-center justify-center w-full">
+                  <span className="text-gray-400 text-xs sm:text-sm hidden sm:inline">Not available</span>
+                  <span className="text-gray-400 text-xs sm:text-sm sm:hidden">N/A</span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

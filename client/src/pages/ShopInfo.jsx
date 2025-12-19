@@ -380,7 +380,7 @@ const DateTimeSelection = () => {
     }
     
     if (isTimeSlotInPast(showtime.date)) {
-      return 'bg-gray-400 cursor-not-allowed opacity-50';
+      return 'bg-gray-500 cursor-not-allowed opacity-50';
     }
     
     if (selectedShowtimes.some(slot => slot.showtimeId === showtime._id)) {

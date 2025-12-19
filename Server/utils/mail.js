@@ -97,17 +97,62 @@ const sendConfirmationEmail = async (customerEmail, customerName, shopName, loca
   
   // Format the time slots properly
   const selectedTimeSlotHTML = selectedTimeSlots && selectedTimeSlots.length > 0
-    ? selectedTimeSlots.map(slot => `
-        <li style="margin-bottom: 8px;">
-          📅 Date: ${new Date(slot.showtimeDate).toLocaleDateString('en-IN')}<br>
-          ⏰ Time: ${new Date(slot.showtimeDate).toLocaleTimeString('en-US', {
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: true
-          })}
-        </li>
-      `).join('')
+    ? selectedTimeSlots.map(slot => {
+      // Parse the date string
+        const dateObj = new Date(slot.showtimeDate);
+        
+        // Debug log to see what we're working with
+        console.log('Email - Raw date string:', slot.showtimeDate);
+        console.log('Email - Date object:', dateObj);
+        console.log('Email - UTC:', dateObj.toUTCString());
+        console.log('Email - Local:', dateObj.toLocaleString());
+        
+        // Format for Indian timezone (IST)
+        const options = {
+          timeZone: 'Asia/Kolkata',
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: true
+        };
+        
+        const dateStr = dateObj.toLocaleDateString('en-IN', { 
+          timeZone: 'Asia/Kolkata',
+          weekday: 'short',
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric'
+        });
+        
+        const timeStr = dateObj.toLocaleTimeString('en-IN', {
+          timeZone: 'Asia/Kolkata',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: true
+        });
+        
+        return `
+          <li style="margin-bottom: 8px;">
+            📅 Date: ${dateStr}<br>
+            ⏰ Time: ${timeStr}
+          </li>
+        `;
+      }).join('')
     : "<li>No time slot selected</li>";
+
+    //   `
+    //     <li style="margin-bottom: 8px;">
+    //       📅 Date: ${new Date(slot.showtimeDate).toLocaleDateString('en-IN')}<br>
+    //       ⏰ Time: ${new Date(slot.showtimeDate).toLocaleTimeString('en-US', {
+    //         hour: '2-digit',
+    //         minute: '2-digit',
+    //         hour12: true
+    //       })}
+    //     </li>
+    //   `).join('')
+    // : "<li>No time slot selected</li>";
 
   const emailData = {
     sender: {
