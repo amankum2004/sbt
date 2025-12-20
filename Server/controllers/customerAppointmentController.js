@@ -316,15 +316,15 @@ exports.cancelAppointment = async (req, res) => {
       console.log('Is appointment in past?', appointmentDateTime < now);
       
       // Allow cancellation up to 1 hour before appointment
-      const timeDifference = appointmentDateTime - now;
-      const oneHourInMs = 60 * 60 * 1000;
+      // const timeDifference = appointmentDateTime - now;
+      // const oneHourInMs = 60 * 60 * 1000;
       
-      if (timeDifference < oneHourInMs) {
-        return res.status(400).json({ 
-          success: false,
-          message: `Cannot cancel appointment less than 1 hour before scheduled time`
-        });
-      }
+      // if (timeDifference < oneHourInMs) {
+      //   return res.status(400).json({ 
+      //     success: false,
+      //     message: `Cannot cancel appointment less than 1 hour before scheduled time`
+      //   });
+      // }
       
       // Optional: Also check if it's in the past (for safety)
       if (appointmentDateTime < now) {
