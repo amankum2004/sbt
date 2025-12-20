@@ -8,7 +8,7 @@ const allowedLvl = (level) => {
     return ['admin', 'shopOwner']
   }
   if (level === 'customer') {
-    return ['admin', 'customer']
+    return ['admin', 'customer','shopOwner']
   }
 }
 

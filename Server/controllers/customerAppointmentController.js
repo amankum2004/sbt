@@ -243,62 +243,150 @@ exports.getAppointmentDetails = async (req, res) => {
 };
 
 // Cancel appointment
+const mongoose=require('mongoose');
+
 exports.cancelAppointment = async (req, res) => {
   try {
     const { appointmentId } = req.params;
 
+    console.log('=== CANCEL APPOINTMENT REQUEST ===');
+    console.log('Appointment ID:', appointmentId);
+    
+    // Validate appointmentId format
     if (!appointmentId) {
+      console.error('Error: Appointment ID is required');
       return res.status(400).json({ 
         success: false,
-        error: 'Appointment ID is required' 
+        message: 'Appointment ID is required' 
       });
     }
 
+    if (!mongoose.Types.ObjectId.isValid(appointmentId)) {
+      console.error('Error: Invalid Appointment ID format:', appointmentId);
+      return res.status(400).json({ 
+        success: false,
+        message: 'Invalid appointment ID format' 
+      });
+    }
+
+    // Find the appointment with timeSlot population
     const appointment = await Appointment.findById(appointmentId)
-      .populate('timeSlot');
+      .populate({
+        path: 'timeSlot',
+        select: 'date showtimes'
+      });
 
     if (!appointment) {
+      console.error('Error: Appointment not found with ID:', appointmentId);
       return res.status(404).json({ 
         success: false,
-        error: 'Appointment not found' 
+        message: 'Appointment not found' 
       });
     }
 
-    // Check if appointment can be cancelled (should be in future)
-    const appointmentDate = appointment.timeSlot?.date;
-    if (appointmentDate && new Date(appointmentDate) < new Date()) {
+    console.log('Appointment status:', appointment.status);
+    
+    // Check if appointment is already cancelled
+    if (appointment.status === 'cancelled') {
       return res.status(400).json({ 
         success: false,
-        error: 'Cannot cancel past appointments' 
+        message: 'Appointment is already cancelled' 
       });
     }
 
-    // Free up the showtime slot
-    if (appointment.timeSlot && appointment.showtimes.length > 0) {
-      const showtimeId = appointment.showtimes[0].showtimeId;
-      const showtime = appointment.timeSlot.showtimes.id(showtimeId);
+    // Check if appointment can be cancelled - use the ACTUAL appointment time
+    let appointmentDateTime = null;
+    
+    if (appointment.showtimes && appointment.showtimes.length > 0) {
+      // Use the actual showtime date (this is the correct appointment time)
+      appointmentDateTime = new Date(appointment.showtimes[0].date);
+    } else if (appointment.timeSlot?.date) {
+      // Fallback to timeSlot date if showtime date not available
+      appointmentDateTime = new Date(appointment.timeSlot.date);
+    }
+    
+    console.log('Appointment date/time:', appointmentDateTime);
+    
+    if (appointmentDateTime) {
+      const now = new Date();
       
-      if (showtime) {
-        showtime.is_booked = false;
-        await appointment.timeSlot.save();
+      console.log('Current time:', now);
+      console.log('Appointment time:', appointmentDateTime);
+      console.log('Time difference (hours):', (appointmentDateTime - now) / (1000 * 60 * 60));
+      console.log('Is appointment in past?', appointmentDateTime < now);
+      
+      // Allow cancellation up to 1 hour before appointment
+      const timeDifference = appointmentDateTime - now;
+      const oneHourInMs = 60 * 60 * 1000;
+      
+      if (timeDifference < oneHourInMs) {
+        return res.status(400).json({ 
+          success: false,
+          message: `Cannot cancel appointment less than 1 hour before scheduled time`
+        });
+      }
+      
+      // Optional: Also check if it's in the past (for safety)
+      if (appointmentDateTime < now) {
+        return res.status(400).json({ 
+          success: false,
+          message: 'Cannot cancel past appointments' 
+        });
       }
     }
 
+    // Free up the showtime slot if it exists
+    if (appointment.timeSlot && appointment.showtimes && appointment.showtimes.length > 0) {
+      console.log('Freeing up showtime slot...');
+      const showtimeId = appointment.showtimes[0].showtimeId;
+      console.log('Showtime ID to free:', showtimeId);
+      
+      const showtime = appointment.timeSlot.showtimes.id(showtimeId);
+      console.log('Found showtime:', showtime);
+      
+      if (showtime) {
+        console.log('Previous is_booked status:', showtime.is_booked);
+        showtime.is_booked = false;
+        console.log('New is_booked status:', showtime.is_booked);
+        
+        // Mark the document as modified
+        appointment.timeSlot.markModified('showtimes');
+        await appointment.timeSlot.save();
+        console.log('TimeSlot saved successfully');
+      } else {
+        console.warn('Warning: Showtime not found in timeSlot');
+      }
+    } else {
+      console.warn('Warning: No timeSlot or showtimes found for appointment');
+    }
+
     // Mark appointment as cancelled
+    console.log('Previous appointment status:', appointment.status);
     appointment.status = 'cancelled';
     await appointment.save();
+    console.log('Appointment saved with cancelled status');
 
     res.status(200).json({
       success: true,
       message: 'Appointment cancelled successfully',
-      appointment
+      appointment: {
+        _id: appointment._id,
+        status: appointment.status,
+        customerEmail: appointment.customerEmail,
+        shopId: appointment.shopId
+      }
     });
 
+    console.log('=== APPOINTMENT CANCELLED SUCCESSFULLY ===');
+
   } catch (error) {
-    console.error('Error cancelling appointment:', error);
+    console.error('❌ Error cancelling appointment:', error);
+    console.error('Error stack:', error.stack);
+    
     res.status(500).json({ 
       success: false,
-      error: 'Failed to cancel appointment' 
+      message: 'Failed to cancel appointment',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 };

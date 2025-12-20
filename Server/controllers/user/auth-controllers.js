@@ -69,11 +69,17 @@ const register = async(req,res) => {
 
 // login using email or phone and password
 const login = async (req, res) => {
+    console.log('=== BACKEND LOGIN REQUEST START ===');
+    console.log('Request body:', req.body);
+    console.log('Request time:', new Date().toISOString());
+    
     const { email, phone, password, contactType } = req.body;
     
     try {
         // Validate input
+        console.log('Validating input...');
         if (!password) {
+            console.log('Validation failed: Password missing');
             return res.status(400).json({ 
                 success: false,
                 error: "Password is required" 
@@ -81,6 +87,7 @@ const login = async (req, res) => {
         }
 
         if (!contactType || (contactType !== 'email' && contactType !== 'phone')) {
+            console.log('Validation failed: Invalid contact type');
             return res.status(400).json({ 
                 success: false,
                 error: "Valid contact type (email or phone) is required" 
@@ -88,6 +95,7 @@ const login = async (req, res) => {
         }
 
         if (contactType === 'email' && !email) {
+            console.log('Validation failed: Email missing');
             return res.status(400).json({ 
                 success: false,
                 error: "Email is required" 
@@ -95,6 +103,7 @@ const login = async (req, res) => {
         }
 
         if (contactType === 'phone' && !phone) {
+            console.log('Validation failed: Phone missing');
             return res.status(400).json({ 
                 success: false,
                 error: "Phone number is required" 
@@ -102,34 +111,46 @@ const login = async (req, res) => {
         }
 
         // Find user by email or phone
+        console.log('Searching for user...');
         let user;
         if (contactType === 'email') {
+            console.log('Searching by email:', email.toLowerCase());
             user = await User.findOne({ email: email.toLowerCase() });
         } else {
+            console.log('Searching by phone:', phone);
             user = await User.findOne({ phone: phone });
         }
+        console.log('User found:', user ? 'Yes' : 'No');
 
         if (!user) {
+            console.log('User not found, returning 404');
             return res.status(404).json({ 
                 success: false,
                 error: "User not found" 
             });
         }
 
+        console.log('Comparing password...');
         const passwordMatch = await bcrypt.compare(password, user.password);
+        console.log('Password match:', passwordMatch);
         if (!passwordMatch) {
-            return res.status(401).json({ 
+            console.log('Invalid credentials, returning 401');
+            return res.status(404).json({ 
                 success: false,
                 error: "Invalid credentials" 
             });
         }
 
         // Find shop if user is shopOwner
+        console.log('Checking if shopOwner...');
         let shop = null;
         if (user.usertype === 'shopOwner') {
+            console.log('User is shopOwner, searching for shop...');
             shop = await Shop.findOne({ email: user.email });
+            console.log('Shop found:', shop ? 'Yes' : 'No');
         }
 
+        console.log('Creating JWT token...');
         const token = jwt.sign({ 
             userId: user._id,
             email: user.email,
@@ -142,6 +163,7 @@ const login = async (req, res) => {
             expiresIn: '30d'
         });
 
+        console.log('Setting cookie...');
         res.cookie('token', token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
@@ -160,6 +182,9 @@ const login = async (req, res) => {
             shop: shop || null
         };
 
+        console.log('=== BACKEND LOGIN REQUEST END - SUCCESS ===');
+        console.log('Returning success response');
+        
         return res.status(200).json({
             success: true,
             user: userResponse,
@@ -167,7 +192,8 @@ const login = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Error during login:", error);
+        console.error("❌ Error during login:", error);
+        console.error("Error stack:", error.stack);
         return res.status(500).json({ 
             success: false,
             error: "Internal server error" 

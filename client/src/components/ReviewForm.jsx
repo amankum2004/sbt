@@ -1,20 +1,15 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { api } from '../utils/api';
 import Swal from 'sweetalert2';
 import StarRating from './StarRating';
-import { FaCamera, FaTimes, FaPaperPlane } from 'react-icons/fa';
+import { FaPaperPlane } from 'react-icons/fa';
 
-const ReviewForm = ({ shopId, shopName, onReviewSubmitted }) => {
-  const navigate = useNavigate();
+const ReviewForm = ({ shopId, shopName, appointmentId, onReviewSubmitted }) => {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     rating: 0,
-    title: '',
-    comment: '',
-    photos: []
+    comment: ''
   });
-  const [photoPreview, setPhotoPreview] = useState([]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -25,106 +20,178 @@ const ReviewForm = ({ shopId, shopName, onReviewSubmitted }) => {
     setFormData(prev => ({ ...prev, rating }));
   };
 
-  const handlePhotoUpload = (e) => {
-    const files = Array.from(e.target.files);
-    
-    // Validate file size and type
-    const validFiles = files.filter(file => {
-      const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif'];
-      const maxSize = 5 * 1024 * 1024; // 5MB
-      
-      if (!validTypes.includes(file.type)) {
-        Swal.fire('Error', 'Only JPG, PNG and GIF images are allowed', 'error');
-        return false;
-      }
-      
-      if (file.size > maxSize) {
-        Swal.fire('Error', 'Image size must be less than 5MB', 'error');
-        return false;
-      }
-      
-      return true;
-    });
-
-    // Create preview URLs
-    const previews = validFiles.map(file => URL.createObjectURL(file));
-    setPhotoPreview(prev => [...prev, ...previews]);
-
-    // In real implementation, you would upload to cloud storage
-    // For now, we'll just store the file objects
-    setFormData(prev => ({
-      ...prev,
-      photos: [...prev.photos, ...validFiles]
-    }));
-  };
-
-  const removePhoto = (index) => {
-    setPhotoPreview(prev => prev.filter((_, i) => i !== index));
-    setFormData(prev => ({
-      ...prev,
-      photos: prev.photos.filter((_, i) => i !== index)
-    }));
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    // Validate rating
     if (formData.rating === 0) {
-      Swal.fire('Error', 'Please select a rating', 'error');
+      Swal.fire({
+        title: 'Error',
+        text: 'Please select a rating by clicking on the stars',
+        icon: 'error',
+        confirmButtonText: 'OK'
+      });
       return;
     }
-    
-    if (!formData.comment.trim()) {
-      Swal.fire('Error', 'Please write a review comment', 'error');
+
+    // Validate comment length
+    if (formData.comment.length > 1000) {
+      Swal.fire({
+        title: 'Error',
+        text: 'Review comment must be less than 1000 characters',
+        icon: 'error',
+        confirmButtonText: 'OK'
+      });
       return;
     }
 
     setLoading(true);
 
     try {
-      // In real implementation, upload photos first
-      const uploadedPhotoUrls = [];
-      // You would upload to cloud storage here and get URLs
-      
       const reviewData = {
-        shopId,
+        shopId: shopId,
+        appointmentId: appointmentId,
         rating: formData.rating,
-        title: formData.title,
-        comment: formData.comment,
-        photos: uploadedPhotoUrls
+        comment: formData.comment
       };
 
+      console.log('Submitting review data:', reviewData);
+      console.log('Endpoint: /reviews/submit-review');
+      
+      // Debug: Check if user is authenticated
+      const token = localStorage.getItem('token');
+      console.log('User token exists:', !!token);
+      
+      // Make the API request
       const response = await api.post('/reviews/submit-review', reviewData);
+      
+      console.log('Review submission response:', response.data);
 
       if (response.data.success) {
         Swal.fire({
           title: 'Success!',
-          text: 'Your review has been submitted',
+          text: 'Thank you for your feedback!',
           icon: 'success',
-          confirmButtonText: 'OK'
+          timer: 2000,
+          showConfirmButton: false
         });
 
         // Reset form
         setFormData({
           rating: 0,
-          title: '',
-          comment: '',
-          photos: []
+          comment: ''
         });
-        setPhotoPreview([]);
 
-        // Notify parent component
+        // Notify parent component with the review data
         if (onReviewSubmitted) {
-          onReviewSubmitted(response.data.review);
+          onReviewSubmitted(response.data.review || response.data);
         }
       }
     } catch (error) {
-      console.error('Submit review error:', error);
+      console.error('❌ Submit review error:', error);
+      console.error('Error status:', error.response?.status);
+      console.error('Error data:', error.response?.data);
+      console.error('Error headers:', error.response?.headers);
+      
+      let errorMessage = 'Failed to submit review. Please try again.';
+      let errorTitle = 'Error';
+      let errorIcon = 'error';
+      
+      // Handle specific error cases
+      if (error.response) {
+        const status = error.response.status;
+        const data = error.response.data;
+        
+        switch (status) {
+          case 401:
+            if (data.message?.includes('token')) {
+              errorTitle = 'Authentication Required';
+              errorMessage = 'Please login again to submit your review.';
+              errorIcon = 'warning';
+              
+              // Optionally redirect to login
+              setTimeout(() => {
+                window.location.href = '/login';
+              }, 3000);
+            } else {
+              errorMessage = 'Unauthorized access. Please login again.';
+            }
+            break;
+            
+          case 400:
+            if (data.message?.includes('already reviewed')) {
+              errorTitle = 'Already Reviewed';
+              errorMessage = 'You have already reviewed this appointment.';
+              errorIcon = 'info';
+              
+              // If already reviewed, notify parent component
+              if (onReviewSubmitted) {
+                onReviewSubmitted({ 
+                  alreadyReviewed: true,
+                  message: 'Already reviewed this appointment'
+                });
+              }
+            } else if (data.message?.includes('Appointment ID')) {
+              errorMessage = data.message || 'Invalid appointment information.';
+            } else if (data.message) {
+              errorMessage = data.message;
+            }
+            break;
+            
+          case 403:
+            errorTitle = 'Permission Denied';
+            errorMessage = 'You do not have permission to review this appointment.';
+            errorIcon = 'warning';
+            break;
+            
+          case 404:
+            errorMessage = 'Appointment not found.';
+            break;
+            
+          case 422:
+            errorMessage = 'Invalid data. Please check your input.';
+            break;
+            
+          case 429:
+            errorMessage = 'Too many requests. Please wait a moment.';
+            break;
+            
+          case 500:
+            errorMessage = 'Server error. Please try again later.';
+            break;
+            
+          default:
+            errorMessage = data?.message || `Error: ${status}`;
+        }
+      } else if (error.request) {
+        errorMessage = 'No response from server. Please check your internet connection.';
+      } else {
+        errorMessage = error.message || 'An unexpected error occurred.';
+      }
+      
       Swal.fire({
-        title: 'Error!',
-        text: error.response?.data?.message || 'Failed to submit review',
-        icon: 'error',
-        confirmButtonText: 'OK'
+        title: errorTitle,
+        text: errorMessage,
+        icon: errorIcon,
+        confirmButtonText: 'OK',
+        showCancelButton: errorIcon === 'warning',
+        cancelButtonText: 'Cancel'
+      }).then((result) => {
+        // If "OK" clicked and it's an auth error, redirect to login
+        if (result.isConfirmed && error.response?.status === 401) {
+          window.location.href = '/login';
+        }
+        
+        // If already reviewed, close the form
+        if (error.response?.status === 400 && 
+            error.response.data.message?.includes('already reviewed')) {
+          if (onReviewSubmitted) {
+            onReviewSubmitted({ 
+              alreadyReviewed: true,
+              message: 'Already reviewed'
+            });
+          }
+        }
       });
     } finally {
       setLoading(false);
@@ -132,9 +199,23 @@ const ReviewForm = ({ shopId, shopName, onReviewSubmitted }) => {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
-      <h2 className="text-2xl font-bold text-gray-800 mb-2">Write a Review</h2>
-      <p className="text-gray-600 mb-6">Share your experience with {shopName}</p>
+    <div className="bg-white rounded-xl shadow-lg p-6">
+      <h2 className="text-2xl font-bold text-gray-800 mb-2">
+        Rate This Appointment
+      </h2>
+      
+      <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+        <p className="text-sm text-blue-800">
+          <strong>Shop:</strong> {shopName}
+        </p>
+        <p className="text-xs text-blue-600 mt-1">
+          <strong>Appointment ID:</strong> {appointmentId?.substring(0, 8)}...
+        </p>
+      </div>
+      
+      <p className="text-gray-600 mb-6">
+        How was your experience during this specific visit?
+      </p>
 
       <form onSubmit={handleSubmit}>
         {/* Rating Section */}
@@ -142,100 +223,52 @@ const ReviewForm = ({ shopId, shopName, onReviewSubmitted }) => {
           <label className="block text-gray-700 font-medium mb-3">
             Overall Rating *
           </label>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
             <StarRating
               rating={formData.rating}
               size="text-3xl"
               editable={true}
               onRatingChange={handleRatingChange}
             />
-            <span className="text-gray-600">
-              {formData.rating > 0 ? `${formData.rating} out of 5` : 'Select rating'}
-            </span>
+            <div className="flex flex-col">
+              <span className="text-gray-600 font-medium">
+                {formData.rating > 0 ? `${formData.rating} out of 5` : 'Select stars above'}
+              </span>
+              <span className="text-sm text-gray-500">
+                {formData.rating === 5 && '⭐ Excellent'}
+                {formData.rating === 4 && '👍 Good'}
+                {formData.rating === 3 && '😐 Average'}
+                {formData.rating === 2 && '👎 Poor'}
+                {formData.rating === 1 && '😞 Terrible'}
+              </span>
+            </div>
           </div>
-        </div>
-
-        {/* Title Section */}
-        <div className="mb-6">
-          <label htmlFor="title" className="block text-gray-700 font-medium mb-2">
-            Review Title (Optional)
-          </label>
-          <input
-            type="text"
-            id="title"
-            name="title"
-            value={formData.title}
-            onChange={handleInputChange}
-            placeholder="Summarize your experience"
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            maxLength="100"
-          />
         </div>
 
         {/* Comment Section */}
         <div className="mb-6">
           <label htmlFor="comment" className="block text-gray-700 font-medium mb-2">
-            Your Review *
+            Your Feedback (Optional)
           </label>
           <textarea
             id="comment"
             name="comment"
             value={formData.comment}
             onChange={handleInputChange}
-            placeholder="Share details of your experience at this salon..."
-            rows="5"
+            placeholder="Share details about this specific appointment..."
+            rows="4"
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
             maxLength="1000"
-            required
           />
-          <div className="text-right text-sm text-gray-500 mt-1">
-            {formData.comment.length}/1000 characters
-          </div>
-        </div>
-
-        {/* Photo Upload Section */}
-        <div className="mb-6">
-          <label className="block text-gray-700 font-medium mb-2">
-            Add Photos (Optional)
-          </label>
-          <div className="space-y-4">
-            {/* Photo Previews */}
-            {photoPreview.length > 0 && (
-              <div className="flex flex-wrap gap-3 mb-4">
-                {photoPreview.map((preview, index) => (
-                  <div key={index} className="relative group">
-                    <img
-                      src={preview}
-                      alt={`Preview ${index + 1}`}
-                      className="w-24 h-24 object-cover rounded-lg border border-gray-300"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removePhoto(index)}
-                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <FaTimes className="text-xs" />
-                    </button>
-                  </div>
-                ))}
+          <div className="flex justify-between items-center mt-1">
+            <div className="text-sm text-gray-500">
+              {formData.comment.length}/1000 characters
+            </div>
+            {formData.comment.length > 900 && (
+              <div className="text-sm text-amber-600">
+                {1000 - formData.comment.length} characters remaining
               </div>
             )}
-
-            {/* Upload Button */}
-            <label className="flex items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-colors">
-              <div className="text-center">
-                <FaCamera className="mx-auto text-3xl text-gray-400 mb-2" />
-                <p className="text-gray-600">Click to upload photos</p>
-                <p className="text-sm text-gray-400">JPG, PNG, GIF up to 5MB</p>
-              </div>
-              <input
-                type="file"
-                multiple
-                accept="image/*"
-                onChange={handlePhotoUpload}
-                className="hidden"
-              />
-            </label>
           </div>
         </div>
 
@@ -243,8 +276,8 @@ const ReviewForm = ({ shopId, shopName, onReviewSubmitted }) => {
         <div className="flex justify-end">
           <button
             type="submit"
-            disabled={loading || formData.rating === 0 || !formData.comment.trim()}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-medium flex items-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={loading || formData.rating === 0}
+            className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-3 rounded-lg font-medium flex items-center justify-center gap-2 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
           >
             {loading ? (
               <>
@@ -253,11 +286,18 @@ const ReviewForm = ({ shopId, shopName, onReviewSubmitted }) => {
               </>
             ) : (
               <>
-                <FaPaperPlane />
+                <FaPaperPlane className="text-sm" />
                 Submit Review
               </>
             )}
           </button>
+        </div>
+        
+        {/* Note */}
+        <div className="mt-4 pt-3 border-t border-gray-200">
+          <p className="text-xs text-gray-500 text-center">
+            Note: You can review each appointment separately. Once submitted, reviews cannot be edited.
+          </p>
         </div>
       </form>
     </div>

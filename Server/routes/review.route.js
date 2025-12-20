@@ -8,21 +8,21 @@ const {authenticate, authorize} = require('../middlewares/auth')
 router.get('/shop/:shopId', reviewController.getShopReviews);
 
 // Authenticated customer actions
-router.post('/submit-review', reviewController.submitReview);
-router.get('/user', reviewController.getUserReviews); // list of user's reviews
-router.get('/check-user-review', reviewController.checkUserReview); // expects ?shopId=...
-router.get('/shop/:shopId/user-review', reviewController.getUserReviewForShop);
-router.put('/:reviewId', reviewController.updateCustomerReview);
-router.delete('/:reviewId', reviewController.deleteReview);
 
+// router.post('/submit-review', authenticate, authorize('customer'), reviewController.submitReview);
+// router.get('/user', authenticate, authorize('customer'), reviewController.getUserReviews); // list of user's reviews
+// router.get('/check-user-review', authenticate, authorize('customer'), reviewController.checkUserReview); // expects ?shopId=...
+// router.get('/shop/:shopId/user-review', authenticate, authorize('customer'), reviewController.getUserReviewForShop);
+// router.put('/:reviewId', authenticate, authorize('customer'), reviewController.updateCustomerReview);
+// router.delete('/:reviewId', authenticate, authorize('customer'), reviewController.deleteReview);
 
-// router.post('/submit-review', authenticate, authorize('user'), reviewController.submitReview);
-// router.get('/user', authenticate, authorize('user'), reviewController.getUserReviews); // list of user's reviews
-// router.get('/check-user-review', authenticate, authorize('user'), reviewController.checkUserReview); // expects ?shopId=...
-// router.get('/shop/:shopId/user-review', authenticate, authorize('user'), reviewController.getUserReviewForShop);
-// router.put('/:reviewId', authenticate, authorize('user'), reviewController.updateCustomerReview);
-// router.delete('/:reviewId', authenticate, authorize('user'), reviewController.deleteReview);
-
+// Authenticated customer actions - Allow ALL authenticated users
+router.post('/submit-review', authenticate, reviewController.submitReview); 
+router.get('/user', authenticate, reviewController.getUserReviews); 
+router.get('/check-user-review', authenticate, reviewController.checkUserReview);
+router.get('/shop/:shopId/user-review', authenticate, reviewController.getUserReviewForShop);
+router.put('/:reviewId', authenticate, reviewController.updateCustomerReview);
+router.delete('/:reviewId', authenticate, reviewController.deleteReview);
 module.exports = router;
 
 // // Public routes

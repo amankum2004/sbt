@@ -47,6 +47,7 @@ api.interceptors.request.use(
 
 
 // Response interceptor - for handling responses and errors globally
+// Response interceptor - for handling responses and errors globally
 api.interceptors.response.use(
   (response) => {
     // Log successful response in development
@@ -62,7 +63,10 @@ api.interceptors.response.use(
     
     if (error.response) {
       // Server responded with error status (4xx, 5xx)
-      const { status, data } = error.response
+      const { status, data, config } = error.response
+      
+      // Check if this is a login request - preserve backend error message
+      const isLoginRequest = config?.url?.includes('/auth/login')
       
       errorDetails = {
         status,
@@ -72,18 +76,25 @@ api.interceptors.response.use(
       
       switch (status) {
         case 400:
-          errorMessage = data?.message || 'Bad request. Please check your input.'
+          // For login, use backend message, otherwise default
+          errorMessage = isLoginRequest 
+            ? (data?.error || data?.message || 'Bad request. Please check your input.')
+            : (data?.message || 'Bad request. Please check your input.')
           break
         case 401:
-          errorMessage = 'Unauthorized. Please log in again.'
-          // Optional: Redirect to login page
-          // window.location.href = '/login'
+          // For login, use backend message, otherwise default
+          errorMessage = isLoginRequest 
+            ? (data?.error || data?.message || 'Invalid credentials')
+            : 'Unauthorized. Please log in again.'
           break
         case 403:
-          errorMessage = 'Access forbidden. You do not have permission.'
+          errorMessage = data?.message || 'Access forbidden. You do not have permission.'
           break
         case 404:
-          errorMessage = data?.message || 'Requested resource not found.'
+          // For login, use backend message, otherwise default
+          errorMessage = isLoginRequest 
+            ? (data?.error || data?.message || 'User not found')
+            : (data?.message || 'Requested resource not found.')
           break
         case 409:
           errorMessage = data?.message || 'Conflict. Resource already exists.'
@@ -207,10 +218,6 @@ export const apiUtils = {
   }
 }
 
-// Export default as well for flexibility
-export default api
-
-
 // import axios from 'axios'
 
 // const baseUrl = 
@@ -222,3 +229,8 @@ export default api
 //   baseURL: baseUrl,
 //   withCredentials: true  
 // })
+
+
+export default api
+
+

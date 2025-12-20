@@ -1,11 +1,6 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const reviewSchema = new mongoose.Schema({
-  shopId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Shop',
-    required: true
-  },
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
@@ -19,56 +14,41 @@ const reviewSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  shopId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Shop',
+    required: true
+  },
+  appointmentId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Appointment',
+    required: true,
+    index: true
+  },
   rating: {
     type: Number,
     required: true,
     min: 1,
     max: 5
   },
-  title: {
-    type: String,
-    trim: true,
-    maxlength: 100
-  },
   comment: {
     type: String,
-    required: true,
     trim: true,
     maxlength: 1000
-  },
-  photos: [{
-    type: String, // URL to uploaded images
-  }],
-  helpfulCount: {
-    type: Number,
-    default: 0
-  },
-  reportedCount: {
-    type: Number,
-    default: 0
   },
   status: {
     type: String,
     enum: ['pending', 'approved', 'rejected'],
-    default: 'pending'
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now
+    default: 'approved'
   }
 }, {
   timestamps: true
 });
 
-// Index for efficient queries
-reviewSchema.index({ shopId: 1, createdAt: -1 });
-reviewSchema.index({ userId: 1, shopId: 1 }, { unique: true }); // One review per user per shop
-reviewSchema.index({ rating: 1 });
-reviewSchema.index({ status: 1 });
+// ✅ Change this from userId_shopId to appointmentId_userId
+reviewSchema.index({ appointmentId: 1, userId: 1 }, { unique: true });
 
-const Review = mongoose.model('Review', reviewSchema);
-module.exports = Review;
+// ✅ Remove or change the old index if it exists
+// reviewSchema.index({ userId: 1, shopId: 1 }, { unique: false }); // Make it non-unique
+
+module.exports = mongoose.model('Review', reviewSchema);
