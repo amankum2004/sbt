@@ -763,17 +763,17 @@ export const stateDistrictCityData = {
     "Rajnandgaon": ["Rajnandgaon", "Dongargaon"]
   },
   "Delhi": {
-    "Central": ["Connaught Place", "Karol Bagh"],
-    "East": ["Preet Vihar", "Laxmi Nagar"],
-    "New Delhi": ["Chanakyapuri", "Sarojini Nagar"],
-    "North": ["Civil Lines", "Model Town"],
-    "North East": ["Seelampur", "Shahdara"],
-    "North West": ["Pitampura", "Rohini"],
-    "Shahdara": ["Dilshad Garden", "Karkardooma"],
-    "South": ["Greater Kailash", "Lajpat Nagar"],
-    "South East": ["Kalkaji", "Nehru Place"],
-    "South West": ["Dwarka", "Vasant Kunj"],
-    "West": ["Janakpuri", "Rajouri Garden"]
+    "Central": ["Civil Lines", "Karol Bagh","Kotwali"],
+    "East": ["PGandhi Nagar", "Mayur Vihar","Preet Vihar"],
+    "New Delhi": ["Chanakyapuri", "Delhi Cantonment","Vasant Vihar"],
+    "North": ["Alipur", "Model Town","Narela"],
+    "North East": ["Karawal Nagar","Seelampur", "Yamuna Vihar"],
+    "North West": ["Kanjhawala", "Rohini","Saraswati Vihar"],
+    "Shahdara": ["Seema Puri", "Shahdara","Vivek Vihar"],
+    "South": ["Hauz Khas", "Mehrauli","Saket"],
+    "South East": ["Defence Colony", "Kalkaji","Sarita Vihar"],
+    "South West": ["Dwarka", "Kapeshera","Najafgarh"],
+    "West": ["Patel Nagar", "Punjabi Bagh","Rajouri Garden"]
   },
   "Gujarat": {
     "Ahmedabad": ["Ahmedabad City", "Vastrapur"],
