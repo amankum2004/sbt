@@ -54,7 +54,7 @@ export const Service = () => {
       title: "Shaving (Clean/Traditional)",
       img: "images/clean_shave.jpg",
       desc: "Traditional clean shave with razor and hot towel treatment. Includes pre-shave oil and post-shave care for smooth, irritation-free skin.",
-      keywords: ["clean shave", "traditional shave", "razor shave", "barber shave"]
+      keywords: ["clean shave", "traditional shave", "razor shave"]
     },
     {
       title: "Hair Coloring Services",
@@ -66,7 +66,7 @@ export const Service = () => {
       title: "Beard Grooming & Styling",
       img: "images/Beard_grooming.jpg",
       desc: "Expert beard trimming, shaping, and conditioning services. Get the perfect beard style with professional grooming techniques.",
-      keywords: ["beard grooming", "beard trim", "beard styling", "beard care"]
+      keywords: ["beard grooming", "beard trim", "beard styling"]
     },
     {
       title: "Facial & Skin Care",
@@ -78,19 +78,19 @@ export const Service = () => {
       title: "Head Massage Therapy",
       img: "images/head_massage.jpg",
       desc: "Relaxing head massage to relieve stress, improve scalp health, and boost blood circulation. Reduces tension and promotes hair growth.",
-      keywords: ["head massage", "scalp massage", "stress relief", "champi"]
+      keywords: ["head massage", "scalp massage", "champi"]
     },
     {
       title: "Hair Spa Treatment",
       img: "images/hair spa.jpg",
       desc: "Deep conditioning hair spa to nourish, repair damage, and control frizz. Restores moisture and vitality to dry, damaged hair.",
-      keywords: ["hair spa", "deep conditioning", "hair treatment", "frizz control"]
+      keywords: ["deep conditioning", "hair treatment", "frizz control"]
     },
     {
       title: "Hair Straightening & Perming",
       img: "images/hair_straight.jpg",
       desc: "Chemical treatments for hair straightening or perming. Long-lasting results with keratin treatments and smoothing services.",
-      keywords: ["hair straightening", "keratin treatment", "hair smoothing", "perming"]
+      keywords: ["hair straightening", "keratin treatment", "perming"]
     },
     {
       title: "Waxing Services",
@@ -102,29 +102,29 @@ export const Service = () => {
       title: "Scalp Treatments",
       img: "images/scalp_treatment.jpg",
       desc: "Specialized scalp treatments for dandruff, dryness, and hair thinning. Promotes healthy scalp environment for better hair growth.",
-      keywords: ["scalp treatment", "dandruff treatment", "hair fall control", "scalp care"]
+      keywords: ["dandruff treatment", "hair fall control", "scalp care"]
     },
     {
       title: "Eyebrow Shaping & Threading",
       img: "images/eye_brow.jpg",
       desc: "Precise eyebrow shaping, threading, and grooming services. Achieve perfectly shaped eyebrows to enhance your facial features.",
-      keywords: ["eyebrow shaping", "threading", "eyebrow grooming", "face threading"]
+      keywords: ["threading", "eyebrow grooming", "face threading"]
     },
     {
       title: "Hair Loss Treatment",
       img: "images/hair_loss_treatment.jpg",
       desc: "Advanced hair loss treatments to reduce thinning and promote new growth. Includes PRP therapy and medical treatments for hair regrowth.",
-      keywords: ["hair loss treatment", "hair fall control", "PRP therapy", "hair regrowth"]
+      keywords: ["hair fall control", "PRP therapy", "hair regrowth"]
     },
   ];
 
   const popularServices = [
     "Hair Cut & Styling",
     "Facial & Skin Care", 
-    "Hair Coloring Services",
+    "Hair Coloring",
     "Waxing Services",
     "Beard Grooming",
-    "Hair Spa Treatment"
+    "Hair Treatment"
   ];
 
   return (

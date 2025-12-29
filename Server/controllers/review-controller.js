@@ -1,6 +1,7 @@
 // controllers/review-controller.js
 const Review = require('../models/review');
 const Shop = require('../models/registerShop-model');
+const Appointment = require('../models/appointment-model');
 const mongoose = require('mongoose');
 
 exports.submitReview = async (req, res) => {

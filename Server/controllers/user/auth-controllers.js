@@ -68,6 +68,139 @@ const register = async(req,res) => {
 }
 
 // login using email or phone and password
+// const login = async (req, res) => {
+//     console.log('=== BACKEND LOGIN REQUEST START ===');
+//     console.log('Request body:', req.body);
+//     console.log('Request time:', new Date().toISOString());
+    
+//     const { email, phone, password, contactType } = req.body;
+    
+//     try {
+//         // Validate input
+//         console.log('Validating input...');
+//         if (!password) {
+//             console.log('Validation failed: Password missing');
+//             return res.status(400).json({ 
+//                 success: false,
+//                 error: "Password is required" 
+//             });
+//         }
+
+//         if (!contactType || (contactType !== 'email' && contactType !== 'phone')) {
+//             console.log('Validation failed: Invalid contact type');
+//             return res.status(400).json({ 
+//                 success: false,
+//                 error: "Valid contact type (email or phone) is required" 
+//             });
+//         }
+
+//         if (contactType === 'email' && !email) {
+//             console.log('Validation failed: Email missing');
+//             return res.status(400).json({ 
+//                 success: false,
+//                 error: "Email is required" 
+//             });
+//         }
+
+//         if (contactType === 'phone' && !phone) {
+//             console.log('Validation failed: Phone missing');
+//             return res.status(400).json({ 
+//                 success: false,
+//                 error: "Phone number is required" 
+//             });
+//         }
+
+//         // Find user by email or phone
+//         console.log('Searching for user...');
+//         let user;
+//         if (contactType === 'email') {
+//             console.log('Searching by email:', email.toLowerCase());
+//             user = await User.findOne({ email: email.toLowerCase() });
+//         } else {
+//             console.log('Searching by phone:', phone);
+//             user = await User.findOne({ phone: phone });
+//         }
+//         console.log('User found:', user ? 'Yes' : 'No');
+
+//         if (!user) {
+//             console.log('User not found, returning 404');
+//             return res.status(404).json({ 
+//                 success: false,
+//                 error: "User not found" 
+//             });
+//         }
+
+//         console.log('Comparing password...');
+//         const passwordMatch = await bcrypt.compare(password, user.password);
+//         console.log('Password match:', passwordMatch);
+//         if (!passwordMatch) {
+//             console.log('Invalid credentials, returning 401');
+//             return res.status(404).json({ 
+//                 success: false,
+//                 error: "Invalid credentials" 
+//             });
+//         }
+
+//         // Find shop if user is shopOwner
+//         console.log('Checking if shopOwner...');
+//         let shop = null;
+//         if (user.usertype === 'shopOwner') {
+//             console.log('User is shopOwner, searching for shop...');
+//             shop = await Shop.findOne({ email: user.email });
+//             console.log('Shop found:', shop ? 'Yes' : 'No');
+//         }
+
+//         console.log('Creating JWT token...');
+//         const token = jwt.sign({ 
+//             userId: user._id,
+//             email: user.email,
+//             usertype: user.usertype || 'customer',
+//             name: user.name || 'user',
+//             phone: user.phone || ''
+//         }, 
+//         `${process.env.JWT_SECRET || 'secret'}`,
+//         {
+//             expiresIn: '30d'
+//         });
+
+//         console.log('Setting cookie...');
+//         res.cookie('token', token, {
+//             httpOnly: true,
+//             secure: process.env.NODE_ENV === 'production',
+//             sameSite: 'Lax',
+//             maxAge: 30 * 24 * 60 * 60 * 1000
+//         });
+
+//         // Return success response
+//         const userResponse = {
+//             userId: user._id,
+//             email: user.email,
+//             usertype: user.usertype || 'customer',
+//             name: user.name || 'user',
+//             phone: user.phone || '',
+//             exp: Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60,
+//             shop: shop || null
+//         };
+
+//         console.log('=== BACKEND LOGIN REQUEST END - SUCCESS ===');
+//         console.log('Returning success response');
+        
+//         return res.status(200).json({
+//             success: true,
+//             user: userResponse,
+//             message: "Login successful"
+//         });
+
+//     } catch (error) {
+//         console.error("❌ Error during login:", error);
+//         console.error("Error stack:", error.stack);
+//         return res.status(500).json({ 
+//             success: false,
+//             error: "Internal server error" 
+//         });
+//     }
+// };
+
 const login = async (req, res) => {
     console.log('=== BACKEND LOGIN REQUEST START ===');
     console.log('Request body:', req.body);
@@ -134,8 +267,8 @@ const login = async (req, res) => {
         const passwordMatch = await bcrypt.compare(password, user.password);
         console.log('Password match:', passwordMatch);
         if (!passwordMatch) {
-            console.log('Invalid credentials, returning 401');
-            return res.status(404).json({ 
+            console.log('Invalid credentials, returning 401'); // FIXED: Changed to 401
+            return res.status(401).json({ // ← Changed from 404 to 401
                 success: false,
                 error: "Invalid credentials" 
             });
@@ -171,7 +304,7 @@ const login = async (req, res) => {
             maxAge: 30 * 24 * 60 * 60 * 1000
         });
 
-        // Return success response
+        // Return success response WITH TOKEN
         const userResponse = {
             userId: user._id,
             email: user.email,
@@ -183,11 +316,12 @@ const login = async (req, res) => {
         };
 
         console.log('=== BACKEND LOGIN REQUEST END - SUCCESS ===');
-        console.log('Returning success response');
+        console.log('Returning success response with token');
         
         return res.status(200).json({
             success: true,
             user: userResponse,
+            token: token, // ← ADD THIS LINE
             message: "Login successful"
         });
 
@@ -201,49 +335,6 @@ const login = async (req, res) => {
     }
 };
 
-// const login = async (req,res) =>{
-//     const { email, password } = req.body;
-//     try {
-//         const user = await User.findOne({ email:email.toLowerCase() });
-//         if (!user) {
-//           return res.status(404).json({ 
-//             error: "User not found" 
-//           });
-//         }
-//         const passwordMatch = await bcrypt.compare(password, user.password);
-//         if (!passwordMatch) {
-//         return res.status(401).json({ error: "Invalid email or password" });
-//         }
-//         const token = jwt.sign({ 
-//           userId: user._id ,
-//           email: user.email,
-//           usertype: user.usertype || 'customer',
-//           name: user.name || 'user',
-//           phone: user.phone || ''
-//         }, 
-//         `${process.env.JWT_SECRET || 'secret'}`,
-//       {
-//         expiresIn: '24h'
-//       })
-//       res.cookie('token', token, {
-//         httpOnly: true,
-//         secure: process.env.NODE_ENV === 'production',
-//         sameSite: 'Lax',
-//         maxAge: 24 * 60 * 60 * 1000
-//       })
-//       res.status(200).json({
-//         userId: user._id,
-//         email: user.email,
-//         usertype: user.usertype || 'customer',
-//         name: user.name || 'user',
-//         phone: user.phone || '',
-//         exp: Math.floor(Date.now() / 1000) + 24 * 60 * 60
-//       })
-//     } catch (error) {
-//         console.error("Error during login:", error);
-//         res.status(500).json({ error: "Internal server error" });
-//     }
-// };
 
 const update = async(req,res) => {
     try {

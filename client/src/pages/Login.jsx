@@ -26,14 +26,44 @@ const Login = () => {
     setShowPassword((prevState) => !prevState);
   };
 
+  // useEffect(() => {
+  //   const token = localStorage.getItem("token");
+  //   console.log("Token on Login page load:", token);
+  //   if (token) {
+  //     loggedIn;
+  //     navigate("/");
+  //   }
+  // }, [loggedIn, navigate]);
+
+  // In Login.jsx, update the useEffect:
+  // In Login.jsx, update the useEffect:
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    console.log("Token on Login page load:", token);
-    if (token) {
-      loggedIn;
-      navigate("/");
+    console.log("Checking authentication...");
+    
+    // Check if we have JWT token AND user data
+    const jwtToken = localStorage.getItem('jwt_token');
+    const userData = localStorage.getItem('user_data');
+    
+    console.log("JWT token exists:", !!jwtToken);
+    console.log("User data exists:", !!userData);
+    
+    // If we have both, user is authenticated
+    if (jwtToken && userData) {
+      console.log("✅ User is already authenticated");
+      console.log("User data:", JSON.parse(userData));
+      
+      // Wait a moment then navigate (give LoginContext time to initialize)
+      const timer = setTimeout(() => {
+        console.log("Navigating to home page...");
+        navigate("/", { replace: true });
+      }, 100);
+      
+      return () => clearTimeout(timer);
+    } else {
+      console.log("❌ User needs to login");
+      // Don't clear storage here - let LoginContext handle it
     }
-  }, [loggedIn, navigate]);
+  }, [navigate]);
 
   const handleInput = (e) => {
     setFormData({
@@ -82,10 +112,22 @@ const Login = () => {
       };
 
       const response = await api.post('/auth/login', loginData);
+      console.log('Login response:', response.data);
       hideLoading();
 
       // Handle successful login
       if (response.data.success) {
+        // ✅ Store the JWT token string
+        if (response.data.token) {
+          localStorage.setItem('jwt_token', response.data.token);
+          console.log('✅ JWT token stored:', response.data.token.substring(0, 20) + '...');
+        }
+        
+        // ✅ Store user data separately
+        if (response.data.user) {
+          localStorage.setItem('user_data', JSON.stringify(response.data.user));
+        }
+        
         // Call your client-side login function
         await login(response.data.user);
         
@@ -110,35 +152,45 @@ const Login = () => {
       hideLoading();
       console.error('Login error:', err);
 
-      // DETAILED ERROR LOGGING
-      console.error('=== LOGIN ERROR DETAILS ===');
-      console.error('Error message:', err.message);
-      console.error('Full error object:', err);
-      console.error('Response:', err.response);
-      console.error('Request URL:', err.config?.url);
-      console.error('Request method:', err.config?.method);
-      console.error('Request data:', err.config?.data);
-      console.error('Status:', err.response?.status);
-      console.error('Status text:', err.response?.statusText);
-      console.error('Response data:', err.response?.data);
-      console.error('Response headers:', err.response?.headers);
-      console.error('=== END ERROR DETAILS ===');
+      // FIXED ERROR HANDLING - Handle interceptor errors
+      if (err.message === 'config is not defined') {
+        // This is an interceptor error, not a backend error
+        console.error('Interceptor configuration error - trying to continue...');
+        
+        // Try to get the original error
+        if (err.originalError?.response) {
+          const errorData = err.originalError.response.data;
+          if (errorData.error) {
+            Swal.fire({ 
+              title: "Error", 
+              text: errorData.error, 
+              icon: "error" 
+            });
+          }
+        } else {
+          Swal.fire({ 
+            title: "Login Error", 
+            text: "An unexpected error occurred. Please try again.", 
+            icon: "error" 
+          });
+        }
+        
+        setIsSubmitting(false);
+        return;
+      }
       
-      
-      // IMPORTANT: Check if error has response data first
+      // Your existing error handling for normal errors
       if (err.response && err.response.data) {
         // The backend returned an error response
         const errorData = err.response.data;
         
         if (errorData.error) {
-          // Use the error message from backend
           Swal.fire({ 
             title: "Error", 
             text: errorData.error, 
             icon: "error" 
           });
         } else {
-          // Fallback to status-based messages
           if (err.response.status === 404) {
             Swal.fire({ title: "Error", text: "User not found", icon: "error" });
           } else if (err.response.status === 401) {
@@ -149,24 +201,14 @@ const Login = () => {
             Swal.fire({ title: "Error", text: "An error occurred", icon: "error" });
           }
         }
-      }else {
-        if (err.response.status === 404) {
-            Swal.fire({ title: "Error", text: "User not found", icon: "error" });
-        } else if (err.response.status === 401) {
-            Swal.fire({ title: "Error", text: "Invalid credentials", icon: "error" });
-        } else if (err.response.status === 400) {
-            Swal.fire({ title: "Error", text: "Validation error", icon: "error" });
-        } else {
-            Swal.fire({ title: "Error", text: "An error occurred", icon: "error" });
-        }
-        // Something happened in setting up the request
-        // console.error('Request setup error:', err.message);
-        // Swal.fire({ 
-        //   title: "Error", 
-        //   text: "Internal server error", 
-        //   icon: "error" 
-        // });
+      } else {
+        Swal.fire({ 
+          title: "Error", 
+          text: "Network error. Please check your connection.", 
+          icon: "error" 
+        });
       }
+      
       setIsSubmitting(false);
     }
   };
@@ -289,6 +331,18 @@ const Login = () => {
               </Link>
             </span>
           </div>
+
+        {/* Add this button temporarily for testing */}
+{/* <button 
+  onClick={() => {
+    localStorage.clear();
+    console.log('🗑️ Cleared all localStorage');
+    window.location.reload();
+  }}
+  className="fixed bottom-4 right-4 px-4 py-2 bg-red-500 text-white rounded-lg shadow-lg z-50"
+>
+  Clear Storage & Refresh
+</button> */}
 
           {/* Helper Text */}
           <div className="mt-3 text-center">

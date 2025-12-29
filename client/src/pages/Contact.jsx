@@ -292,7 +292,7 @@ export const Contact = () => {
                     ) : (
                       <>
                         <FaPaperPlane className="mr-3" />
-                        Send Message to SalonHub Support
+                        Send Message
                       </>
                     )}
                   </motion.button>
