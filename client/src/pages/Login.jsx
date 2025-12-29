@@ -149,22 +149,23 @@ const Login = () => {
             Swal.fire({ title: "Error", text: "An error occurred", icon: "error" });
           }
         }
-      } else if (err.request) {
-        // The request was made but no response was received
-        console.error('No response received:', err.request);
-        Swal.fire({ 
-          title: "Network Error", 
-          text: "No response from server. Please check your connection.", 
-          icon: "error" 
-        });
-      } else {
+      }else {
+        if (err.response.status === 404) {
+            Swal.fire({ title: "Error", text: "User not found", icon: "error" });
+        } else if (err.response.status === 401) {
+            Swal.fire({ title: "Error", text: "Invalid credentials", icon: "error" });
+        } else if (err.response.status === 400) {
+            Swal.fire({ title: "Error", text: "Validation error", icon: "error" });
+        } else {
+            Swal.fire({ title: "Error", text: "An error occurred", icon: "error" });
+        }
         // Something happened in setting up the request
-        console.error('Request setup error:', err.message);
-        Swal.fire({ 
-          title: "Error", 
-          text: "Internal server error", 
-          icon: "error" 
-        });
+        // console.error('Request setup error:', err.message);
+        // Swal.fire({ 
+        //   title: "Error", 
+        //   text: "Internal server error", 
+        //   icon: "error" 
+        // });
       }
       setIsSubmitting(false);
     }

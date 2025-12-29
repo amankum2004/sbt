@@ -18,15 +18,17 @@ export const api = axios.create({
 // Request interceptor - for logging and modifying requests
 api.interceptors.request.use(
   (config) => {
-    // ✅ ADD USER HEADER (NON-BREAKING)
-    const user = localStorage.getItem("token");
-    if (user) {
-      config.headers["x-user"] = user;
+    // ✅ Get token from localStorage
+    const token = localStorage.getItem("token");
+    if (token) {
+      // Use standard Authorization header
+      config.headers["Authorization"] = `Bearer ${token}`;
+      console.log('✅ Token added to request headers');
     }
 
     // Log request in development
     if (import.meta.env.VITE_environment === 'development') {
-      // console.log(`🔄 API Call: ${config.method?.toUpperCase()} ${config.url}`, config.data || '')
+      console.log(`🔄 API Call: ${config.method?.toUpperCase()} ${config.url}`, config.data || '')
     }
 
     // Add timestamp to avoid caching issues
@@ -45,124 +47,91 @@ api.interceptors.request.use(
   }
 );
 
-
-// Response interceptor - for handling responses and errors globally
-// Response interceptor - for handling responses and errors globally
+// Response interceptor - PRESERVE ORIGINAL ERROR MESSAGES
 api.interceptors.response.use(
   (response) => {
     // Log successful response in development
     if (import.meta.env.VITE_environment === 'development') {
-      // console.log(`✅ API Success: ${response.config.method?.toUpperCase()} ${response.config.url}`, response.data)
+      console.log(`✅ API Success: ${response.config.method?.toUpperCase()} ${response.config.url}`, response.data)
     }
     return response
   },
   (error) => {
-    // Enhanced error handling
-    let errorMessage = 'An unexpected error occurred'
-    let errorDetails = {}
+    // Preserve the original error structure - DO NOT modify error messages
+    const originalError = error;
     
-    if (error.response) {
-      // Server responded with error status (4xx, 5xx)
-      const { status, data, config } = error.response
-      
-      // Check if this is a login request - preserve backend error message
-      const isLoginRequest = config?.url?.includes('/auth/login')
-      
-      errorDetails = {
-        status,
-        message: data?.message || data?.error || `Server error: ${status}`,
-        data: data
-      }
-      
-      switch (status) {
-        case 400:
-          // For login, use backend message, otherwise default
-          errorMessage = isLoginRequest 
-            ? (data?.error || data?.message || 'Bad request. Please check your input.')
-            : (data?.message || 'Bad request. Please check your input.')
-          break
-        case 401:
-          // For login, use backend message, otherwise default
-          errorMessage = isLoginRequest 
-            ? (data?.error || data?.message || 'Invalid credentials')
-            : 'Unauthorized. Please log in again.'
-          break
-        case 403:
-          errorMessage = data?.message || 'Access forbidden. You do not have permission.'
-          break
-        case 404:
-          // For login, use backend message, otherwise default
-          errorMessage = isLoginRequest 
-            ? (data?.error || data?.message || 'User not found')
-            : (data?.message || 'Requested resource not found.')
-          break
-        case 409:
-          errorMessage = data?.message || 'Conflict. Resource already exists.'
-          break
-        case 422:
-          errorMessage = data?.message || 'Validation error. Please check your input.'
-          break
-        case 429:
-          errorMessage = 'Too many requests. Please try again later.'
-          break
-        case 500:
-          errorMessage = data?.message || 'Internal server error. Please try again later.'
-          break
-        case 502:
-          errorMessage = 'Bad gateway. Server is temporarily unavailable.'
-          break
-        case 503:
-          errorMessage = 'Service unavailable. Please try again later.'
-          break
-        default:
-          errorMessage = data?.message || `Server error: ${status}`
-      }
-      
-    } else if (error.request) {
-      // Request was made but no response received
-      errorDetails = {
-        status: null,
-        message: 'No response received from server'
-      }
-      
-      if (error.code === 'ECONNABORTED') {
-        errorMessage = 'Request timeout. Please check your connection and try again.'
-        errorDetails.message = 'Request timeout'
-      } else if (error.message === 'Network Error') {
-        errorMessage = 'Network error. Please check your internet connection.'
-        errorDetails.message = 'Network error'
-      } else {
-        errorMessage = 'Unable to connect to server. Please try again.'
-      }
-      
-    } else {
-      // Something else happened while setting up the request
-      errorDetails = {
-        status: null,
-        message: error.message
-      }
-      errorMessage = error.message || 'Request configuration error'
-    }
-    
-    // Log error with details
-    console.error('🚨 API Error:', {
+    // Extract useful information for logging
+    const errorInfo = {
       url: error.config?.url,
       method: error.config?.method,
-      message: errorMessage,
-      details: errorDetails,
-      originalError: error
-    })
+      status: error.response?.status,
+      message: error.response?.data?.message || error.response?.data?.error || error.message,
+      data: error.response?.data
+    };
     
-    // Create enhanced error object
-    const enhancedError = new Error(errorMessage)
-    enhancedError.details = errorDetails
-    enhancedError.originalError = error
-    enhancedError.isAxiosError = true
-    enhancedError.status = errorDetails.status
+    // Log error for debugging
+    console.error('🚨 API Error:', errorInfo);
     
-    return Promise.reject(enhancedError)
+    // For development, log the full error
+    if (import.meta.env.VITE_environment === 'development') {
+      console.error('Full error details:', error);
+    }
+    
+    // Create enhanced error object BUT PRESERVE ORIGINAL MESSAGE
+    const enhancedError = new Error(errorInfo.message); // Use original backend message
+    enhancedError.details = {
+      status: error.response?.status,
+      data: error.response?.data,
+      url: error.config?.url,
+      method: error.config?.method
+    };
+    enhancedError.originalError = originalError;
+    enhancedError.isAxiosError = true;
+    enhancedError.status = error.response?.status;
+    enhancedError.response = error.response; // Preserve original response
+    
+    // IMPORTANT: Return the original error response structure for components to use
+    return Promise.reject(enhancedError);
   }
-)
+);
+
+// Alternative: SIMPLER VERSION - Just log errors, don't modify them
+export const apiSimple = axios.create({
+  baseURL: baseUrl,
+  withCredentials: true,
+  timeout: 30000,
+  headers: {
+    'Content-Type': 'application/json',
+  }
+});
+
+// Simple request interceptor (just adds auth token)
+apiSimple.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers["Authorization"] = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Simple response interceptor (just logs, doesn't modify)
+apiSimple.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    // Just log the error, don't modify it
+    console.error('API Error (simple):', {
+      url: error.config?.url,
+      status: error.response?.status,
+      message: error.response?.data?.message || error.message
+    });
+    return Promise.reject(error); // Return original error
+  }
+);
 
 // Utility functions for common API operations
 export const apiUtils = {
@@ -215,8 +184,44 @@ export const apiUtils = {
   // Helper to check if error is a client error
   isClientError(error) {
     return error.response && error.response.status >= 400 && error.response.status < 500
+  },
+  
+  // Helper to extract original backend error message
+  getOriginalErrorMessage(error) {
+    return error.response?.data?.message || 
+           error.response?.data?.error || 
+           error.message;
+  },
+  
+  // Helper to get original response data
+  getOriginalResponseData(error) {
+    return error.response?.data;
   }
 }
+
+// Export default as well for flexibility
+export default api
+
+// Option 3: Export a raw axios instance with NO interceptors
+export const rawApi = axios.create({
+  baseURL: baseUrl,
+  withCredentials: true,
+  timeout: 30000,
+  headers: {
+    'Content-Type': 'application/json',
+  }
+});
+
+// Manual function to add token to rawApi
+export const getAuthenticatedConfig = () => {
+  const token = localStorage.getItem("token");
+  return {
+    headers: {
+      'Authorization': token ? `Bearer ${token}` : '',
+      'Content-Type': 'application/json'
+    }
+  };
+};
 
 // import axios from 'axios'
 
@@ -230,7 +235,6 @@ export const apiUtils = {
 //   withCredentials: true  
 // })
 
-
-export default api
+// export default api
 
 

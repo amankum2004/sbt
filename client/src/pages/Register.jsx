@@ -62,6 +62,13 @@ export const Register = () => {
           icon: "success"
         });
       }
+      else if (res.status === 401) {
+        Swal.fire({
+          title: "Error",
+          text: "User already exists, please login",
+          icon: "error",
+        });
+      };
     } catch (err) {
       if (err.response?.status === 401) {
         Swal.fire({
@@ -113,8 +120,15 @@ export const Register = () => {
           icon: "success",
         });
         navigate("/login", { state: { email } });
+      }else if(res.status==400){
+        Swal.fire({
+          title: "Success",
+          text: "User already registered with this email",
+          icon: "success",
+        });
       }
     } catch (err) {
+      
       console.error("Registration Error:", err);
       Swal.fire({
         title: "Error",
