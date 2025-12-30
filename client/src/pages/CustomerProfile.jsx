@@ -38,7 +38,13 @@ export const CustomerProfile = () => {
     try {
       const response = await api.put(`/user/update-profile/${user.userId}`, profile);
       if (response.status === 200) {
-        alert("Profile updated successfully!");
+        // alert("Profile updated successfully!");
+        Swal.fire({
+                title: "Success",
+                text: "Profile updated successfully!",
+                icon: "success",
+                confirmButtonText: "OK",
+              });
         const updatedUser = {
           ...user,
           name: profile.username,
