@@ -205,21 +205,52 @@ const CustomerDashboard = () => {
       });
 
       if (result.isConfirmed) {
-        console.log('🚫 Cancelling appointment with ID:', appointmentId);
-        
+        // Show loading state
+        Swal.fire({
+          title: 'Cancelling...',
+          text: 'Please wait while we cancel your appointment',
+          allowOutsideClick: false,
+          didOpen: () => {
+            Swal.showLoading();
+          }
+        });
+
         const response = await api.put(`/appoint/appointments/${appointmentId}/cancel`);
         
-        console.log('✅ Cancel response:', response.data);
-
+        // Show success with email note
         Swal.fire({
           title: 'Cancelled!',
-          text: response.data.message || 'Your appointment has been cancelled.',
+          html: `
+            <div style="text-align: center;">
+              <p>${response.data.message || 'Your appointment has been cancelled.'}</p>
+              <p style="font-size: 14px; color: #666; margin-top: 10px;">
+                ✅ A confirmation email has been sent to your registered email address.
+              </p>
+            </div>
+          `,
           icon: 'success',
           confirmButtonText: 'OK'
         });
 
         fetchAppointments();
       }
+
+      // if (result.isConfirmed) {
+      //   console.log('🚫 Cancelling appointment with ID:', appointmentId);
+        
+      //   const response = await api.put(`/appoint/appointments/${appointmentId}/cancel`);
+        
+      //   console.log('✅ Cancel response:', response.data);
+
+      //   Swal.fire({
+      //     title: 'Cancelled!',
+      //     text: response.data.message || 'Your appointment has been cancelled.',
+      //     icon: 'success',
+      //     confirmButtonText: 'OK'
+      //   });
+
+      //   fetchAppointments();
+      // }
     } catch (error) {
       console.error('❌ Error cancelling appointment:', error);
       console.error('Error response:', error.response?.data);

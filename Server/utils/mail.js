@@ -4,6 +4,7 @@ const axios = require('axios');
 const BREVO_API_KEY = process.env.BREVO_API;
 const BREVO_SENDER_EMAIL = process.env.BREVO_EMAIL;
 const BREVO_SENDER_NAME = 'SalonHub';
+const Email = 'salonhub.business@gmail.com';
 
 // ==========================================
 // OTP Email Function (Brevo API)
@@ -555,6 +556,299 @@ const sendShopStatusNotification = async (customerEmail, customerName, shopName,
   }
 };
 
+// ==========================================
+// Appointment Cancellation Email
+// ==========================================
+// ==========================================
+// Appointment Cancellation Email
+// ==========================================
+const sendCancellationEmail = async (customerEmail, customerName, shopName, location, appointmentDetails) => {
+  console.log(`📧 Sending cancellation email to: ${customerEmail}`);
+  
+  // Format the appointment details
+  let appointmentDateHTML = '';
+  let servicesHTML = '';
+  
+  // Format showtimes
+  if (appointmentDetails.showtimes && appointmentDetails.showtimes.length > 0) {
+    appointmentDetails.showtimes.forEach((showtime, index) => {
+      const dateObj = new Date(showtime.date);
+      
+      // Format for Indian timezone (IST)
+      const dateStr = dateObj.toLocaleDateString('en-IN', { 
+        timeZone: 'Asia/Kolkata',
+        weekday: 'short',
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+      
+      const timeStr = dateObj.toLocaleTimeString('en-IN', {
+        timeZone: 'Asia/Kolkata',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      });
+      
+      appointmentDateHTML += `
+        <li style="margin-bottom: 10px; padding: 10px; background: #f8f9fa; border-radius: 5px;">
+          <strong>Appointment ${index + 1}:</strong><br>
+          📅 Date: ${dateStr}<br>
+          ⏰ Time: ${timeStr}
+          ${showtime.service ? `
+            <br>💇 Service: ${showtime.service.name}
+            <br>💰 Price: ₹${showtime.service.price}
+          ` : ''}
+        </li>
+      `;
+    });
+  }
+
+  // Format services if available separately
+  if (appointmentDetails.services && appointmentDetails.services.length > 0) {
+    servicesHTML = `
+      <div style="margin: 15px 0;">
+        <strong>Services Booked:</strong>
+        <ul style="margin: 10px 0; padding-left: 20px;">
+          ${appointmentDetails.services.map(service => `
+            <li>${service.name} - ₹${service.price}</li>
+          `).join('')}
+        </ul>
+      </div>
+    `;
+  }
+
+  const emailData = {
+    sender: {
+      name: BREVO_SENDER_NAME,
+      email: BREVO_SENDER_EMAIL
+    },
+    to: [
+      {
+        email: customerEmail,
+        name: customerName
+      }
+    ],
+    subject: 'Appointment Cancellation Confirmation - SalonHub',
+    htmlContent: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;">
+        <div style="text-align: center; background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%); padding: 20px; border-radius: 10px 10px 0 0; color: white;">
+          <h1 style="margin: 0;">❌ Appointment Cancelled</h1>
+          <p style="margin: 5px 0 0 0;">SalonHub Cancellation Confirmation</p>
+        </div>
+        
+        <div style="padding: 30px 20px;">
+          <h2 style="color: #333;">Hello ${customerName},</h2>
+          <p style="color: #666; line-height: 1.6;">
+            Your appointment has been successfully cancelled. Here are the details:
+          </p>
+          
+          <div style="background: #fef2f2; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #EF4444;">
+            <h3 style="color: #333; margin-top: 0;">📋 Cancelled Appointment Details</h3>
+            <p><strong>🏪 Shop Name:</strong> ${shopName}</p>
+            <p><strong>📅 Appointment Time(s):</strong></p>
+            <ul style="color: #666; padding-left: 0; list-style: none;">
+              ${appointmentDateHTML || '<li>No time slot information available</li>'}
+            </ul>
+            
+            ${appointmentDetails.totalAmount ? `
+              <p><strong>💰 Total Amount:</strong> ₹${appointmentDetails.totalAmount}</p>
+            ` : ''}
+            
+            ${servicesHTML}
+    
+            <p><strong>📅 Booked On:</strong> ${appointmentDetails.bookedAt ? 
+              new Date(appointmentDetails.bookedAt).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' }) : 
+              'N/A'}</p>
+          </div>
+          
+          <p style="color: #666; line-height: 1.6;">
+            We're sorry to see you go! If you'd like to book another appointment, we'd be happy to welcome you back.
+          </p>
+          
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${process.env.FRONTEND_URL || 'https://salonhub.co.in'}" 
+               style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 30px; text-decoration: none; border-radius: 25px; font-weight: bold; display: inline-block;">
+              📅 Book New Appointment
+            </a>
+          </div>
+          
+          <p style="color: #666; line-height: 1.6; font-size: 14px; text-align: center;">
+            Need help? Contact us at ${Email}
+          </p>
+        </div>
+        
+        <div style="background: #f8f9fa; padding: 15px; text-align: center; border-radius: 0 0 10px 10px; border-top: 1px solid #e0e0e0;">
+          <p style="margin: 0; color: #666; font-size: 12px;">
+            We hope to serve you again soon!
+          </p>
+        </div>
+      </div>
+    `,
+    textContent: `
+      Appointment Cancellation Confirmation
+      
+      Hello ${customerName},
+      
+      Your appointment has been successfully cancelled.
+      
+      Cancelled Appointment Details:
+      - Shop Name: ${shopName}
+      - Location: ${location}
+      - Reference ID: ${appointmentDetails.appointmentId || 'N/A'}
+      - Total Amount: ${appointmentDetails.totalAmount ? `₹${appointmentDetails.totalAmount}` : 'N/A'}
+      
+      Appointment Time(s):
+      ${appointmentDetails.showtimes?.map((st, i) => `
+        Appointment ${i + 1}:
+        Date: ${new Date(st.date).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' })}
+        Time: ${new Date(st.date).toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour12: true })}
+        ${st.service ? `Service: ${st.service.name} - ₹${st.service.price}` : ''}
+      `).join('')}
+      
+      We're sorry to see you go! If you'd like to book another appointment, 
+      visit: ${process.env.FRONTEND_URL || 'https://salonhub.co.in'}
+      
+      Need help? Contact us at ${Email}
+      
+      Thank you,
+      SalonHub Team
+    `
+  };
+
+  try {
+    const response = await axios.post(
+      'https://api.brevo.com/v3/smtp/email',
+      emailData,
+      {
+        headers: {
+          'api-key': BREVO_API_KEY,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        timeout: 10000
+      }
+    );
+    
+    console.log('✅ Cancellation email sent successfully:', customerEmail);
+    console.log('📨 Message ID:', response.data.messageId);
+    return response.data;
+  } catch (error) {
+    console.error('❌ Failed to send cancellation email:');
+    console.error('Status:', error.response?.status);
+    console.error('Error:', error.response?.data || error.message);
+    return null;
+  }
+};
+
+// Also add to shop owner notification function
+// ==========================================
+// Shop Owner Cancellation Notification
+// ==========================================
+const sendShopOwnerCancellationNotification = async (shopOwnerEmail, shopName, customerName, customerEmail, appointmentDetails) => {
+  console.log(`📧 Sending cancellation notification to shop owner: ${shopOwnerEmail}`);
+  
+  let appointmentDateHTML = '';
+  
+  if (appointmentDetails.showtimes && appointmentDetails.showtimes.length > 0) {
+    appointmentDetails.showtimes.forEach(showtime => {
+      const dateObj = new Date(showtime.date);
+      
+      const dateStr = dateObj.toLocaleDateString('en-IN', { 
+        timeZone: 'Asia/Kolkata',
+        weekday: 'short',
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+      
+      const timeStr = dateObj.toLocaleTimeString('en-IN', {
+        timeZone: 'Asia/Kolkata',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      });
+      
+      appointmentDateHTML += `
+        <li style="margin-bottom: 8px;">
+          📅 Date: ${dateStr}<br>
+          ⏰ Time: ${timeStr}
+        </li>
+      `;
+    });
+  }
+
+  const emailData = {
+    sender: {
+      name: BREVO_SENDER_NAME,
+      email: BREVO_SENDER_EMAIL
+    },
+    to: [
+      {
+        email: shopOwnerEmail,
+        name: `${shopName} Owner`
+      }
+    ],
+    subject: `❌ Appointment Cancelled - ${customerName}`,
+    htmlContent: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background: #EF4444; padding: 20px; text-align: center; color: white;">
+          <h1 style="margin: 0;">Appointment Cancellation</h1>
+          <p style="margin: 5px 0 0 0;">Customer: ${customerName}</p>
+        </div>
+        
+        <div style="padding: 30px; background: #f9fafb;">
+          <h2 style="color: #374151;">Appointment Cancelled</h2>
+          
+          <div style="background: white; padding: 20px; border-radius: 8px; border-left: 4px solid #EF4444; margin: 20px 0;">
+            <h3 style="color: #374151; margin-top: 0;">Cancelled Appointment Details</h3>
+            <p><strong>Customer:</strong> ${customerName}</p>
+            <p><strong>Email:</strong> ${customerEmail}</p>
+            <p><strong>Appointment Time:</strong></p>
+            <ul>
+              ${appointmentDateHTML || '<li>No time slot available</li>'}
+            </ul>
+            <p><strong>Appointment ID:</strong> ${appointmentDetails.appointmentId || 'N/A'}</p>
+            <p><strong>Cancelled At:</strong> ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}</p>
+          </div>
+          
+          <div style="background: #fef3c7; padding: 15px; border-radius: 8px; margin: 20px 0;">
+            <p style="margin: 0; color: #92400e;">
+              ⚠️ <strong>Note:</strong> The time slot has been marked as available for new bookings.
+            </p>
+          </div>
+        </div>
+        
+        <div style="background: #374151; padding: 15px; text-align: center; color: white; font-size: 12px;">
+          <p style="margin: 0;">
+            This is an automated notification from SalonHub
+          </p>
+        </div>
+      </div>
+    `
+  };
+
+  try {
+    const response = await axios.post(
+      'https://api.brevo.com/v3/smtp/email',
+      emailData,
+      {
+        headers: {
+          'api-key': BREVO_API_KEY,
+          'Content-Type': 'application/json'
+        },
+        timeout: 10000
+      }
+    );
+    
+    console.log(`✅ Shop owner notification sent to: ${shopOwnerEmail}`);
+    return response.data;
+  } catch (error) {
+    console.error('❌ Failed to send shop owner notification:', error.response?.data || error.message);
+    return null;
+  }
+};
+
 
 // Verify API key on startup
 verifyBrevoApiKey();
@@ -565,6 +859,8 @@ module.exports = {
   sendConfirmationEmail,
   sendDonationConfirmationEmail,
   sendShopStatusNotification, // Add this
+  sendCancellationEmail, // Add this
+  sendShopOwnerCancellationNotification, // Add this
   testEmailService,
   verifyBrevoApiKey
 };

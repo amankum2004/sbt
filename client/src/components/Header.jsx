@@ -197,6 +197,7 @@ export const Header = () => {
                   <NavLink to="/barberDashboard" label="Dashboard" icon={LayoutDashboard} onClick={toggleRightSidebar} />
                   <NavLink to="/timeSlot-create" label="Create slots" icon={Calendar} onClick={toggleRightSidebar} />
                   <NavLink to="/customerDashboard" label="My bookings" icon={ClipboardList} onClick={toggleRightSidebar} />
+                  <NavLink to="/poster" label="Poster" icon={Image} onClick={toggleRightSidebar} />
                   {/* <NavLink to="/registershop" label="Register your Salon" icon={Scissors} onClick={toggleRightSidebar} /> */}
                 </>
               ) : user.usertype === "admin" ? (
@@ -205,6 +206,7 @@ export const Header = () => {
                   <NavLink to="/admin" label="Admin Dashboard" icon={LayoutDashboard} onClick={toggleRightSidebar} />
                   <NavLink to="/registershop" label="Register Salon" icon={Scissors} onClick={toggleRightSidebar} />
                   <NavLink to="/customerDashboard" label="My bookings" icon={ClipboardList} onClick={toggleRightSidebar} />
+                  <NavLink to="/poster" label="Poster" icon={Image} onClick={toggleRightSidebar} />
                 </>
               ) : (
                 <>
@@ -215,7 +217,6 @@ export const Header = () => {
               )}
               <NavLink to="/learning" label="Booking Guide/Help" icon={BookOpen} onClick={toggleRightSidebar} />
               <NavLink to="/donate" label="Donate for Environment" icon={HeartHandshake} onClick={toggleRightSidebar} />
-              <NavLink to="/poster" label="Poster" icon={Image} onClick={toggleRightSidebar} />
               {/* <NavLink to="/poster" className="sidebar-link">🖼 Poster</NavLink> */}
               <NavLink
                 to="/login"

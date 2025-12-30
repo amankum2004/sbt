@@ -167,7 +167,7 @@ const ReviewForm = ({ shopId, shopName, appointmentId, onReviewSubmitted }) => {
       </div>
       
       <p className="text-gray-600 mb-6">
-        How was your experience during this specific visit?
+        How was your experience ?
       </p>
 
       <form onSubmit={handleSubmit}>

@@ -5,8 +5,8 @@ const Appointment = require('../models/appointment-model');
 const customerController = require('../controllers/customerAppointmentController');
 const barberController = require('../controllers/barberAppointmentController');
 
-router.route('/appointment').post(bookAppointment)
 
+router.route('/appointment').post(bookAppointment)
 // @desc    Get customer appointments
 // @route   GET /api/customer/appointments/:customerEmail
 // @access  Private

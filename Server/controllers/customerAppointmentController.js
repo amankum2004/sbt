@@ -269,12 +269,14 @@ exports.cancelAppointment = async (req, res) => {
       });
     }
 
-    // Find the appointment with timeSlot population
+    // Find the appointment with multiple population
     const appointment = await Appointment.findById(appointmentId)
       .populate({
         path: 'timeSlot',
         select: 'date showtimes'
-      });
+      })
+      .populate('userId', 'name email') // Populate user for customer name
+      .populate('shopId', 'name address location shopOwnerEmail ownerEmail'); // Populate shop directly
 
     if (!appointment) {
       console.error('Error: Appointment not found with ID:', appointmentId);
@@ -314,17 +316,6 @@ exports.cancelAppointment = async (req, res) => {
       console.log('Appointment time:', appointmentDateTime);
       console.log('Time difference (hours):', (appointmentDateTime - now) / (1000 * 60 * 60));
       console.log('Is appointment in past?', appointmentDateTime < now);
-      
-      // Allow cancellation up to 1 hour before appointment
-      // const timeDifference = appointmentDateTime - now;
-      // const oneHourInMs = 60 * 60 * 1000;
-      
-      // if (timeDifference < oneHourInMs) {
-      //   return res.status(400).json({ 
-      //     success: false,
-      //     message: `Cannot cancel appointment less than 1 hour before scheduled time`
-      //   });
-      // }
       
       // Optional: Also check if it's in the past (for safety)
       if (appointmentDateTime < now) {
@@ -366,6 +357,68 @@ exports.cancelAppointment = async (req, res) => {
     await appointment.save();
     console.log('Appointment saved with cancelled status');
 
+    // Extract data for email
+    const customerEmail = appointment.customerEmail;
+    const customerName = appointment.userId?.name || appointment.customerEmail.split('@')[0];
+    const shopName = appointment.shopId?.name || 'Salon'; // Get shop name from populated shopId
+    const shopLocation = appointment.shopId?.address || 
+                        appointment.shopId?.location || 
+                        'Unknown Location';
+    const shopOwnerEmail = appointment.shopId?.shopOwnerEmail || 
+                          appointment.shopId?.ownerEmail;
+    
+    console.log('Email data:', {
+      customerEmail,
+      customerName,
+      shopName,
+      shopLocation,
+      shopOwnerEmail,
+      showtimes: appointment.showtimes,
+      totalAmount: appointment.totalAmount,
+      services: appointment.showtimes?.[0]?.service
+    });
+
+    // Send cancellation emails (don't await - send in background)
+    try {
+      // Import email functions
+      const { 
+        sendCancellationEmail, 
+        sendShopOwnerCancellationNotification 
+      } = require('../utils/mail'); 
+
+      // Prepare appointment details for email
+      const appointmentDetails = {
+        appointmentId: appointment._id,
+        showtimes: appointment.showtimes,
+        totalAmount: appointment.totalAmount,
+        services: appointment.showtimes?.map(st => st.service) || [],
+        bookedAt: appointment.bookedAt
+      };
+
+      // Send email to customer
+      sendCancellationEmail(
+        customerEmail,
+        customerName,
+        shopName,
+        shopLocation,
+        appointmentDetails
+      );
+
+      // Optional: Send notification to shop owner if email exists
+      // if (shopOwnerEmail) {
+      //   sendShopOwnerCancellationNotification(
+      //     shopOwnerEmail,
+      //     shopName,
+      //     customerName,
+      //     customerEmail,
+      //     appointmentDetails
+      //   );
+      // }
+    } catch (emailError) {
+      console.error('Failed to send cancellation emails:', emailError);
+      // Don't fail the whole cancellation if email fails
+    }
+
     res.status(200).json({
       success: true,
       message: 'Appointment cancelled successfully',
@@ -373,7 +426,9 @@ exports.cancelAppointment = async (req, res) => {
         _id: appointment._id,
         status: appointment.status,
         customerEmail: appointment.customerEmail,
-        shopId: appointment.shopId
+        shopId: appointment.shopId,
+        shopName: shopName,
+        customerName: customerName
       }
     });
 
