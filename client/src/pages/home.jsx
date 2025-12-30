@@ -40,7 +40,7 @@ export const Home = () => {
                 >
                     {/* Hero Section with Primary Keywords */}
                     <section className="bg-white p-10 rounded-2xl shadow-xl text-center mb-8 mt-6">
-                        <h1 className="text-3xl md:text-4xl font-bold text-purple-800 mb-4">
+                        <h4 className="text-3xl md:text-4xl font-bold text-purple-800 mb-4">
                             Welcome
                             {user ? (
                                 <span className="text-pink-600 italic font-bold mx-2">{user.name}</span>
@@ -48,7 +48,7 @@ export const Home = () => {
                                 " "
                             )}
                             to SalonHub - Book Salon Appointment Online 
-                        </h1>
+                        </h4>
                         <p className="text-gray-600 text-lg mb-6">
                             Discover the easiest way to <strong>book salon appointments online</strong>! 
                             Find the best <strong>beauty salons near you</strong>, browse services, and 

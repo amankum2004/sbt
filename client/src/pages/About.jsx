@@ -36,9 +36,9 @@ export const About = () => {
           className="max-w-4xl mx-auto bg-white p-10 rounded-2xl shadow-xl"
         >
           {/* Updated to SalonHub for consistency */}
-          <h1 className="text-4xl font-bold text-center text-purple-800 mb-6">
-            About SalonHub - India's Leading Salon Booking Platform
-          </h1>
+          <h4 className="text-4xl font-bold text-center text-purple-800 mb-6">
+            SalonHub - India's Leading Salon Booking Platform
+          </h4>
           <p className="text-lg text-gray-600 leading-relaxed text-center mb-10">
             At <strong>SalonHub</strong>, we believe in making <strong>beauty and grooming services accessible</strong> to everyone in India. 
             Our platform connects you with <strong>top-rated salons and spas</strong> across the country, making <strong>online salon booking</strong> simple, fast, and stress-free.

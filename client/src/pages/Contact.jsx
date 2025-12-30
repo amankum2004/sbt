@@ -103,9 +103,9 @@ export const Contact = () => {
         >
           {/* Header Section with SEO-rich content */}
           <div className="text-center mb-12">
-            <h5 className="text-4xl font-bold text-purple-800 mt-8 mb-4">
+            <h4 className="text-4xl font-bold text-purple-800 mt-8 mb-4">
               Contact SalonHub - Customer Support & Salon Booking Help
-            </h5>
+            </h4>
             <p className="text-lg text-gray-600 max-w-3xl mx-auto mb-6">
               <strong>SalonHub</strong> - India's leading online salon booking platform. 
               Whether you need help with <strong>salon bookings</strong>, have questions about 

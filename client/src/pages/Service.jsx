@@ -144,9 +144,9 @@ export const Service = () => {
         >
           {/* Hero Section */}
           <div className="text-center mb-14">
-            <h1 className="text-4xl font-bold text-purple-800 mb-3 mt-4">
+            <h4 className="text-4xl font-bold text-purple-800 mb-3 mt-4">
               Professional Salon Services in India
-            </h1>
+            </h4>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               Discover the best salon and beauty services at SalonHub. From haircuts to spa treatments, 
               we offer premium beauty services with expert professionals. Book your appointment online today!
