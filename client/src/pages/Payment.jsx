@@ -129,28 +129,28 @@ export const Payment = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mt-12">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
         <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Confirm Your Booking</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Confirm Your Booking</h2>
           
           <div className="space-y-4 mb-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">Customer Details</h3>
+                <h3 className="text-lg font-semibold text-gray-600">Customer Details</h3>
                 <p><strong>Name:</strong> {customerName}</p>
                 <p><strong>Email:</strong> {customerEmail}</p>
                 <p><strong>Phone:</strong> {user?.phone || 'N/A'}</p>
               </div>
               
               <div>
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">Salon Details</h3>
+                <h3 className="text-lg font-semibold text-gray-600">Salon Details</h3>
                 <p><strong>Salon name:</strong> {shopName}</p>
                 <p><strong>Location:</strong> {shopLocation}</p>
               </div>
             </div>
 
             <div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-2">Selected Time Slots</h3>
+              <h3 className="text-lg font-semibold text-gray-600">Selected Time Slots</h3>
               {selectedShowtimes?.map((slot, index) => (
                 <div key={index} className="bg-gray-50 p-3 rounded mb-2">
                   <p><strong>Date:</strong> {formatDate(slot.showtimeDate)}</p>
