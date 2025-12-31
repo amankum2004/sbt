@@ -195,7 +195,7 @@ export const Register = () => {
             <input
               type="email"
               name="email"
-              placeholder="Enter your email"
+              placeholder="john@gmail.com"
               required
               autoComplete="off"
               value={email}

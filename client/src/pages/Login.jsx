@@ -278,7 +278,7 @@ const Login = () => {
               type={loginMethod === 'email' ? 'email' : 'tel'}
               className="block w-full pl-10 h-10 border border-transparent rounded-lg bg-white focus:outline-none focus:border-blue-600"
               name={loginMethod}
-              placeholder={loginMethod === 'email' ? 'Enter your email' : 'Enter your phone number'}
+              placeholder={loginMethod === 'email' ? 'john@gmail.com' : '0123456789'}
               required
               disabled={isSubmitting}
               value={formData[loginMethod]}
