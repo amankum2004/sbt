@@ -102,18 +102,10 @@ export const RegisterShop = () => {
           title: "Full Precision Location Captured!",
           html: `
             <div class="text-left">
-              <p><strong>Full Precision Coordinates (Stored as String):</strong></p>
               <div class="bg-gray-100 p-2 rounded mt-2 space-y-1">
                 <p class="font-mono text-xs break-all"><strong>Lat:</strong> ${preciseCoords.latString}</p>
                 <p class="font-mono text-xs break-all"><strong>Lng:</strong> ${preciseCoords.lngString}</p>
               </div>
-              <p class="mt-3"><strong>Accuracy:</strong> ${Math.round(accuracy)} meters</p>
-              ${
-                accuracy > 10
-                  ? '<p class="text-yellow-600 mt-1 text-sm">⚠️ Move to open area for better precision.</p>'
-                  : '<p class="text-green-600 mt-1 text-sm">✓ Excellent precision achieved</p>'
-              }
-              <p class="text-blue-600 text-sm mt-2">✅ Full precision coordinates will be stored as strings in database.</p>
             </div>
           `,
           icon: "success",
@@ -160,8 +152,9 @@ export const RegisterShop = () => {
   }, []);
 
   useEffect(() => {
-    const tokenString = localStorage.getItem("token");
-    if (tokenString) setToken(JSON.parse(tokenString));
+    const tokenString = localStorage.getItem("jwt_token");
+    if (tokenString) setToken(tokenString);
+    // if (tokenString) setToken(JSON.parse(tokenString));
   }, []);
 
   const isAdmin = user?.usertype === "admin";
@@ -224,7 +217,7 @@ export const RegisterShop = () => {
     if (!formData.latString || !formData.lngString) {
       const result = await Swal.fire({
         title: "Location Not Captured",
-        text: "Full precision location is required for accurate positioning. Capture location again?",
+        text: "Location is required for accurate positioning. Capture location again?",
         icon: "warning",
         showCancelButton: true,
         confirmButtonText: "Yes, Capture Location",
@@ -262,11 +255,6 @@ export const RegisterShop = () => {
           html: `
             <div class="text-left">
               <p>Shop registered successfully!</p>
-              <p class="text-sm text-green-600 mt-2">Full precision coordinates stored:</p>
-              <div class="bg-gray-100 p-2 rounded mt-1">
-                <p class="font-mono text-xs break-all">Lat: ${formData.latString}</p>
-                <p class="font-mono text-xs break-all">Lng: ${formData.lngString}</p>
-              </div>
             </div>
           `,
           icon: "success" 
@@ -293,10 +281,10 @@ export const RegisterShop = () => {
             
           {/* Location Capture */}
           <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-5 sm:p-6">
-            <h3 className="text-lg font-semibold text-blue-800 mb-3">Full Precision Shop Location</h3>
-            <p className="text-sm text-blue-600 mb-4">
+            <h3 className="text-lg font-semibold text-blue-800 mb-3">Shop Location</h3>
+            {/* <p className="text-sm text-blue-600 mb-4">
               Coordinates will be stored as strings to preserve maximum precision (up to 15+ decimal places).
-            </p>
+            </p> */}
             <button
               type="button"
               onClick={captureLocation}
@@ -308,32 +296,32 @@ export const RegisterShop = () => {
               }`}
             >
               {isCapturingLocation
-                ? "Capturing Full Precision Location..."
+                ? "Capturing Location..."
                 : isLocationCaptured
                 ? "Recapture Location"
-                : "Capture Full Precision Location"}
+                : "Capture Location"}
             </button>
             {isLocationCaptured && (
               <div className="bg-white border border-blue-100 rounded-lg p-4 text-sm text-gray-700 space-y-3">
                 <div>
-                  <strong className="text-green-600">Full Precision (Stored as String):</strong>
+                  {/* <strong className="text-green-600">Full Precision (Stored as String):</strong> */}
                   <div className="font-mono text-xs bg-gray-100 p-2 rounded mt-1 break-all space-y-1">
                     <div><strong>Lat:</strong> {formData.latString}</div>
                     <div><strong>Lng:</strong> {formData.lngString}</div>
                   </div>
                 </div>
-                <div>
+                {/* <div>
                   <strong>Approximate (Number):</strong>
                   <div className="text-xs text-gray-500 mt-1">
                     Lat: {formData.lat}, Lng: {formData.lng}
                   </div>
-                </div>
-                <div>
+                </div> */}
+                {/* <div>
                   <strong>Accuracy:</strong> {Math.round(locationAccuracy)} meters{" "}
                   {locationAccuracy > 10 && (
                     <span className="text-yellow-600 text-xs">(Better precision recommended)</span>
                   )}
-                </div>
+                </div> */}
               </div>
             )}
           </div>
@@ -444,7 +432,7 @@ export const RegisterShop = () => {
                 <input
                   type="password"
                   name="password"
-                  placeholder="Password"
+                  placeholder="Login Password"
                   value={formData.password}
                   onChange={handleInput}
                   className="w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-purple-200"
@@ -507,8 +495,8 @@ export const RegisterShop = () => {
           >
             {isLocationCaptured
               ? isAdmin
-                ? "Register Shop with Full Precision Location"
-                : "Complete Registration with Full Precision Location"
+                ? "Register Shop"
+                : "Complete Registration"
               : "Capture Full Precision Location First"}
           </button>
         </form>
