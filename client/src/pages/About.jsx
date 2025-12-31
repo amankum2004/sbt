@@ -71,15 +71,15 @@ export const About = () => {
                 to ensure <strong>quality service and professional standards</strong> for our customers.
               </li>
               <li>
-                <strong>Real-Time Availability:</strong> See <strong>available time slots instantly</strong> 
+                <strong>Real-Time Availability:</strong> See <strong>available time slots instantly </strong> 
                 and book appointments that fit your schedule perfectly.
               </li>
               <li>
-                <strong>Genuine Customer Reviews:</strong> Make informed decisions with <strong>authentic reviews and ratings</strong> 
+                <strong>Genuine Customer Reviews:</strong> Make informed decisions with <strong>authentic reviews and ratings </strong> 
                 from real customers who've experienced the services.
               </li>
               <li>
-                <strong>Secure Online Payments:</strong> Multiple payment options with <strong>complete security and transparency</strong> 
+                <strong>Secure Online Payments:</strong> Multiple payment options with <strong>complete security and transparency </strong> 
                 for all your transactions.
               </li>
               <li>
@@ -146,7 +146,7 @@ export const About = () => {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a href="/" className="px-6 py-3 bg-white text-purple-600 font-semibold rounded-lg hover:shadow-lg transition-all">
-                Book Your First Appointment
+                Book Your Appointment
               </a>
               <a href="/contact" className="px-6 py-3 border-2 border-white text-white font-semibold rounded-lg hover:bg-white hover:text-purple-600 transition-all">
                 Contact Us

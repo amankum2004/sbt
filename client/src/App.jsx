@@ -16,6 +16,8 @@ import Donate from "./pages/Donate";
 import LearningGuide from "./pages/learning-guide";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import Poster from "./pages/Poster";
+import TermsOfService from "./pages/TermsofService";
+import CancellationPolicy from "./pages/CancellationPolicy";
 
 // Protected components
 import { UpdatePassword } from "./pages/UpdatePassword"
@@ -69,6 +71,8 @@ function AppRoutes()  {
       <Route path="/donate" element={<Donate />}/>
       <Route path="/learning" element={<LearningGuide />}/>
       <Route path="/privacy-policy" element={<PrivacyPolicy/>}/>
+      <Route path="/terms-of-service" element={<TermsOfService/>}/>
+      <Route path="/cancellation-policy" element={<CancellationPolicy/>}/>
       <Route path="/login" element={user ? <Navigate to="/" replace /> : <Login />} />
       <Route path="/updatePassword" element={<UpdatePassword />}/>
       <Route path="/poster" element={<Poster />} />

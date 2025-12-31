@@ -172,7 +172,7 @@ export const Service = () => {
             <h2 className="text-3xl font-bold text-center text-gray-800 mb-8">
               Explore Our Beauty Services
             </h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+            {/* <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
               {[
                 { name: "Hair Services", count: "6+ services" },
                 { name: "Skin & Facial", count: "3+ services" },
@@ -184,7 +184,7 @@ export const Service = () => {
                   <p className="text-sm text-gray-500">{category.count}</p>
                 </div>
               ))}
-            </div>
+            </div> */}
           </div>
 
           {/* Main Services Grid */}

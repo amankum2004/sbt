@@ -256,6 +256,7 @@ export const Footer = () => {
                 >
                   Cancellation Policy
                 </a>
+                </div>
                 {/* <a 
                   href="/sitemap.xml" 
                   className="text-pink-200 hover:text-white text-sm transition-colors"
@@ -263,7 +264,6 @@ export const Footer = () => {
                 >
                   Sitemap
                 </a> */}
-              </div>
             </div>
             {/* SEO Keywords Footer - Hidden but crawlable */}
             <div className="text-center mt-3">

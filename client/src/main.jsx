@@ -11,6 +11,7 @@ if (import.meta.env.MODE !== 'development') {
   console.log = () => {};
   console.error = () => {};
   console.warn = () => {};
+  console.debug = () => {};
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(

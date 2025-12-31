@@ -64,7 +64,7 @@ export const Home = () => {
                     </section>
 
                     {/* Services Section with Keywords */}
-                    <section className="mb-16">
+                    {/* <section className="mb-16">
                         <h2 className="text-2xl font-semibold text-center text-gray-800 mb-10">
                             Popular Salon Services in India
                         </h2>
@@ -87,7 +87,7 @@ export const Home = () => {
                                 </motion.div>
                             ))}
                         </div>
-                    </section>
+                    </section> */}
 
                     {/* Why Choose Us - Optimized for SEO */}
                     <section className="mb-16">
@@ -99,7 +99,7 @@ export const Home = () => {
                                 ["Easy Online Booking", "Book salon appointments 24/7 from your mobile or desktop. Instant confirmation for all beauty services."],
                                 ["Best Salons Near You", "Find top-rated beauty salons and spas in your city with genuine customer reviews and ratings."],
                                 ["Real-Time Slot Availability", "See available time slots in real-time and choose what fits your schedule best for hair and beauty services."],
-                                ["Secure Online Payments", "Pay securely online with multiple payment options and focus on your beauty experience."],
+                                // ["Secure Online Payments", "Pay securely online with multiple payment options and focus on your beauty experience."],
                                 ["Verified Customer Reviews", "Make informed decisions with authentic reviews and ratings from other customers."],
                                 ["Wide Service Selection", "From basic haircuts to bridal packages, find all beauty services in one platform."]
                             ].map(([title, desc]) => (
@@ -118,7 +118,7 @@ export const Home = () => {
                     {/* How It Works - Optimized */}
                     <section className="mb-16">
                         <h2 className="text-2xl font-semibold text-center text-gray-800 mb-10">
-                            How to Book Salon Services Online
+                            How to Book Salon Online
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                             {[
@@ -143,8 +143,8 @@ export const Home = () => {
                     </section>
 
                     {/* Cities Section for Local SEO */}
-                    <section className="mb-16 bg-white p-8 rounded-2xl shadow-md">
-                        <h2 className="text-2xl font-semibold text-center text-gray-800 mb-8">
+                    <section className="mb-6 bg-white p-8 rounded-2xl shadow-md">
+                        <h2 className="text-2xl font-semibold text-center text-gray-800 mb-4">
                             Book Salon Services in Major Indian Cities
                         </h2>
                         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 text-center">
@@ -155,14 +155,14 @@ export const Home = () => {
                                 </div>
                             ))}
                         </div>
-                        <p className="text-center text-gray-600 mt-6">
+                        <p className="text-center text-gray-600 mt-3">
                             And many more cities across India! Find local beauty salons and spas in your area.
                         </p>
                     </section>
 
                     {/* FAQ Section for SEO */}
                     <section className="bg-white p-8 rounded-2xl shadow-md">
-                        <h2 className="text-2xl font-semibold text-center text-gray-800 mb-8">
+                        <h2 className="text-2xl font-semibold text-center text-gray-800 mb-4">
                             Frequently Asked Questions - Salon Booking
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -181,7 +181,7 @@ export const Home = () => {
                     </section>
 
                     {/* Final CTA */}
-                    <div className="text-center mt-12 bg-gradient-to-r from-purple-600 to-pink-600 p-8 rounded-2xl text-white">
+                    <div className="text-center mt-6 bg-gradient-to-r from-purple-600 to-pink-600 p-8 rounded-2xl text-white">
                         <h2 className="text-2xl font-bold mb-4">Ready to Book Your Salon Appointment?</h2>
                         <p className="text-lg mb-6 opacity-90">
                             Join thousands of satisfied customers who book their beauty services through SalonHub
@@ -191,9 +191,9 @@ export const Home = () => {
                                 Book Your Favorite Salon Now!
                             </button>
                         </a>
-                        <p className="text-sm mt-4 opacity-80">
-                            Easy booking • Best salons • Real-time availability • Secure payments
-                        </p>
+                        {/* <p className="text-sm mt-4 opacity-80">
+                            • Easy booking • Best salons • Real-time availability • Secure payments
+                        </p> */}
                     </div>
                 </motion.div>
             </main>
