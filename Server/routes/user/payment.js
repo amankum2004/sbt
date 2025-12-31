@@ -16,19 +16,35 @@ router.post("/order", async (req, res) => {
             key_secret: process.env.RAZORPAY_SECRET,
         });
 
+        // Validate environment variables
+        if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_SECRET) {
+            console.error('Razorpay credentials not configured');
+            return res.status(500).json({ 
+                error: "Payment gateway configuration error",
+                details: "Missing Razorpay credentials"
+            });
+        }
+
         const { amount, currency, receipt } = req.body;
 
         if (!amount || !currency || !receipt) {
             return res.status(400).json({ error: "Missing required fields" });
         }
 
-        const options = { amount, currency, receipt };
+        const options = { 
+            amount: Math.round(amount), // Ensure integer
+            currency, 
+            receipt,
+            payment_capture: 1 // Auto capture payment
+        };
+        console.log('Creating order with options:', options);
 
         const order = await razorpay.orders.create(options);
 
         if (!order) {
             return res.status(500).json({ error: "Order creation failed" });
         }
+        console.log('Order created:', order.id);
 
         res.status(200).json(order);
     } catch (err) {

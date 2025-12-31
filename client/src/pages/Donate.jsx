@@ -14,6 +14,42 @@ const Donate = () => {
     message: ''
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [razorpayLoaded, setRazorpayLoaded] = useState(false);
+
+  // Load Razorpay script dynamically
+  useEffect(() => {
+    const loadRazorpayScript = () => {
+      return new Promise((resolve, reject) => {
+        // Check if script is already loaded
+        if (window.Razorpay) {
+          setRazorpayLoaded(true);
+          resolve();
+          return;
+        }
+
+        const script = document.createElement('script');
+        script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+        script.async = true;
+        script.onload = () => {
+          setRazorpayLoaded(true);
+          resolve();
+        };
+        script.onerror = () => {
+          reject(new Error('Failed to load Razorpay script'));
+        };
+        document.head.appendChild(script);
+      });
+    };
+
+    loadRazorpayScript().catch((error) => {
+      console.error('Failed to load Razorpay:', error);
+      Swal.fire({
+        title: "Payment Error",
+        text: "Payment gateway failed to load. Please refresh the page.",
+        icon: "error"
+      });
+    });
+  }, []);
 
   // Auto-fill user data if logged in
   useEffect(() => {
@@ -57,10 +93,20 @@ const Donate = () => {
   const handleDonation = async (e) => {
     e.preventDefault();
     
+    // Check if Razorpay is loaded
+    if (!razorpayLoaded) {
+      Swal.fire({
+        title: "Loading...",
+        text: "Payment gateway is loading. Please wait a moment.",
+        icon: "info"
+      });
+      return;
+    }
+    
     if (!form.amount || form.amount <= 0) {
       Swal.fire({
         title: "Invalid Amount",
-        text: "Please enter a valid donation amount",
+        text: "Please enter a valid donation amount (minimum ₹1)",
         icon: "warning"
       });
       return;
@@ -72,17 +118,31 @@ const Donate = () => {
       // Create Razorpay order
       const order = await createRazorpayOrder(form.amount);
       
+      // IMPORTANT: Get Razorpay key from environment
+      const razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID;
+      
+      if (!razorpayKey) {
+        throw new Error('Razorpay key is not configured');
+      }
+
+      console.log('Using Razorpay Key:', razorpayKey.substring(0, 10) + '...');
+      
       const options = {
-        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
-        amount: form.amount * 100,
-        currency: "INR",
+        key: razorpayKey, // Make sure this is set
+        amount: order.amount,
+        currency: order.currency || "INR",
         name: "Environmental Donation",
         description: "Donation for environmental initiatives",
         image: `${window.location.origin}/sbt%20logo.svg`,
         order_id: order.id,
         handler: async function (response) {
           try {
-            // console.log("Razorpay Response: ", response);
+            console.log("Razorpay Response: ", response);
+            
+            // Validate all required fields
+            if (!response.razorpay_payment_id || !response.razorpay_order_id || !response.razorpay_signature) {
+              throw new Error('Incomplete payment response');
+            }
             
             const paymentData = {
               payment_id: response.razorpay_payment_id,
@@ -96,10 +156,10 @@ const Donate = () => {
               }
             };
 
-            // Validate payment
+            // Validate payment with backend
             const validationResult = await validatePayment(paymentData);
             
-            if (validationResult.message === 'Payment successful and email sent!') {
+            if (validationResult.success) {
               // Save donation to database
               await api.post("/donation/donate", {
                 name: form.name,
@@ -112,20 +172,33 @@ const Donate = () => {
 
               Swal.fire({
                 title: "Thank You! 🌱",
-                text: "Your donation has been received successfully!",
+                html: `
+                  <div style="text-align: center;">
+                    <p style="font-size: 18px; margin-bottom: 10px;">
+                      Your donation of <strong>₹${form.amount}</strong> has been received successfully!
+                    </p>
+                    <p style="color: #666; font-size: 14px;">
+                      A confirmation email has been sent to ${form.email}
+                    </p>
+                  </div>
+                `,
                 icon: "success",
-                confirmButtonText: "Continue"
+                confirmButtonText: "Continue",
+                confirmButtonColor: "#10B981"
               }).then(() => {
                 setForm({ name: '', email: '', amount: '', message: '' });
                 navigate('/');
               });
+            } else {
+              throw new Error(validationResult.error || 'Payment validation failed');
             }
           } catch (error) {
             console.error('Payment processing error:', error);
             Swal.fire({
               title: "Payment Error",
-              text: "There was an issue processing your payment. Please try again.",
-              icon: "error"
+              text: error.message || "There was an issue processing your payment. Please try again.",
+              icon: "error",
+              confirmButtonText: "Try Again"
             });
           }
         },
@@ -135,12 +208,28 @@ const Donate = () => {
           contact: user?.phone || ''
         },
         notes: {
-          purpose: "Environmental Donation"
+          purpose: "Environmental Donation",
+          donation_for: "Tree Plantation"
         },
         theme: {
           color: "#10B981" // Green theme for environment
         },
+        modal: {
+          ondismiss: function() {
+            Swal.fire({
+              title: "Payment Cancelled",
+              text: "Donation was not completed.",
+              icon: "info"
+            });
+            setIsLoading(false);
+          }
+        }
       };
+
+      // Verify Razorpay object exists
+      if (!window.Razorpay) {
+        throw new Error('Razorpay not loaded. Please refresh the page.');
+      }
 
       const rzp1 = new window.Razorpay(options);
       
@@ -149,20 +238,23 @@ const Donate = () => {
         Swal.fire({
           title: "Payment Failed",
           text: response.error.description || "Payment could not be completed",
-          icon: "error"
+          icon: "error",
+          confirmButtonText: "Try Again"
         });
+        setIsLoading(false);
       });
       
       rzp1.open();
+      setIsLoading(false); // Reset loading state after opening modal
 
     } catch (error) {
       console.error('Donation error:', error);
       Swal.fire({
         title: "Error",
         text: error.message || "Failed to process donation",
-        icon: "error"
+        icon: "error",
+        confirmButtonText: "OK"
       });
-    } finally {
       setIsLoading(false);
     }
   };
@@ -175,11 +267,13 @@ const Donate = () => {
           <p className="mt-4 text-gray-600 text-lg">
             Help us plant trees, reduce pollution, and build a sustainable future.
           </p>
-          {/* {user && (
-            <p className="mt-2 text-sm text-green-600">
-              Welcome back, {user.name}! Your details have been auto-filled.
-            </p>
-          )} */}
+          {!razorpayLoaded && (
+            <div className="mt-4 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+              <p className="text-yellow-700 text-sm">
+                ⚠️ Loading payment gateway...
+              </p>
+            </div>
+          )}
         </div>
 
         <form onSubmit={handleDonation} className="space-y-6">
@@ -225,9 +319,9 @@ const Donate = () => {
 
           <button
             type="submit"
-            disabled={isLoading}
+            disabled={isLoading || !razorpayLoaded}
             className={`w-full bg-green-600 hover:bg-green-700 text-white text-lg font-semibold py-3 rounded-xl transition duration-300 shadow-md hover:shadow-lg ${
-              isLoading ? 'opacity-50 cursor-not-allowed' : ''
+              isLoading || !razorpayLoaded ? 'opacity-50 cursor-not-allowed' : ''
             }`}
           >
             {isLoading ? (
@@ -267,12 +361,272 @@ export default Donate;
 
 
 
+// import React, { useState, useEffect } from 'react';
+// import { useNavigate } from 'react-router-dom';
+// import { api } from '../utils/api';
+// import { useLogin } from '../components/LoginContext';
+// import Swal from 'sweetalert2';
 
+// const Donate = () => {
+//   const navigate = useNavigate();
+//   const { user } = useLogin();
+//   const [form, setForm] = useState({
+//     name: '',
+//     email: '',
+//     amount: '',
+//     message: ''
+//   });
+//   const [isLoading, setIsLoading] = useState(false);
 
+//   // Auto-fill user data if logged in
+//   useEffect(() => {
+//     if (user) {
+//       setForm(prev => ({
+//         ...prev,
+//         name: user.name || '',
+//         email: user.email || ''
+//       }));
+//     }
+//   }, [user]);
 
+//   const handleChange = (e) => {
+//     setForm({ ...form, [e.target.name]: e.target.value });
+//   };
 
+//   const createRazorpayOrder = async (amount) => {
+//     try {
+//       const response = await api.post('/pay/order', {
+//         amount: amount * 100, // Convert to paise
+//         currency: "INR",
+//         receipt: `donation_${Date.now()}`,
+//       });
+//       return response.data;
+//     } catch (error) {
+//       console.error('Order creation failed:', error);
+//       throw new Error('Failed to create payment order');
+//     }
+//   };
 
+//   const validatePayment = async (paymentData) => {
+//     try {
+//       const response = await api.post('/pay/donation/validate', paymentData);
+//       return response.data;
+//     } catch (error) {
+//       console.error('Payment validation failed:', error);
+//       throw new Error('Payment validation failed');
+//     }
+//   };
 
+//   const handleDonation = async (e) => {
+//     e.preventDefault();
+    
+//     if (!form.amount || form.amount <= 0) {
+//       Swal.fire({
+//         title: "Invalid Amount",
+//         text: "Please enter a valid donation amount",
+//         icon: "warning"
+//       });
+//       return;
+//     }
+
+//     setIsLoading(true);
+
+//     try {
+//       // Create Razorpay order
+//       const order = await createRazorpayOrder(form.amount);
+      
+//       const options = {
+//         key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+//         amount: form.amount * 100,
+//         currency: "INR",
+//         name: "Environmental Donation",
+//         description: "Donation for environmental initiatives",
+//         image: `${window.location.origin}/sbt%20logo.svg`,
+//         order_id: order.id,
+//         handler: async function (response) {
+//           try {
+//             // console.log("Razorpay Response: ", response);
+            
+//             const paymentData = {
+//               payment_id: response.razorpay_payment_id,
+//               order_id: response.razorpay_order_id,
+//               signature: response.razorpay_signature,
+//               donationDetails: {
+//                 name: form.name,
+//                 email: form.email,
+//                 amount: form.amount,
+//                 message: form.message
+//               }
+//             };
+
+//             // Validate payment
+//             const validationResult = await validatePayment(paymentData);
+            
+//             if (validationResult.message === 'Payment successful and email sent!') {
+//               // Save donation to database
+//               await api.post("/donation/donate", {
+//                 name: form.name,
+//                 email: form.email,
+//                 amount: form.amount,
+//                 message: form.message,
+//                 payment_id: response.razorpay_payment_id,
+//                 order_id: response.razorpay_order_id
+//               });
+
+//               Swal.fire({
+//                 title: "Thank You! 🌱",
+//                 text: "Your donation has been received successfully!",
+//                 icon: "success",
+//                 confirmButtonText: "Continue"
+//               }).then(() => {
+//                 setForm({ name: '', email: '', amount: '', message: '' });
+//                 navigate('/');
+//               });
+//             }
+//           } catch (error) {
+//             console.error('Payment processing error:', error);
+//             Swal.fire({
+//               title: "Payment Error",
+//               text: "There was an issue processing your payment. Please try again.",
+//               icon: "error"
+//             });
+//           }
+//         },
+//         prefill: {
+//           name: form.name,
+//           email: form.email,
+//           contact: user?.phone || ''
+//         },
+//         notes: {
+//           purpose: "Environmental Donation"
+//         },
+//         theme: {
+//           color: "#10B981" // Green theme for environment
+//         },
+//       };
+
+//       const rzp1 = new window.Razorpay(options);
+      
+//       rzp1.on("payment.failed", function (response) {
+//         console.error('Payment failed:', response.error);
+//         Swal.fire({
+//           title: "Payment Failed",
+//           text: response.error.description || "Payment could not be completed",
+//           icon: "error"
+//         });
+//       });
+      
+//       rzp1.open();
+
+//     } catch (error) {
+//       console.error('Donation error:', error);
+//       Swal.fire({
+//         title: "Error",
+//         text: error.message || "Failed to process donation",
+//         icon: "error"
+//       });
+//     } finally {
+//       setIsLoading(false);
+//     }
+//   };
+
+//   return (
+//     <div className="min-h-screen bg-gradient-to-br from-green-100 via-white to-green-200 flex items-center justify-center px-4 py-16">
+//       <div className="w-full max-w-2xl bg-white shadow-2xl rounded-3xl p-10 border border-green-200">
+//         <div className="text-center mb-8">
+//           <h2 className="text-4xl font-extrabold text-green-700">Donate for the Environment 🌱</h2>
+//           <p className="mt-4 text-gray-600 text-lg">
+//             Help us plant trees, reduce pollution, and build a sustainable future.
+//           </p>
+//           {/* {user && (
+//             <p className="mt-2 text-sm text-green-600">
+//               Welcome back, {user.name}! Your details have been auto-filled.
+//             </p>
+//           )} */}
+//         </div>
+
+//         <form onSubmit={handleDonation} className="space-y-6">
+//           <input
+//             type="text"
+//             name="name"
+//             value={form.name}
+//             onChange={handleChange}
+//             required
+//             placeholder="Your Name"
+//             className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400"
+//           />
+//           <input
+//             type="email"
+//             name="email"
+//             value={form.email}
+//             onChange={handleChange}
+//             required
+//             placeholder="Your Email"
+//             className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400"
+//           />
+//           <div className="relative">
+//             <input
+//               type="number"
+//               name="amount"
+//               value={form.amount}
+//               onChange={handleChange}
+//               required
+//               min="1"
+//               placeholder="Amount (₹)"
+//               className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400"
+//             />
+//             <div className="absolute right-3 top-3 text-gray-500">₹</div>
+//           </div>
+//           <textarea
+//             name="message"
+//             value={form.message}
+//             onChange={handleChange}
+//             rows="4"
+//             placeholder="Your Message (Optional)"
+//             className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400"
+//           />
+
+//           <button
+//             type="submit"
+//             disabled={isLoading}
+//             className={`w-full bg-green-600 hover:bg-green-700 text-white text-lg font-semibold py-3 rounded-xl transition duration-300 shadow-md hover:shadow-lg ${
+//               isLoading ? 'opacity-50 cursor-not-allowed' : ''
+//             }`}
+//           >
+//             {isLoading ? (
+//               <span className="flex items-center justify-center">
+//                 <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+//                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+//                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+//                 </svg>
+//                 Processing...
+//               </span>
+//             ) : (
+//               '🌍 Donate Now'
+//             )}
+//           </button>
+//         </form>
+
+//         <div className="mt-6 p-4 bg-green-50 rounded-lg border border-green-200">
+//           <h3 className="font-semibold text-green-800 mb-2">Where your donation goes:</h3>
+//           <ul className="text-sm text-green-700 space-y-1">
+//             <li>• 🌳 Tree plantation drives</li>
+//             <li>• ♻️ Waste management initiatives</li>
+//             <li>• 💧 Clean water projects</li>
+//             <li>• 🌱 Sustainable farming support</li>
+//             <li>• 📚 Environmental education programs</li>
+//           </ul>
+//         </div>
+
+//         <p className="mt-6 text-sm text-center text-gray-400">
+//           100% of your donation will go towards environmental initiatives. All transactions are secure.
+//         </p>
+//       </div>
+//     </div>
+//   );
+// };
+
+// export default Donate;
 
 
 

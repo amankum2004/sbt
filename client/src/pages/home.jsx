@@ -23,6 +23,34 @@ export const Home = () => {
         "sameAs": []
     };
 
+    const getButtonText = () => {
+    if (!loggedIn) return "Book Salon Appointment Now";
+    
+    switch(user?.usertype) {
+        case 'shopOwner':
+        case 'ShopOwner':
+            return "Dashboard";
+        case 'admin':
+            return "Admin Dashboard";
+        default: // customer or any other role
+            return "Book Salon Appointment Now";
+    }
+    };
+
+    const getButtonLink = () => {
+    if (!loggedIn) return "/login";
+    
+    switch(user?.usertype) {
+        case 'shopOwner':
+        case 'ShopOwner':
+            return "/barberDashboard";
+        case 'admin':
+            return "/admin";
+        default:
+            return "/nearbyShops";
+    }
+    };
+
     return (
         <>
             {/* JSON-LD Structured Data */}
@@ -56,11 +84,18 @@ export const Home = () => {
                             <strong> Hair salon booking</strong>, <strong>spa services</strong>, and 
                             <strong> beauty treatments</strong> made simple.
                         </p>
-                        <a href={loggedIn ? "/nearbyShops" : "/login"}>
+                        
+                        <a href={getButtonLink()}>
+                            <button className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all">
+                                {getButtonText()}
+                            </button>
+                        </a>
+
+                        {/* <a href={loggedIn ? "/nearbyShops" : "/login"}>
                             <button className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all">
                                 Book Salon Appointment Now
                             </button>
-                        </a>
+                        </a> */}
                     </section>
 
                     {/* Services Section with Keywords */}
