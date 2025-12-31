@@ -183,7 +183,7 @@ export const Register = () => {
         
         <h4 className="text-gray-300 text-center mb-5">
           {step === 1 
-            ? "Please verify your email to continue" 
+            ? "Please enter your email to continue" 
             : "Fill in your details to create account"
           }
         </h4>
