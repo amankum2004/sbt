@@ -8,10 +8,10 @@ const authControllers = require("../../controllers/user/auth-controllers")
 
 router.route("/").get(authControllers.home)
 
-
 // router.route('/register').post(validate(signupSchema), authControllers.register)
 // router.route('/login').post(validate(loginSchema),authControllers.login)
 // router.post('/update',authControllers.update);
+
 router.route('/register').post( authControllers.register)
 router.route('/login').post(authControllers.login)
 router.route('/update').post(authControllers.update)

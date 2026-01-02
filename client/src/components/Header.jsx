@@ -198,6 +198,7 @@ export const Header = () => {
                   <NavLink to="/timeSlot-create" label="Create slots" icon={Calendar} onClick={toggleRightSidebar} />
                   <NavLink to="/customerDashboard" label="My bookings" icon={ClipboardList} onClick={toggleRightSidebar} />
                   <NavLink to="/poster" label="Poster" icon={Image} onClick={toggleRightSidebar} />
+                  <NavLink to="/nearbyShops" label="Book appointment" icon={Calendar} onClick={toggleRightSidebar} />
                   {/* <NavLink to="/registershop" label="Register your Salon" icon={Scissors} onClick={toggleRightSidebar} /> */}
                 </>
               ) : user.usertype === "admin" ? (
@@ -207,6 +208,7 @@ export const Header = () => {
                   <NavLink to="/registershop" label="Register Salon" icon={Scissors} onClick={toggleRightSidebar} />
                   <NavLink to="/customerDashboard" label="My bookings" icon={ClipboardList} onClick={toggleRightSidebar} />
                   <NavLink to="/poster" label="Poster" icon={Image} onClick={toggleRightSidebar} />
+                  <NavLink to="/nearbyShops" label="Book appointment" icon={Calendar} onClick={toggleRightSidebar} />
                 </>
               ) : (
                 <>

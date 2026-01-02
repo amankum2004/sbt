@@ -133,7 +133,7 @@ const Donate = () => {
         currency: order.currency || "INR",
         name: "Environmental Donation",
         description: "Donation for environmental initiatives",
-        image: `${window.location.origin}/sbt%20logo.svg`,
+        image: `${window.location.origin}/salonHub-logo.svg`,
         order_id: order.id,
         handler: async function (response) {
           try {

@@ -255,7 +255,7 @@ const BarberDashboard = () => {
         icon = "🏪";
         break;
       case "pending":
-        title = "Shop Under Review";
+        title = "Pending for Approval";
         message = "Your shop registration is under review. Please wait for approval to access this page.";
         icon = "⏳";
         break;

@@ -29,8 +29,8 @@ export default function AdminPendingShops() {
       <h2 className="text-xl font-bold mb-4">Pending Shop Requests</h2>
       {pendingShops.map((shop) => (
         <div key={shop._id} className="border p-4 mb-3 rounded shadow">
-          <h3 className="text-lg font-semibold">
-            {shop.shopname} – {shop.city}
+          <h3 className="text-lg">
+            <strong>{shop.shopname}</strong> – {shop.street}, {shop.city}, {shop.district}, {shop.state}, {shop.pin}
           </h3>
           <p>
             <strong>Owner:</strong> {shop.name}

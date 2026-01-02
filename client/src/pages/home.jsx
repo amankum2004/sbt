@@ -134,9 +134,9 @@ export const Home = () => {
                                 ["Easy Online Booking", "Book salon appointments 24/7 from your mobile or desktop. Instant confirmation for all beauty services."],
                                 ["Best Salons Near You", "Find top-rated beauty salons and spas in your city with genuine customer reviews and ratings."],
                                 ["Real-Time Slot Availability", "See available time slots in real-time and choose what fits your schedule best for hair and beauty services."],
-                                // ["Secure Online Payments", "Pay securely online with multiple payment options and focus on your beauty experience."],
                                 ["Verified Customer Reviews", "Make informed decisions with authentic reviews and ratings from other customers."],
-                                ["Wide Service Selection", "From basic haircuts to bridal packages, find all beauty services in one platform."]
+                                ["Wide Service Selection", "From basic haircuts to bridal packages, find all beauty services in one platform."],
+                                ["Secure Online Payments", "Pay securely online with multiple payment options and focus on your beauty experience."],
                             ].map(([title, desc]) => (
                                 <motion.div
                                     key={title}
