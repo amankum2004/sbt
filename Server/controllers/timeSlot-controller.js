@@ -116,7 +116,7 @@ exports.updateTemplate = async (req, res) => {
         // Get the old template first to compare changes
         const oldTemplate = await Template.findById(id);
         if (!oldTemplate) {
-            return res.status(404).json({ 
+            return res.status(200).json({ 
                 success: false, 
                 message: 'Template not found' 
             });
@@ -280,7 +280,7 @@ exports.getTemplateByShopId = async (req, res) => {
 
         if (!template) {
             console.log('❌ No template found for shop ID:', shopId);
-            return res.status(404).json({
+            return res.status(200).json({
                 success: false,
                 message: 'No template found for this shop'
             });

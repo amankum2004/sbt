@@ -52,7 +52,7 @@ exports.registershop = async (req, res, next) => {
     // Check for missing required fields
     for (const field of requiredFields) {
       if (!req.body[field]) {
-        return res.status(400).json({
+        return res.status(200).json({
           success: false,
           message: `${field} is required`,
           extraDetails: `Missing required field: ${field}`
@@ -63,7 +63,7 @@ exports.registershop = async (req, res, next) => {
     // Check if shop with this email already exists
     const shopExists = await Shops.findOne({ email });
     if (shopExists) {
-      return res.status(400).json({
+      return res.status(200).json({
         success: false,
         message: "Shop with this email already exists"
       });
@@ -75,7 +75,7 @@ exports.registershop = async (req, res, next) => {
       // Verify user credentials only for shop owners (not for admin-created shops)
       const userExist = await User.findOne({ email });
       if (!userExist) {
-        return res.status(404).json({
+        return res.status(200).json({
           success: false,
           message: "No user found with this email"
         });
@@ -84,7 +84,7 @@ exports.registershop = async (req, res, next) => {
       // Verify password
       const isPasswordValid = await bcrypt.compare(password, userExist.password);
       if (!isPasswordValid) {
-        return res.status(401).json({
+        return res.status(200).json({
           success: false,
           message: "Invalid password"
         });
@@ -266,7 +266,7 @@ exports.updateShopStatus = async (req, res) => {
 
     // Validate status
     if (!['open', 'closed', 'break'].includes(status)) {
-      return res.status(400).json({
+      return res.status(200).json({
         success: false,
         message: 'Invalid status. Must be: open, closed, or break'
       });
@@ -282,7 +282,7 @@ exports.updateShopStatus = async (req, res) => {
     );
 
     if (!updatedShop) {
-      return res.status(404).json({
+      return res.status(200).json({
         success: false,
         message: 'Shop not found'
       });
@@ -319,7 +319,7 @@ exports.getShopStatus = async (req, res) => {
     const shop = await Shops.findById(shopId).select('status statusLastUpdated shopname name');
     
     if (!shop) {
-      return res.status(404).json({
+      return res.status(200).json({
         success: false,
         message: 'Shop not found'
       });
