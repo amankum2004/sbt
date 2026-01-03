@@ -1,3 +1,7 @@
+// errors - pincode errors to ui
+// validation failed - after payment
+
+
 // Phase 5: Important Features to Implement
 // 1. Email Notifications (Optional)
 // Set up email notifications when:

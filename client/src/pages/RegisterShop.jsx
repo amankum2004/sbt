@@ -34,6 +34,7 @@ export const RegisterShop = () => {
   const [isLocationCaptured, setIsLocationCaptured] = useState(false);
   const [isCapturingLocation, setIsCapturingLocation] = useState(false);
   const [locationAccuracy, setLocationAccuracy] = useState(null);
+  const [pinError, setPinError] = useState(""); // State for pin validation error
 
   // Function to store coordinates as strings with full precision
   const storeHighPrecisionCoordinates = (latitude, longitude) => {
@@ -44,11 +45,6 @@ export const RegisterShop = () => {
     // Also store as numbers for backward compatibility
     const lat = Number(latitude);
     const lng = Number(longitude);
-    
-    // console.log("Full Precision Coordinates:");
-    // console.log("As String - Lat:", latString, "Lng:", lngString);
-    // console.log("As Number - Lat:", lat, "Lng:", lng);
-    // console.log("String length - Lat:", latString.length, "Lng:", lngString.length);
     
     return { lat, lng, latString, lngString };
   };
@@ -154,7 +150,6 @@ export const RegisterShop = () => {
   useEffect(() => {
     const tokenString = localStorage.getItem("jwt_token");
     if (tokenString) setToken(tokenString);
-    // if (tokenString) setToken(JSON.parse(tokenString));
   }, []);
 
   const isAdmin = user?.usertype === "admin";
@@ -170,8 +165,58 @@ export const RegisterShop = () => {
     }
   }, [user, isAdmin]);
 
-  const handleInput = (e) =>
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  // Pincode validation function
+  const validatePincode = (pin) => {
+    // Remove any non-digit characters
+    const cleanPin = pin.replace(/\D/g, '');
+    
+    if (cleanPin.length === 0) {
+      return { isValid: false, message: "Pincode is required" };
+    }
+    
+    if (cleanPin.length < 6) {
+      return { isValid: false, message: "Pincode must be 6 digits" };
+    }
+    
+    if (cleanPin.length > 6) {
+      return { isValid: false, message: "Pincode cannot exceed 6 digits" };
+    }
+    
+    if (!/^\d{6}$/.test(cleanPin)) {
+      return { isValid: false, message: "Pincode must contain only numbers" };
+    }
+    
+    // Optional: Validate first digit is not 0
+    if (cleanPin.charAt(0) === '0') {
+      return { isValid: false, message: "Pincode cannot start with 0" };
+    }
+    
+    return { isValid: true, message: "" };
+  };
+
+  const handleInput = (e) => {
+    const { name, value } = e.target;
+    
+    // Special handling for pincode input
+    if (name === "pin") {
+      // Remove any non-digit characters
+      const cleanValue = value.replace(/\D/g, '');
+      
+      // Limit to 6 digits
+      const limitedValue = cleanValue.slice(0, 6);
+      
+      // Validate the pincode
+      const validation = validatePincode(limitedValue);
+      setPinError(validation.message);
+      
+      setFormData({ 
+        ...formData, 
+        [name]: limitedValue 
+      });
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
+  };
 
   const handleServiceChange = (e, index) => {
     const updated = formData.services.map((s, i) =>
@@ -210,10 +255,95 @@ export const RegisterShop = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!token) {
-      Swal.fire({ title: "Error", text: "Please login again.", icon: "error" });
+    
+    // Validate all required fields before submission
+    const requiredFields = {
+      name: "Full Name",
+      email: "Email",
+      phone: "Phone",
+      shopname: "Shop Name",
+      state: "State",
+      district: "District",
+      city: "City",
+      street: "Street Address",
+      pin: "Pincode",
+    };
+
+    // Check for empty required fields
+    const emptyFields = Object.keys(requiredFields).filter(
+      field => !formData[field]?.toString().trim()
+    );
+
+    if (emptyFields.length > 0) {
+      const fieldNames = emptyFields.map(field => requiredFields[field]).join(", ");
+      Swal.fire({
+        title: "Missing Information",
+        html: `Please fill in the following required fields:<br><strong>${fieldNames}</strong>`,
+        icon: "warning",
+        confirmButtonColor: "#3B82F6",
+      });
       return;
     }
+
+    // Validate pincode
+    const pinValidation = validatePincode(formData.pin);
+    if (!pinValidation.isValid) {
+      Swal.fire({
+        title: "Invalid Pincode",
+        text: pinValidation.message,
+        icon: "error",
+        confirmButtonColor: "#3B82F6",
+      });
+      return;
+    }
+
+    // Validate services
+    if (formData.services.length === 0) {
+      Swal.fire({
+        title: "No Services Added",
+        text: "Please add at least one service for your shop",
+        icon: "warning",
+        confirmButtonColor: "#3B82F6",
+      });
+      return;
+    }
+
+    // Validate each service
+    const invalidServices = formData.services.filter(
+      service => !service.service.trim() || !service.price.trim()
+    );
+    
+    if (invalidServices.length > 0) {
+      Swal.fire({
+        title: "Incomplete Services",
+        text: "Please fill in both service name and price for all services",
+        icon: "warning",
+        confirmButtonColor: "#3B82F6",
+      });
+      return;
+    }
+
+    // Validate password for non-admin users
+    if (!isAdmin && !formData.password) {
+      Swal.fire({
+        title: "Password Required",
+        text: "Please enter a password for your account",
+        icon: "warning",
+        confirmButtonColor: "#3B82F6",
+      });
+      return;
+    }
+
+    if (!token) {
+      Swal.fire({ 
+        title: "Session Expired", 
+        text: "Please login again to continue.", 
+        icon: "error" 
+      });
+      navigate("/login");
+      return;
+    }
+
     if (!formData.latString || !formData.lngString) {
       const result = await Swal.fire({
         title: "Location Not Captured",
@@ -230,17 +360,15 @@ export const RegisterShop = () => {
       }
     }
 
-    // Log the coordinates being sent
-    // console.log("Submitting coordinates:", {
-    //   lat: formData.lat,
-    //   lng: formData.lng,
-    //   latString: formData.latString,
-    //   lngString: formData.lngString,
-    //   stringLength: {
-    //     lat: formData.latString?.length,
-    //     lng: formData.lngString?.length
-    //   }
-    // });
+    // Show loading state
+    const result = await Swal.fire({
+      title: "Registering Shop",
+      text: "Please wait while we register your shop...",
+      icon: "info",
+      showConfirmButton: false,
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading(),
+    });
 
     try {
       const response = await api.post(`/shop/registershop`, formData, {
@@ -249,24 +377,51 @@ export const RegisterShop = () => {
           'Content-Type': 'application/json'
         },
       });
+      
       if (response.status === 201) {
         Swal.fire({ 
           title: "Success!", 
           html: `
-            <div class="text-left">
-              <p>Shop registered successfully!</p>
+            <div class="text-center">
+              <p class="text-lg font-semibold text-green-600">Shop registered successfully!</p>
+              <p class="text-gray-600 mt-2">You will be redirected shortly...</p>
             </div>
           `,
-          icon: "success" 
+          icon: "success",
+          timer: 2000,
+          showConfirmButton: false
         });
-        navigate(isAdmin ? "/admin/shops" : "/");
+        
+        setTimeout(() => {
+          navigate(isAdmin ? "/admin/shops" : "/");
+        }, 2000);
       }
     } catch (err) {
       console.error("Registration error:", err);
+      
+      let errorMessage = "Registration failed. Please try again.";
+      
+      if (err.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (err.response?.data?.error) {
+        errorMessage = err.response.data.error;
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      
       Swal.fire({
-        title: "Error",
-        text: err.response?.data?.message || "Registration failed",
+        title: "Registration Failed",
+        html: `
+          <div class="text-center">
+            <p class="text-red-600 font-medium">${errorMessage}</p>
+            ${err.response?.data?.details ? 
+              `<p class="text-gray-600 text-sm mt-2">Details: ${err.response.data.details}</p>` : 
+              ''
+            }
+          </div>
+        `,
         icon: "error",
+        confirmButtonColor: "#3B82F6",
       });
     }
   };
@@ -278,13 +433,9 @@ export const RegisterShop = () => {
           onSubmit={handleSubmit}
           className="space-y-8 bg-white shadow-xl rounded-2xl p-6 sm:p-10"
         >
-            
           {/* Location Capture */}
           <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-5 sm:p-6">
             <h3 className="text-lg font-semibold text-blue-800 mb-3">Shop Location</h3>
-            {/* <p className="text-sm text-blue-600 mb-4">
-              Coordinates will be stored as strings to preserve maximum precision (up to 15+ decimal places).
-            </p> */}
             <button
               type="button"
               onClick={captureLocation}
@@ -304,30 +455,15 @@ export const RegisterShop = () => {
             {isLocationCaptured && (
               <div className="bg-white border border-blue-100 rounded-lg p-4 text-sm text-gray-700 space-y-3">
                 <div>
-                  {/* <strong className="text-green-600">Full Precision (Stored as String):</strong> */}
                   <div className="font-mono text-xs bg-gray-100 p-2 rounded mt-1 break-all space-y-1">
                     <div><strong>Lat:</strong> {formData.latString}</div>
                     <div><strong>Lng:</strong> {formData.lngString}</div>
                   </div>
                 </div>
-                {/* <div>
-                  <strong>Approximate (Number):</strong>
-                  <div className="text-xs text-gray-500 mt-1">
-                    Lat: {formData.lat}, Lng: {formData.lng}
-                  </div>
-                </div> */}
-                {/* <div>
-                  <strong>Accuracy:</strong> {Math.round(locationAccuracy)} meters{" "}
-                  {locationAccuracy > 10 && (
-                    <span className="text-yellow-600 text-xs">(Better precision recommended)</span>
-                  )}
-                </div> */}
               </div>
             )}
           </div>
 
-          {/* Rest of the form remains the same */}
-          {/* ... (Basic Details, Services sections remain unchanged) ... */}
           {/* Basic Details */}
           <div className="bg-gray-50 rounded-xl p-5 sm:p-6">
             <h3 className="text-lg font-semibold text-gray-800 mb-4">Basic Details</h3>
@@ -335,7 +471,7 @@ export const RegisterShop = () => {
               <input
                 type="text"
                 name="name"
-                placeholder="Full Name"
+                placeholder="Full Name *"
                 value={formData.name}
                 onChange={handleInput}
                 readOnly={!isAdmin}
@@ -346,7 +482,7 @@ export const RegisterShop = () => {
               <input
                 type="email"
                 name="email"
-                placeholder="Email"
+                placeholder="Email *"
                 value={formData.email}
                 onChange={handleInput}
                 readOnly={!isAdmin}
@@ -357,7 +493,7 @@ export const RegisterShop = () => {
               <input
                 type="tel"
                 name="phone"
-                placeholder="Phone"
+                placeholder="Phone *"
                 value={formData.phone}
                 onChange={handleInput}
                 readOnly={!isAdmin}
@@ -368,7 +504,7 @@ export const RegisterShop = () => {
               <input
                 type="text"
                 name="shopname"
-                placeholder="Salon Name"
+                placeholder="Salon Name *"
                 value={formData.shopname}
                 onChange={handleInput}
                 className="w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-purple-200"
@@ -378,7 +514,7 @@ export const RegisterShop = () => {
                 onChange={handleStateChange}
                 className="w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-purple-200"
               >
-                <option value="">Select State</option>
+                <option value="">Select State *</option>
                 {Object.keys(stateDistrictCityData).map((state, i) => (
                   <option key={i} value={state}>
                     {state}
@@ -391,7 +527,7 @@ export const RegisterShop = () => {
                 disabled={!formData.state}
                 className="w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-purple-200"
               >
-                <option value="">Select District</option>
+                <option value="">Select District *</option>
                 {districts.map((d, i) => (
                   <option key={i} value={d}>
                     {d}
@@ -404,7 +540,7 @@ export const RegisterShop = () => {
                 disabled={!formData.district}
                 className="w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-purple-200"
               >
-                <option value="">Select City</option>
+                <option value="">Select City *</option>
                 {cities.map((c, i) => (
                   <option key={i} value={c}>
                     {c}
@@ -414,25 +550,40 @@ export const RegisterShop = () => {
               <input
                 type="text"
                 name="street"
-                placeholder="Street Address"
+                placeholder="Street Address *"
                 value={formData.street}
                 onChange={handleInput}
                 className="w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-purple-200"
               />
-              <input
-                type="tel"
-                name="pin"
-                placeholder="Pin Code"
-                maxLength={6}
-                value={formData.pin}
-                onChange={handleInput}
-                className="w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-purple-200"
-              />
+              
+              {/* Pincode Input with Validation */}
+              <div className="relative">
+                <input
+                  type="tel"
+                  name="pin"
+                  placeholder="Pincode * (6 digits)"
+                  maxLength={6}
+                  value={formData.pin}
+                  onChange={handleInput}
+                  className={`w-full border-2 rounded-lg px-4 py-2 focus:ring-2 focus:ring-purple-200 ${
+                    pinError ? "border-red-500" : "border-gray-200"
+                  }`}
+                />
+                {/* Character counter */}
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-xs text-gray-500">
+                  {formData.pin.length}/6
+                </div>
+                {/* Error message */}
+                {pinError && (
+                  <p className="text-red-500 text-xs mt-1 ml-1">{pinError}</p>
+                )}
+              </div>
+              
               {!isAdmin && (
                 <input
                   type="password"
                   name="password"
-                  placeholder="Login Password"
+                  placeholder="Login Password *"
                   required
                   value={formData.password}
                   onChange={handleInput}
@@ -440,11 +591,12 @@ export const RegisterShop = () => {
                 />
               )}
             </div>
+            <p className="text-xs text-gray-500 mt-3">* Required fields</p>
           </div>
 
           {/* Services */}
           <div className="bg-green-50 rounded-xl p-5 sm:p-6">
-            <h3 className="text-lg font-semibold text-green-800 mb-4">Services & Pricing</h3>
+            <h3 className="text-lg font-semibold text-green-800 mb-4">Services & Pricing *</h3>
             {formData.services.map((service, i) => (
               <div
                 key={i}
@@ -453,7 +605,7 @@ export const RegisterShop = () => {
                 <input
                   type="text"
                   name="service"
-                  placeholder="Service Name"
+                  placeholder="Service Name *"
                   required
                   value={service.service}
                   onChange={(e) => handleServiceChange(e, i)}
@@ -462,7 +614,7 @@ export const RegisterShop = () => {
                 <input
                   type="tel"
                   name="price"
-                  placeholder="Price ₹"
+                  placeholder="Price ₹ *"
                   required
                   value={service.price}
                   onChange={(e) => handleServiceChange(e, i)}
@@ -486,34 +638,30 @@ export const RegisterShop = () => {
             >
               + Add Service
             </button>
+            <p className="text-xs text-gray-500 mt-3">* At least one service with name and price is required</p>
           </div>
 
           {/* Submit */}
           <button
             type="submit"
-            disabled={!isLocationCaptured}
+            disabled={!isLocationCaptured || pinError}
             className={`w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white py-3 rounded-lg font-semibold ${
-              !isLocationCaptured ? "opacity-60 cursor-not-allowed" : "hover:from-purple-700 hover:to-purple-800"
+              !isLocationCaptured || pinError 
+                ? "opacity-60 cursor-not-allowed" 
+                : "hover:from-purple-700 hover:to-purple-800"
             }`}
           >
             {isLocationCaptured
               ? isAdmin
                 ? "Register Shop"
                 : "Complete Registration"
-              : "Capture Full Precision Location First"}
+              : "Capture Location First"}
           </button>
         </form>
       </div>
     </div>
   );
 };
-
-
-
-
-
-
-
 
 
 
@@ -539,6 +687,8 @@ export const RegisterShop = () => {
 //   services: [{ service: "", price: "" }],
 //   lat: null,
 //   lng: null,
+//   latString: "", // New field for string storage
+//   lngString: "", // New field for string storage
 // };
 
 // export const RegisterShop = () => {
@@ -553,6 +703,24 @@ export const RegisterShop = () => {
 //   const [isCapturingLocation, setIsCapturingLocation] = useState(false);
 //   const [locationAccuracy, setLocationAccuracy] = useState(null);
 
+//   // Function to store coordinates as strings with full precision
+//   const storeHighPrecisionCoordinates = (latitude, longitude) => {
+//     // Store as strings to preserve full precision
+//     const latString = latitude.toString();
+//     const lngString = longitude.toString();
+    
+//     // Also store as numbers for backward compatibility
+//     const lat = Number(latitude);
+//     const lng = Number(longitude);
+    
+//     // console.log("Full Precision Coordinates:");
+//     // console.log("As String - Lat:", latString, "Lng:", lngString);
+//     // console.log("As Number - Lat:", lat, "Lng:", lng);
+//     // console.log("String length - Lat:", latString.length, "Lng:", lngString.length);
+    
+//     return { lat, lng, latString, lngString };
+//   };
+
 //   const captureLocation = () => {
 //     if (!navigator.geolocation) {
 //       Swal.fire({
@@ -565,7 +733,7 @@ export const RegisterShop = () => {
 
 //     setIsCapturingLocation(true);
 //     Swal.fire({
-//       title: "Capturing High-Precision Location",
+//       title: "Capturing Full Precision Location",
 //       text: "Please allow location access for exact shop positioning...",
 //       icon: "info",
 //       showConfirmButton: false,
@@ -573,33 +741,45 @@ export const RegisterShop = () => {
 //       didOpen: () => Swal.showLoading(),
 //     });
 
+//     const geoOptions = {
+//       enableHighAccuracy: true,
+//       timeout: 30000,
+//       maximumAge: 0
+//     };
+
 //     navigator.geolocation.getCurrentPosition(
 //       (position) => {
 //         const { latitude, longitude, accuracy } = position.coords;
-//         setLocation({ lat: latitude, lng: longitude });
-//         setFormData((prev) => ({ ...prev, lat: latitude, lng: longitude }));
+        
+//         // Store coordinates with full precision as strings
+//         const preciseCoords = storeHighPrecisionCoordinates(latitude, longitude);
+        
+//         setLocation({ lat: preciseCoords.lat, lng: preciseCoords.lng });
+//         setFormData((prev) => ({ 
+//           ...prev, 
+//           lat: preciseCoords.lat, 
+//           lng: preciseCoords.lng,
+//           latString: preciseCoords.latString,
+//           lngString: preciseCoords.lngString
+//         }));
 //         setLocationAccuracy(accuracy);
 //         setIsLocationCaptured(true);
 //         setIsCapturingLocation(false);
 
 //         Swal.fire({
-//           title: "Location Captured!",
+//           title: "Full Precision Location Captured!",
 //           html: `
 //             <div class="text-left">
-//               <p><strong>Coordinates:</strong></p>
-//               <p class="font-mono text-sm">Lat: ${latitude}</p>
-//               <p class="font-mono text-sm">Lng: ${longitude}</p>
-//               <p class="mt-1">Accuracy: ${Math.round(accuracy)} meters</p>
-//               ${
-//                 accuracy > 10
-//                   ? '<p class="text-yellow-600 mt-1">⚠️ Move to open area for better precision.</p>'
-//                   : '<p class="text-green-600 mt-1">✓ Excellent precision</p>'
-//               }
+//               <div class="bg-gray-100 p-2 rounded mt-2 space-y-1">
+//                 <p class="font-mono text-xs break-all"><strong>Lat:</strong> ${preciseCoords.latString}</p>
+//                 <p class="font-mono text-xs break-all"><strong>Lng:</strong> ${preciseCoords.lngString}</p>
+//               </div>
 //             </div>
 //           `,
 //           icon: "success",
-//           confirmButtonText: "Ok",
+//           confirmButtonText: "Continue",
 //           confirmButtonColor: "#10B981",
+//           width: "550px"
 //         });
 //       },
 //       (error) => {
@@ -608,15 +788,15 @@ export const RegisterShop = () => {
 //         switch (error.code) {
 //           case error.PERMISSION_DENIED:
 //             errorMessage =
-//               "Location access denied. Please allow location access in your browser.";
+//               "Location access denied. Please allow location access in your browser settings.";
 //             break;
 //           case error.POSITION_UNAVAILABLE:
 //             errorMessage =
-//               "Location information is unavailable. Check your internet/GPS.";
+//               "Location information is unavailable. Please check your GPS and internet connection.";
 //             break;
 //           case error.TIMEOUT:
 //             errorMessage =
-//               "Location request timed out. Try again in a better network area.";
+//               "Location request timed out. Please try again in an open area with better network connectivity.";
 //             break;
 //         }
 //         Swal.fire({
@@ -626,11 +806,12 @@ export const RegisterShop = () => {
 //           showCancelButton: true,
 //           confirmButtonText: "Try Again",
 //           cancelButtonText: "Continue Without Location",
+//           confirmButtonColor: "#3B82F6",
 //         }).then((result) => {
 //           if (result.isConfirmed) captureLocation();
 //         });
 //       },
-//       { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
+//       geoOptions
 //     );
 //   };
 
@@ -639,8 +820,9 @@ export const RegisterShop = () => {
 //   }, []);
 
 //   useEffect(() => {
-//     const tokenString = localStorage.getItem("token");
-//     if (tokenString) setToken(JSON.parse(tokenString));
+//     const tokenString = localStorage.getItem("jwt_token");
+//     if (tokenString) setToken(tokenString);
+//     // if (tokenString) setToken(JSON.parse(tokenString));
 //   }, []);
 
 //   const isAdmin = user?.usertype === "admin";
@@ -700,28 +882,55 @@ export const RegisterShop = () => {
 //       Swal.fire({ title: "Error", text: "Please login again.", icon: "error" });
 //       return;
 //     }
-//     if (!formData.lat || !formData.lng) {
+//     if (!formData.latString || !formData.lngString) {
 //       const result = await Swal.fire({
 //         title: "Location Not Captured",
-//         text: "Capture location again?",
+//         text: "Location is required for accurate positioning. Capture location again?",
 //         icon: "warning",
 //         showCancelButton: true,
-//         confirmButtonText: "Yes",
+//         confirmButtonText: "Yes, Capture Location",
 //         cancelButtonText: "Continue Anyway",
+//         confirmButtonColor: "#3B82F6",
 //       });
-//       if (result.isConfirmed) captureLocation();
-//       return;
+//       if (result.isConfirmed) {
+//         captureLocation();
+//         return;
+//       }
 //     }
+
+//     // Log the coordinates being sent
+//     // console.log("Submitting coordinates:", {
+//     //   lat: formData.lat,
+//     //   lng: formData.lng,
+//     //   latString: formData.latString,
+//     //   lngString: formData.lngString,
+//     //   stringLength: {
+//     //     lat: formData.latString?.length,
+//     //     lng: formData.lngString?.length
+//     //   }
+//     // });
 
 //     try {
 //       const response = await api.post(`/shop/registershop`, formData, {
-//         headers: { Authorization: `Bearer ${token}` },
+//         headers: { 
+//           Authorization: `Bearer ${token}`,
+//           'Content-Type': 'application/json'
+//         },
 //       });
 //       if (response.status === 201) {
-//         Swal.fire({ title: "Success!", text: "Shop registered", icon: "success" });
+//         Swal.fire({ 
+//           title: "Success!", 
+//           html: `
+//             <div class="text-left">
+//               <p>Shop registered successfully!</p>
+//             </div>
+//           `,
+//           icon: "success" 
+//         });
 //         navigate(isAdmin ? "/admin/shops" : "/");
 //       }
 //     } catch (err) {
+//       console.error("Registration error:", err);
 //       Swal.fire({
 //         title: "Error",
 //         text: err.response?.data?.message || "Registration failed",
@@ -741,36 +950,52 @@ export const RegisterShop = () => {
 //           {/* Location Capture */}
 //           <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-5 sm:p-6">
 //             <h3 className="text-lg font-semibold text-blue-800 mb-3">Shop Location</h3>
+//             {/* <p className="text-sm text-blue-600 mb-4">
+//               Coordinates will be stored as strings to preserve maximum precision (up to 15+ decimal places).
+//             </p> */}
 //             <button
 //               type="button"
 //               onClick={captureLocation}
 //               disabled={isCapturingLocation}
-//               className={`w-full sm:w-auto px-4 py-2 mb-3 rounded-lg font-medium text-white ${
+//               className={`w-full sm:w-auto px-6 py-3 mb-3 rounded-lg font-medium text-white ${
 //                 isCapturingLocation
 //                   ? "bg-gray-400 cursor-not-allowed"
 //                   : "bg-blue-600 hover:bg-blue-700"
 //               }`}
 //             >
 //               {isCapturingLocation
-//                 ? "Capturing..."
+//                 ? "Capturing Location..."
 //                 : isLocationCaptured
 //                 ? "Recapture Location"
 //                 : "Capture Location"}
 //             </button>
 //             {isLocationCaptured && (
-//               <div className="bg-white border border-blue-100 rounded p-3 text-sm text-gray-700">
-//                 <p>Latitude: {location.lat}</p>
-//                 <p>Longitude: {location.lng}</p>
-//                 <p>
-//                   Accuracy: {Math.round(locationAccuracy)} meters{" "}
+//               <div className="bg-white border border-blue-100 rounded-lg p-4 text-sm text-gray-700 space-y-3">
+//                 <div>
+//                   {/* <strong className="text-green-600">Full Precision (Stored as String):</strong> */}
+//                   <div className="font-mono text-xs bg-gray-100 p-2 rounded mt-1 break-all space-y-1">
+//                     <div><strong>Lat:</strong> {formData.latString}</div>
+//                     <div><strong>Lng:</strong> {formData.lngString}</div>
+//                   </div>
+//                 </div>
+//                 {/* <div>
+//                   <strong>Approximate (Number):</strong>
+//                   <div className="text-xs text-gray-500 mt-1">
+//                     Lat: {formData.lat}, Lng: {formData.lng}
+//                   </div>
+//                 </div> */}
+//                 {/* <div>
+//                   <strong>Accuracy:</strong> {Math.round(locationAccuracy)} meters{" "}
 //                   {locationAccuracy > 10 && (
-//                     <span className="text-yellow-600">(Better precision recommended)</span>
+//                     <span className="text-yellow-600 text-xs">(Better precision recommended)</span>
 //                   )}
-//                 </p>
+//                 </div> */}
 //               </div>
 //             )}
 //           </div>
 
+//           {/* Rest of the form remains the same */}
+//           {/* ... (Basic Details, Services sections remain unchanged) ... */}
 //           {/* Basic Details */}
 //           <div className="bg-gray-50 rounded-xl p-5 sm:p-6">
 //             <h3 className="text-lg font-semibold text-gray-800 mb-4">Basic Details</h3>
@@ -875,7 +1100,8 @@ export const RegisterShop = () => {
 //                 <input
 //                   type="password"
 //                   name="password"
-//                   placeholder="Password"
+//                   placeholder="Login Password"
+//                   required
 //                   value={formData.password}
 //                   onChange={handleInput}
 //                   className="w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-purple-200"
@@ -896,6 +1122,7 @@ export const RegisterShop = () => {
 //                   type="text"
 //                   name="service"
 //                   placeholder="Service Name"
+//                   required
 //                   value={service.service}
 //                   onChange={(e) => handleServiceChange(e, i)}
 //                   className="flex-1 border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-200"
@@ -904,6 +1131,7 @@ export const RegisterShop = () => {
 //                   type="tel"
 //                   name="price"
 //                   placeholder="Price ₹"
+//                   required
 //                   value={service.price}
 //                   onChange={(e) => handleServiceChange(e, i)}
 //                   className="w-32 border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-200"
@@ -940,21 +1168,13 @@ export const RegisterShop = () => {
 //               ? isAdmin
 //                 ? "Register Shop"
 //                 : "Complete Registration"
-//               : "Capture Location First"}
+//               : "Capture Full Precision Location First"}
 //           </button>
 //         </form>
 //       </div>
 //     </div>
 //   );
 // };
-
-
-
-
-
-
-
-
 
 
 

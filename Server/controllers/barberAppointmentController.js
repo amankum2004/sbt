@@ -13,7 +13,7 @@ exports.getBarberAppointments = async (req, res) => {
     console.log('Requested shopId:', shopId);
 
     if (!shopId) {
-      return res.status(400).json({ 
+      return res.status(200).json({ 
         success: false,
         error: 'Shop ID is required' 
       });
@@ -181,7 +181,7 @@ exports.getTodaysAppointments = async (req, res) => {
     const { shopId } = req.params;
     
     if (!shopId) {
-      return res.status(400).json({ 
+      return res.status(200).json({ 
         success: false,
         error: 'Shop ID is required' 
       });
@@ -203,6 +203,13 @@ exports.getTodaysAppointments = async (req, res) => {
     .populate('timeSlot', 'date')
     .populate('userId', 'name email phone')
     .sort({ 'showtimes.date': 1 }); // Sort chronologically
+
+    if(!appointments){
+      res.status(200).json({
+        success: false,
+        message: 'No appointments for today',   
+      });
+    }
 
     res.status(200).json({
       success: true,
