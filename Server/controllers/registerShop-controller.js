@@ -172,6 +172,7 @@ exports.checkShopExists = async (req, res) => {
       });
     } else {
       return res.status(200).json({ 
+        success: false,
         exists: false 
       });
     }
@@ -201,6 +202,7 @@ exports.getAllApprovedShops = async(req, res) => {
     const shops = await Shops.find(query);
     if(!shops || shops.length === 0) {
       return res.status(200).json({ 
+        success: false,
         message: 'No approved shops found' 
       });
     }
@@ -234,7 +236,7 @@ exports.getShopById = async(req,res) => {
       const shop = await Shops.findOne({ email: { $regex: new RegExp(`^${email}$`, 'i') } });
       
       if (!shop) {
-        return res.status(404).json({ message: 'Shop not found' });
+        return res.status(200).json({success:false, message: 'Shop not found' });
       }
       res.status(200).json(shop);
     } catch (error) {
@@ -253,7 +255,7 @@ exports.getShopById = async(req,res) => {
       const updatedProfile = await Shops.findOneAndUpdate({ email }, updatedData, { new: true });
       
       if (!updatedProfile) {
-      return res.status(404).json({ message: "Profile not found" });
+      return res.status(200).json({success:false, message: "Profile not found" });
     }
     
     res.status(200).json(updatedProfile);
