@@ -332,18 +332,6 @@ const Login = () => {
             </span>
           </div>
 
-        {/* Add this button temporarily for testing */}
-{/* <button 
-  onClick={() => {
-    localStorage.clear();
-    console.log('🗑️ Cleared all localStorage');
-    window.location.reload();
-  }}
-  className="fixed bottom-4 right-4 px-4 py-2 bg-red-500 text-white rounded-lg shadow-lg z-50"
->
-  Clear Storage & Refresh
-</button> */}
-
           {/* Helper Text */}
           <div className="mt-3 text-center">
             <span className="text-gray-400 text-xs">

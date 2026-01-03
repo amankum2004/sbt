@@ -62,17 +62,28 @@ api.interceptors.request.use(
 );
 
 // Response interceptor - FIXED TYPO (config -> response.config)
+// api.js - Updated response interceptor
 api.interceptors.response.use(
   (response) => {
+    // Check if response is successful based on your API structure
+    if (response.data && response.data.success === false) {
+      // Create a custom error for 200 responses with error messages
+      const error = new Error(response.data.error || 'Request failed');
+      error.response = response;
+      error.status = 400; // Set a generic error status
+      error.isSuccessFalse = true;
+      
+      console.warn('⚠️ API returned success:false:', response.data.error);
+      return Promise.reject(error);
+    }
+    
     if (import.meta.env.VITE_environment === 'development') {
       console.log(`✅ API Success: ${response.config.method?.toUpperCase()} ${response.config.url}`, response.data)
     }
     return response
   },
   (error) => {
-    // Preserve original error structure
-    const originalError = error;
-    
+    // Only handle actual HTTP errors (404, 500, etc.)
     const errorInfo = {
       url: error.config?.url,
       method: error.config?.method,
@@ -81,20 +92,16 @@ api.interceptors.response.use(
       data: error.response?.data
     };
     
-    console.error('🚨 API Error:', errorInfo);
-    
-    if (import.meta.env.VITE_environment === 'development') {
-      console.error('Full error details:', error);
+    // Log only actual HTTP errors
+    if (error.response?.status !== 404) {
+      console.error('🚨 API HTTP Error:', errorInfo);
+    } else {
+      console.warn('⚠️ API endpoint not found:', error.config?.url);
     }
     
     const enhancedError = new Error(errorInfo.message);
-    enhancedError.details = {
-      status: error.response?.status,
-      data: error.response?.data,
-      url: error.config?.url,
-      method: error.config?.method
-    };
-    enhancedError.originalError = originalError;
+    enhancedError.details = errorInfo;
+    enhancedError.originalError = error;
     enhancedError.isAxiosError = true;
     enhancedError.status = error.response?.status;
     enhancedError.response = error.response;
@@ -103,7 +110,6 @@ api.interceptors.response.use(
   }
 );
 
-// Export default
 export default api
 
 

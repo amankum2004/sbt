@@ -257,7 +257,7 @@ const login = async (req, res) => {
 
         if (!user) {
             console.log('User not found, returning 404');
-            return res.status(404).json({ 
+            return res.status(200).json({ 
                 success: false,
                 error: "User not found" 
             });
@@ -268,7 +268,7 @@ const login = async (req, res) => {
         console.log('Password match:', passwordMatch);
         if (!passwordMatch) {
             console.log('Invalid credentials, returning 401'); // FIXED: Changed to 401
-            return res.status(401).json({ // ← Changed from 404 to 401
+            return res.status(200).json({ // ← Changed from 404 to 401
                 success: false,
                 error: "Invalid credentials" 
             });
