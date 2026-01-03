@@ -135,72 +135,84 @@ const Donate = () => {
         description: "Donation for environmental initiatives",
         image: `${window.location.origin}/salonHub-logo.svg`,
         order_id: order.id,
+        // In the handler function inside Razorpay options:
         handler: async function (response) {
-          try {
-            console.log("Razorpay Response: ", response);
-            
-            // Validate all required fields
-            if (!response.razorpay_payment_id || !response.razorpay_order_id || !response.razorpay_signature) {
-              throw new Error('Incomplete payment response');
-            }
-            
-            const paymentData = {
-              payment_id: response.razorpay_payment_id,
-              order_id: response.razorpay_order_id,
-              signature: response.razorpay_signature,
-              donationDetails: {
-                name: form.name,
-                email: form.email,
-                amount: form.amount,
-                message: form.message
-              }
-            };
+            try {
+                console.log("Razorpay Response: ", response);
+                
+                // ✅ FIX: Ensure all required fields exist
+                if (!response.razorpay_payment_id || !response.razorpay_order_id || !response.razorpay_signature) {
+                    throw new Error('Incomplete payment response');
+                }
+                
+                // ✅ FIX: Create donation details object with validation
+                const donationDetails = {
+                    name: form.name.trim(),
+                    email: form.email.toLowerCase().trim(),
+                    amount: parseFloat(form.amount),
+                    message: form.message ? form.message.trim() : ''
+                };
 
-            // Validate payment with backend
-            const validationResult = await validatePayment(paymentData);
-            
-            if (validationResult.success) {
-              // Save donation to database
-              await api.post("/donation/donate", {
-                name: form.name,
-                email: form.email,
-                amount: form.amount,
-                message: form.message,
-                payment_id: response.razorpay_payment_id,
-                order_id: response.razorpay_order_id
-              });
+                console.log('Sending donation details:', donationDetails);
 
-              Swal.fire({
-                title: "Thank You! 🌱",
-                html: `
-                  <div style="text-align: center;">
-                    <p style="font-size: 18px; margin-bottom: 10px;">
-                      Your donation of <strong>₹${form.amount}</strong> has been received successfully!
-                    </p>
-                    <p style="color: #666; font-size: 14px;">
-                      A confirmation email has been sent to ${form.email}
-                    </p>
-                  </div>
-                `,
-                icon: "success",
-                confirmButtonText: "Continue",
-                confirmButtonColor: "#10B981"
-              }).then(() => {
-                setForm({ name: '', email: '', amount: '', message: '' });
-                navigate('/');
-              });
-            } else {
-              throw new Error(validationResult.error || 'Payment validation failed');
+                const paymentData = {
+                    payment_id: response.razorpay_payment_id,
+                    order_id: response.razorpay_order_id,
+                    signature: response.razorpay_signature,
+                    donationDetails: donationDetails
+                };
+
+                // Validate payment with backend
+                const validationResult = await validatePayment(paymentData);
+                
+                if (validationResult.success) {
+                    // Optional: Save donation to your database via separate endpoint if needed
+                    // try {
+                    //     await api.post("/donation/donate", {
+                    //         name: donationDetails.name,
+                    //         email: donationDetails.email,
+                    //         amount: donationDetails.amount,
+                    //         message: donationDetails.message,
+                    //         payment_id: response.razorpay_payment_id,
+                    //         order_id: response.razorpay_order_id
+                    //     });
+                    //     console.log('Donation saved to database');
+                    // } catch (dbError) {
+                    //     console.warn('Database save failed:', dbError.message);
+                    //     // Continue since payment was already validated and saved in the validate endpoint
+                    // }
+
+                    Swal.fire({
+                        title: "Thank You! 🌱",
+                        html: `
+                            <div style="text-align: center;">
+                                <p style="font-size: 18px; margin-bottom: 10px;">
+                                    Your donation of <strong>₹${donationDetails.amount}</strong> has been received successfully!
+                                </p>
+                                <p style="color: #666; font-size: 14px;">
+                                    A confirmation email has been sent to ${donationDetails.email}
+                                </p>
+                            </div>
+                        `,
+                        icon: "success",
+                        confirmButtonText: "Continue",
+                        confirmButtonColor: "#10B981"
+                    }).then(() => {
+                        setForm({ name: '', email: '', amount: '', message: '' });
+                        navigate('/');
+                    });
+                } else {
+                    throw new Error(validationResult.error || 'Payment validation failed');
+                }
+            } catch (error) {
+                console.error('Payment processing error:', error);
+                Swal.fire({
+                    title: "Payment Error",
+                    text: error.message || "There was an issue processing your payment. Please try again.",
+                    icon: "error",
+                    confirmButtonText: "Try Again"
+                });
             }
-          } catch (error) {
-            console.error('Payment processing error:', error);
-            Swal.fire({
-              title: "Payment Error",
-              text: error.message || "There was an issue processing your payment. Please try again.",
-              icon: "error",
-              confirmButtonText: "Try Again"
-            });
-          }
         },
         prefill: {
           name: form.name,

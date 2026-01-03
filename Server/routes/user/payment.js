@@ -2,6 +2,7 @@ const express = require('express');
 const Razorpay = require('razorpay');
 const crypto = require('crypto');
 const Donation = require('../../models/donation-model');
+const nodemailer = require('nodemailer');
 const TimeSlot = require('../../models/timeSlot-model');
 const { bookAppointment } = require('../../controllers/appointment-controller');
 const { sendConfirmationEmail, sendDonationConfirmationEmail } = require('../../utils/mail');
@@ -55,7 +56,6 @@ router.post("/order", async (req, res) => {
 
 // for the donation validation after payment
 // for sending email after payment success
-const nodemailer = require('nodemailer');
 router.post('/donation/validate', async (req, res) => {
     const { 
         payment_id, 
@@ -84,7 +84,9 @@ router.post('/donation/validate', async (req, res) => {
         });
     }
 
+    // ✅ FIX: Extract donation details properly
     const { name, email, amount, message } = donationDetails;
+    console.log('Extracted details:', { name, email, amount, message });
 
     if (!name || !email || !amount) {
         return res.status(400).json({ 
@@ -109,11 +111,11 @@ router.post('/donation/validate', async (req, res) => {
     try {
         console.log('Payment signature validated successfully');
 
-        // Create donation record
+        // ✅ FIX: Ensure proper field mapping for Donation model
         const donation = new Donation({
-            donorName: name.trim(),
-            donorEmail: email.toLowerCase().trim(),
-            amount: parseFloat(amount),
+            donorName: name ? name.trim() : '',
+            donorEmail: email ? email.toLowerCase().trim() : '',
+            amount: parseFloat(amount) || 0,
             message: message ? message.trim() : '',
             payment_id,
             order_id,
@@ -121,17 +123,25 @@ router.post('/donation/validate', async (req, res) => {
             donatedAt: new Date()
         });
 
-        await donation.save();
-        console.log('Donation saved to database:', donation._id);
+        console.log('Donation object to save:', donation);
+
+        // ✅ FIX: Save with validation and catch Mongoose validation errors
+        const savedDonation = await donation.save();
+        console.log('Donation saved to database:', savedDonation._id);
         
         // Send donation confirmation email
-        await sendDonationConfirmationEmail(name, email, amount, message);
-        console.log('Donation confirmation email sent');
+        try {
+            await sendDonationConfirmationEmail(name, email, amount, message);
+            console.log('Donation confirmation email sent');
+        } catch (emailError) {
+            console.warn('Email sending failed:', emailError.message);
+            // Don't fail the entire process if email fails
+        }
         
         res.status(200).json({ 
             success: true,
             message: 'Donation successful! Thank you for your contribution to the environment.',
-            donationId: donation._id,
+            donationId: savedDonation._id,
             amount: amount,
             type: 'donation'
         });
@@ -139,9 +149,21 @@ router.post('/donation/validate', async (req, res) => {
     } catch (error) {
         console.error("Donation processing error:", error);
         
+        // ✅ FIX: Provide more detailed error response
+        let errorMessage = "Error processing donation";
+        
+        if (error.name === 'ValidationError') {
+            // Handle Mongoose validation errors
+            const validationErrors = Object.values(error.errors).map(err => err.message).join(', ');
+            errorMessage = `Validation failed: ${validationErrors}`;
+            console.error('Validation errors:', validationErrors);
+        } else {
+            errorMessage = error.message || "Error processing donation";
+        }
+        
         res.status(500).json({ 
             success: false,
-            error: error.message || "Error processing donation",
+            error: errorMessage,
             type: 'processing_error'
         });
     }
