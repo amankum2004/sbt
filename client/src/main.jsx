@@ -7,12 +7,12 @@ import {ToastContainer} from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
 import { LoadingProvider } from './components/Loading.jsx'
 
-if (import.meta.env.MODE !== 'development') {
-  console.log = () => {};
-  console.error = () => {};
-  console.warn = () => {};
-  console.debug = () => {};
-}
+// if (import.meta.env.MODE !== 'development') {
+//   console.log = () => {};
+//   console.error = () => {};
+//   console.warn = () => {};
+//   console.debug = () => {};
+// }
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
