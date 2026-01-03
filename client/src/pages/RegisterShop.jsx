@@ -433,6 +433,7 @@ export const RegisterShop = () => {
                   type="password"
                   name="password"
                   placeholder="Login Password"
+                  required
                   value={formData.password}
                   onChange={handleInput}
                   className="w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-purple-200"
@@ -453,6 +454,7 @@ export const RegisterShop = () => {
                   type="text"
                   name="service"
                   placeholder="Service Name"
+                  required
                   value={service.service}
                   onChange={(e) => handleServiceChange(e, i)}
                   className="flex-1 border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-200"
@@ -461,6 +463,7 @@ export const RegisterShop = () => {
                   type="tel"
                   name="price"
                   placeholder="Price ₹"
+                  required
                   value={service.price}
                   onChange={(e) => handleServiceChange(e, i)}
                   className="w-32 border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-200"
