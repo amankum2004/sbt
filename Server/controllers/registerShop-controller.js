@@ -197,8 +197,14 @@ exports.getAllApprovedShops = async(req, res) => {
     if (city) {
       query.city = { $regex: new RegExp(city, 'i') };
     }
-    
+
     const shops = await Shops.find(query);
+    if(!shops || shops.length === 0) {
+      return res.status(200).json({ 
+        message: 'No approved shops found' 
+      });
+    }
+
     res.json(shops);
   } catch (error) {
     console.log("Error while getting all shops", error);

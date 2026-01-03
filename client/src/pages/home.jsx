@@ -67,7 +67,7 @@ export const Home = () => {
                     className="max-w-6xl mx-auto"
                 >
                     {/* Hero Section with Primary Keywords */}
-                    <section className="bg-white p-10 rounded-2xl shadow-xl text-center mb-8 mt-6">
+                    <section className="bg-white p-8 rounded-2xl shadow-xl text-center mb-8 mt-2">
                         <h4 className="text-3xl md:text-4xl font-bold text-purple-800 mb-4">
                             Welcome
                             {user ? (

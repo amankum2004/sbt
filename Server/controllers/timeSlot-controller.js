@@ -7,34 +7,6 @@ const moment = require('moment-timezone');
 // const {getShopByEmail} = require('../controllers/registerShop-controller')
 
 
-// TimeSlots CRUD Operations
-
-// exports.updateTimeSlot = async (req, res) => {
-//   const { id } = req.params
-//   try {
-//     const updatedTimeSlot = await TimeSlot.findByIdAndUpdate(id, req.body, {
-//       new: true
-//     })
-//     res.json(updatedTimeSlot)
-//   } catch (error) {
-//     console.error('Error updating time:', error)
-//     res.status(500).json({ error: 'Error updating time' })
-//   }
-// }
-
-// exports.deleteTimeSlot = async (req, res) => {
-//   try {
-//     const timeId = req.params.id
-//     const result = await TimeSlot.findByIdAndDelete(timeId)
-
-//     res.json(result)
-//   } catch (error) {
-//     console.error('Error deleting timeSlot:', error)
-//     res.status(500).json({ error: 'Error deleting timeSlot' })
-//   }
-// }
-
-
 exports.createTimeSlot = async (req, res) => {
   try {
     const { shop_owner_id, name, email, phone, date, showtimes } = req.body;
