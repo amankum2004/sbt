@@ -69,3 +69,10 @@ node_modules/
 Server/.env.development
 Server/.env.production
 .vercel
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/

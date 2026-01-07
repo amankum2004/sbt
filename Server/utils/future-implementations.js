@@ -1,13 +1,11 @@
-// errors - pincode errors to ui
-// validation failed - after payment
+// errors - pincode errors to ui -> done
+// validation failed - after payment -> done
 
 
 // Phase 5: Important Features to Implement
 // 1. Email Notifications (Optional)
 // Set up email notifications when:
-
 // A new review is submitted (to admin)
-
 // A review is approved/rejected (to user)
 
 // Shop owner gets a new review
