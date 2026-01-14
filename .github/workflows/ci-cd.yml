@@ -24,7 +24,7 @@ jobs:
         run: npm install
 
       - name: Create backend .env
-        working-directory: server
+        working-directory: Server
         run: |
           echo "PORT=${{ secrets.PORT }}" >> .env
           echo "PORT=${{ secrets.BREVO_API }}" >> .env
@@ -41,7 +41,7 @@ jobs:
           echo "JWT_SECRET=${{ secrets.NODE_ENV }}" >> .env
 
       - name: Start backend
-        working-directory: server
+        working-directory: Server
         run: |
           npm run start &
           sleep 10
