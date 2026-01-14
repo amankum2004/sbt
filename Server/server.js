@@ -26,7 +26,7 @@ console.log(`🚀 Starting SalonHub Backend in ${process.env.NODE_ENV || 'develo
 
 // MongoDB connection
 mongoose
-.connect(`${process.env.MongoDB}`)
+.connect(`${process.env.MONGO_DB}`)
 .then(() => console.log(`✅ Connected to MongoDB (${process.env.NODE_ENV})`))
 .catch((error) => console.error('❌ MongoDB connection error:', error));
 
