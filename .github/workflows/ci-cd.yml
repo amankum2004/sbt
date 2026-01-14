@@ -1,0 +1,74 @@
+name: CI Pipeline - SalonHub
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      # Backend
+      - name: Install backend dependencies
+        working-directory: server
+        run: npm install
+
+      - name: Create backend .env
+        working-directory: server
+        run: |
+          echo "PORT=${{ secrets.PORT }}" >> .env
+          echo "PORT=${{ secrets.BREVO_API }}" >> .env
+          echo "PORT=${{ secrets.BREVO_EMAIL }}" >> .env
+          echo "PORT=${{ secrets.BREVO_HOST }}" >> .env
+          echo "PORT=${{ secrets.BREVO_PASS }}" >> .env
+          echo "PORT=${{ secrets.BREVO_PORT }}" >> .env
+          echo "PORT=${{ secrets.BREVO_USER }}" >> .env
+          echo "PORT=${{ secrets.CRON_SECRET }}" >> .env
+          echo "MONGO_URI=${{ secrets.MONGODB }}" >> .env
+          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+          echo "JWT_SECRET=${{ secrets.NODE_ENV }}" >> .env
+          echo "JWT_SECRET=${{ secrets.RAZORPAY_SECRET }}" >> .env
+          echo "JWT_SECRET=${{ secrets.NODE_ENV }}" >> .env
+
+      - name: Start backend
+        working-directory: server
+        run: |
+          npm run start &
+          sleep 10
+
+      # Frontend
+      - name: Install frontend dependencies
+        working-directory: client
+        run: npm install
+
+      - name: Create frontend .env
+        working-directory: client
+        run: |
+          echo "VITE_API_BASE_URL=${{ secrets.VITE_PROD_BASE_URL }}" >> .env
+          echo "VITE_API_BASE_URL=${{ secrets.VITE_DEV_BASE_URL }}" >> .env
+          echo "VITE_STRIPE_KEY=${{ secrets.VITE_RAZORPAY_KEY_ID}}" >> .env
+          echo "VITE_STRIPE_KEY=${{ secrets.VITE_RAZORPAY_SECRET}}" >> .env
+
+      - name: Install Playwright browsers
+        working-directory: client
+        run: npx playwright install --with-deps
+
+      - name: Run Playwright tests
+        working-directory: client
+        run: npx playwright test
+
+      - name: Upload Playwright Report
+        uses: actions/upload-artifact@v4
+        with:
+            name: playwright-report
+            path: client/playwright-report

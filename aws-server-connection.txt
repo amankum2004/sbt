@@ -1,0 +1,2 @@
+ssh -i "web-server-salonhub.pem" ec2-user@ec2-65-1-28-220.ap-south-1.compute.amazonaws.com
+
