@@ -20,7 +20,7 @@ jobs:
 
       # Backend
       - name: Install backend dependencies
-        working-directory: server
+        working-directory: Server
         run: npm install
 
       - name: Create backend .env
