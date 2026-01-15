@@ -10,6 +10,7 @@ test('test', async ({ page }) => {
 });
 
 
+
 // test('Owner profile', async ({ page }) => {
 //   await page.goto('https://www.salonhub.co.in/');
 //   await page.getByRole('button', { name: 'Book Salon Appointment Now' }).click();
