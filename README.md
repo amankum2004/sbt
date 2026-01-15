@@ -1,6 +1,6 @@
-#  Salonify – Smart Salon Appointment Booking Platform
+#  SalonHub – Smart Salon Appointment Booking Platform
 
-Salonify is a web-based appointment booking system that allows users to easily discover and book appointments with nearby barber shops. The goal is to eliminate long queues and reduce wait time, making salon visits more efficient and convenient.
+SalonHub is a web-based appointment booking system that allows users to easily discover and book appointments with nearby barber shops. The goal is to eliminate long queues and reduce wait time, making salon visits more efficient and convenient.
 
 ---
 
@@ -30,9 +30,9 @@ Traditional salons often operate on a first-come, first-served basis, leading to
 - No easy way to check availability.
 - Inefficient management for salon owners.
 
-## 💡 Solution – Salonify
+## 💡 Solution – SalonHub
 
-With Salonify:
+With SalonHub:
 - Customers avoid waiting in queues by booking appointments online.
 - View real-time availability.
 - Instant confirmation and time-saving experience.
