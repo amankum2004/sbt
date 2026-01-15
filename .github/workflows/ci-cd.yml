@@ -1,14 +1,13 @@
-name: CI Pipeline - SalonHub
+name: CI/CD Pipeline - SalonHub
 
 on:
   push:
     branches: [ main ]
-  pull_request:
 
 jobs:
-  # ------------------------
-  # CI: TESTING JOB
-  # ------------------------
+  # ========================
+  # CI: FRONTEND TESTING
+  # ========================
   test:
     runs-on: ubuntu-latest
 
@@ -21,46 +20,10 @@ jobs:
         with:
           node-version: 18
 
-      # ===== Backend =====
-      - name: Install backend dependencies
-        working-directory: Server
-        run: npm install
-
-      - name: Create backend .env
-        working-directory: Server
-        run: |
-          echo "PORT=${{ secrets.PORT }}" >> .env
-          echo "BREVO_API=${{ secrets.BREVO_API }}" >> .env
-          echo "BREVO_EMAIL=${{ secrets.BREVO_EMAIL }}" >> .env
-          echo "BREVO_HOST=${{ secrets.BREVO_HOST }}" >> .env
-          echo "BREVO_PASS=${{ secrets.BREVO_PASS }}" >> .env
-          echo "BREVO_PORT=${{ secrets.BREVO_PORT }}" >> .env
-          echo "BREVO_USER=${{ secrets.BREVO_USER }}" >> .env
-          echo "CRON_SECRET=${{ secrets.CRON_SECRET }}" >> .env
-          echo "MONGO_URI=${{ secrets.MONGODB }}" >> .env
-          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
-          echo "RAZORPAY_KEY_ID=${{ secrets.RAZORPAY_KEY_ID }}" >> .env
-          echo "RAZORPAY_SECRET=${{ secrets.RAZORPAY_SECRET }}" >> .env
-          echo "NODE_ENV =${{ secrets.NODE_ENV }}" >> .env
-
-      - name: Start backend
-        working-directory: Server
-        run: |
-          npm run start &
-          sleep 10
-
-      # ===== Frontend =====
+      # ---------- Frontend ----------
       - name: Install frontend dependencies
         working-directory: client
-        run: npm install
-
-      - name: Create frontend .env
-        working-directory: client
-        run: |
-          echo "ITE_PROD_BASE_URL=${{ secrets.VITE_PROD_BASE_URL }}" >> .env
-          echo "VITE_DEV_BASE_URL=${{ secrets.VITE_DEV_BASE_URL }}" >> .env
-          echo "VITE_RAZORPAY_KEY_ID=${{ secrets.VITE_RAZORPAY_KEY_ID}}" >> .env
-          echo "VITE_RAZORPAY_KEY_SECRET=${{ secrets.VITE_RAZORPAY_SECRET}}" >> .env
+        run: npm ci
 
       - name: Install Playwright browsers
         working-directory: client
@@ -70,15 +33,16 @@ jobs:
         working-directory: client
         run: npx playwright test
 
-      - name: Upload Playwright Report
+      - name: Upload Playwright report
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-            name: playwright-report
-            path: client/playwright-report
+          name: playwright-report
+          path: client/playwright-report
 
-  # ------------------------
+  # ========================
   # CD: FRONTEND → VERCEL
-  # ------------------------
+  # ========================
   deploy-frontend:
     needs: test
     runs-on: ubuntu-latest
@@ -93,11 +57,12 @@ jobs:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          vercel-args: '--prod'
+          working-directory: client
+          vercel-args: --prod
 
-  # ------------------------
+  # ========================
   # CD: BACKEND → AWS EC2
-  # ------------------------
+  # ========================
   deploy-backend:
     needs: test
     runs-on: ubuntu-latest
@@ -112,5 +77,5 @@ jobs:
           script: |
             cd sbt/Server
             git pull origin main
-            npm install
+            npm ci
             pm2 restart salonhub-backend
