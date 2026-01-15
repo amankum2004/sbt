@@ -46,6 +46,7 @@ jobs:
   deploy-frontend:
     needs: test
     runs-on: ubuntu-latest
+    environment: production
 
     steps:
       - name: Checkout repository
@@ -66,6 +67,7 @@ jobs:
   deploy-backend:
     needs: test
     runs-on: ubuntu-latest
+    environment: production
 
     steps:
       - name: Deploy backend to EC2
