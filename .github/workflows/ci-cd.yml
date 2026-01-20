@@ -3,6 +3,11 @@ name: CI/CD Pipeline - SalonHub
 on:
   push:
     branches: [ main ]
+    paths:
+      - "client/**"
+      - "Server/**"
+      - ".github/workflows/**"
+
 
 jobs:
   # ========================
@@ -21,9 +26,24 @@ jobs:
           node-version: 18
 
       # ---------- Frontend ----------
+      - name: Cache frontend dependencies
+        uses: actions/cache@v4
+        with:
+          path: client/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('client/package-lock.json') }}
+
+
       - name: Install frontend dependencies
         working-directory: client
         run: npm ci
+
+      # ---------- Cache Playwright ----------
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('client/package-lock.json') }}
+
 
       - name: Install Playwright browsers
         working-directory: client
