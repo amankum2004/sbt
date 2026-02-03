@@ -35,8 +35,8 @@ export default async function globalSetup(config:FullConfig){
 
     const page = await context.newPage();
 
-    await page.goto('http://localhost:5173/login',
-    // await page.goto('https://www.salonhub.co.in/login',
+    // await page.goto('http://localhost:5173/login',
+    await page.goto('https://www.salonhub.co.in/login',
         {
         waitUntil:'domcontentloaded',
     });
@@ -44,8 +44,8 @@ export default async function globalSetup(config:FullConfig){
     console.log("please login manually");
     console.log("wait until dashboard is loaded");
 
-    // await page.waitForURL(/salonhub.co.in/,{timeout:0});
-    await page.waitForURL(/localhost:5173/,{timeout:0});
+    await page.waitForURL(/salonhub.co.in/,{timeout:0});
+    // await page.waitForURL(/localhost:5173/,{timeout:0});
 
     await page.waitForLoadState('networkidle');
 
