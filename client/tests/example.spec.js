@@ -1,5 +1,5 @@
 // @ts-check
-import { test, expect } from '@playwright/test';
+// import { test, expect } from '@playwright/test';
 
 // test('Check ShopOwner profile', async ({ page }) => {
 //   await page.goto('https://www.salonhub.co.in/');
