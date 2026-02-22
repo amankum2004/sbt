@@ -1,9 +1,8 @@
-// import { test, expect } from '@playwright/test';
+import { test, expect } from '@playwright/test';
 
-// test.use({ storageState: 'storage/auth.json' });
+test.use({ storageState: 'storage/auth.json' });
 
 // test.describe('Home Page Navigation', () => {
-
 //   test('Home Dashboard', async ({ page }) => {
 //     await page.goto('/');
 //     await page.getByRole('link', { name: 'Home' }).click();
@@ -13,7 +12,15 @@
 //     await page.getByRole('link', { name: 'Home' }).click();
 //   });
 // });
-                                
+           
+
+test('dashboard-test', async ({ page }) => {
+  await page.goto('https://www.salonhub.co.in/');
+  await page.getByRole('navigation').getByRole('link', { name: 'Home' }).click();
+  await page.getByRole('navigation').getByRole('link', { name: 'About' }).click();
+  await page.getByRole('navigation').getByRole('link', { name: 'Services' }).click();
+  await page.getByRole('navigation').getByRole('link', { name: 'Contact' }).click();
+});
 
 // test('login-check', async ({ page }) => {
 //   await page.goto('/');
