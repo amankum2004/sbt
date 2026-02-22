@@ -1,88 +1,89 @@
-// files to update 
-// forget , resend otp , reset password, slot booking with failure
+import { useEffect, useMemo, useState } from "react";
 
+export const BREAKPOINTS = {
+  sm: 640,
+  md: 768,
+  lg: 1024,
+  xl: 1280,
+  "2xl": 1536,
+};
 
+const FALLBACK_WIDTH = BREAKPOINTS.lg;
+const FALLBACK_HEIGHT = 900;
 
+const getDeviceSize = (width) => {
+  if (width >= BREAKPOINTS["2xl"]) return "2xl";
+  if (width >= BREAKPOINTS.xl) return "xl";
+  if (width >= BREAKPOINTS.lg) return "lg";
+  if (width >= BREAKPOINTS.md) return "md";
+  if (width >= BREAKPOINTS.sm) return "sm";
+  return "xs";
+};
 
-// Now you can use the enhanced API with better error handling:
+const getViewport = () => {
+  if (typeof window === "undefined") {
+    return { width: FALLBACK_WIDTH, height: FALLBACK_HEIGHT };
+  }
 
-// import { api, apiUtils } from '../utils/api'
-// // Basic usage with better error handling
-// try {
-//   const response = await api.post('/time/template/create', formData)
-//   console.log('Success:', response.data)
-// } catch (error) {
-//   console.error('API Error:', error.message)
-//   console.error('Error details:', error.details)
-  
-//   // Show user-friendly error message
-//   alert(error.message)
-// }
+  return {
+    width: window.innerWidth,
+    height: window.innerHeight,
+  };
+};
 
-// // With loading state
-// try {
-//   const data = await apiUtils.callWithLoading(
-//     () => api.put(`/time/template/${templateId}`, formData),
-//     (isLoading) => setIsSubmitting(isLoading)
-//   )
-//   console.log('Success:', data)
-// } catch (error) {
-//   console.error('Error:', error.message)
-// }
+const useDeviceSize = () => {
+  const [viewport, setViewport] = useState(() => getViewport());
 
-// // With retry logic
-// try {
-//   const data = await apiUtils.retry(
-//     () => api.get('/time/shops/123/available'),
-//     3, // max retries
-//     1000 // initial delay
-//   )
-//   console.log('Success after retry:', data)
-// } catch (error) {
-//   console.error('Failed after retries:', error.message)
-// }
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return undefined;
+    }
 
+    let rafId = 0;
 
+    const updateViewport = () => {
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+      }
+      rafId = requestAnimationFrame(() => {
+        setViewport(getViewport());
+      });
+    };
 
+    window.addEventListener("resize", updateViewport, { passive: true });
+    window.addEventListener("orientationchange", updateViewport, { passive: true });
+    updateViewport();
 
+    return () => {
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+      }
+      window.removeEventListener("resize", updateViewport);
+      window.removeEventListener("orientationchange", updateViewport);
+    };
+  }, []);
 
+  return useMemo(() => {
+    const { width, height } = viewport;
+    const deviceSize = getDeviceSize(width);
+    const isLandscape = width > height;
+    const isMobile = width < BREAKPOINTS.md;
+    const isTablet = width >= BREAKPOINTS.md && width < BREAKPOINTS.lg;
+    const isDesktop = width >= BREAKPOINTS.lg;
 
+    return {
+      width,
+      height,
+      deviceSize,
+      breakpoints: BREAKPOINTS,
+      isLandscape,
+      isPortrait: !isLandscape,
+      isMobile,
+      isTablet,
+      isDesktop,
+      isSmallMobile: width < BREAKPOINTS.sm,
+    };
+  }, [viewport]);
+};
 
-
-
-
-
-// import { useEffect, useState } from 'react'
-// const breakpoints = {
-//   sm: 640,
-//   md: 768,
-//   lg: 1024,
-//   xl: 1280,
-//   '2xl': 1536
-// }
-
-// const getDeviceSize = (width) => {
-//   if (width >= breakpoints['2xl']) return '2xl'
-//   if (width >= breakpoints.xl) return 'xl'
-//   if (width >= breakpoints.lg) return 'lg'
-//   if (width >= breakpoints.md) return 'md'
-//   if (width >= breakpoints.sm) return 'sm'
-//   return 'xs'
-// }
-
-// const useDeviceSize = () => {
-//   const [deviceSize, setDeviceSize] = useState(getDeviceSize(window.innerWidth))
-
-//   useEffect(() => {
-//     const handleResize = () => {
-//       setDeviceSize(getDeviceSize(window.innerWidth))
-//     }
-
-//     window.addEventListener('resize', handleResize)
-//     return () => window.removeEventListener('resize', handleResize)
-//   }, [])
-
-//   return deviceSize
-// }
-
-// export default useDeviceSize
+export default useDeviceSize;

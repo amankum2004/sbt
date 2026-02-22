@@ -2,5 +2,106 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --app-content-gutter: clamp(0.75rem, 1.1vw + 0.45rem, 2rem);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  max-width: 100%;
+  min-height: 100%;
+}
+
+html,
+body {
+  overflow-x: clip;
+}
+
+body {
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+.app-shell {
+  display: flex;
+  min-height: 100dvh;
+  width: 100%;
+  max-width: 100%;
+  flex-direction: column;
+  overflow-x: clip;
+}
+
+.app-content {
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+}
+
+main,
+section,
+article,
+aside,
+header,
+footer,
+nav {
+  min-width: 0;
+}
+
+img,
+picture,
+video,
+canvas,
+svg,
+iframe {
+  max-width: 100%;
+}
+
+table {
+  width: 100%;
+  max-width: 100%;
+}
+
+input,
+select,
+textarea,
+button {
+  font: inherit;
+}
+
+@supports not (height: 100dvh) {
+  .app-shell {
+    min-height: 100vh;
+  }
+}
+
+@media (max-width: 1023px) {
+  .h-screen {
+    height: 100dvh;
+  }
+}
+
+@media (max-width: 767px) {
+  [class*="min-w-["] {
+    min-width: 0 !important;
+  }
+
+  [class*="max-w-["] {
+    max-width: 100% !important;
+  }
+
+  .app-shell {
+    font-size: 0.95rem;
+  }
+}
 
 

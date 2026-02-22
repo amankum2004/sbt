@@ -3,18 +3,23 @@ import React from 'react';
 
 const TermsOfService = () => {
     return (
-        <div className="bg-gray-50 min-h-screen py-10 px-4 md:px-8">
-            <div className="max-w-4xl mx-auto bg-white p-6 md:p-10 rounded-xl shadow-md">
-                <h1 className="text-3xl md:text-4xl font-bold mb-6 text-gray-800 text-center">
+        <div className="relative min-h-screen overflow-hidden bg-gradient-to-b from-slate-50 via-cyan-50 to-amber-50 py-12 px-4 sm:px-6 lg:px-8">
+            <div className="pointer-events-none absolute -left-20 top-24 h-64 w-64 rounded-full bg-cyan-200/60 blur-3xl" />
+            <div className="pointer-events-none absolute -right-20 top-36 h-64 w-64 rounded-full bg-amber-200/60 blur-3xl" />
+            <div className="max-w-5xl mx-auto rounded-3xl border border-white/70 bg-white/90 p-6 md:p-10 shadow-[0_24px_70px_-20px_rgba(15,23,42,0.35)] backdrop-blur">
+                <p className="mx-auto mb-3 inline-flex rounded-full bg-slate-900 px-4 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-cyan-200">
+                    Policy Center
+                </p>
+                <h1 className="text-3xl md:text-5xl font-black mb-4 text-slate-900 text-center">
                     Terms of Service
                 </h1>
                 
-                <p className="mb-6 text-gray-700 text-center">
+                <p className="mb-8 text-slate-600 text-center text-sm md:text-base">
                     Last Updated: {new Date().toLocaleDateString('en-IN')}
                 </p>
 
-                <div className="mb-8 p-4 bg-blue-50 border-l-4 border-blue-500 rounded">
-                    <p className="text-gray-700">
+                <div className="mb-8 p-5 bg-cyan-50 border border-cyan-200 rounded-2xl">
+                    <p className="text-slate-700">
                         <strong>Note:</strong> By accessing or using SalonHub's services, you agree to be bound by these Terms of Service. If you disagree with any part, please discontinue use immediately.
                     </p>
                 </div>
@@ -126,7 +131,7 @@ const TermsOfService = () => {
 
                 <Section title="12. Privacy">
                     <p>
-                        Your privacy is important. Please review our <a href="/privacy-policy" className="text-blue-600 hover:underline">Privacy Policy</a> to understand how we collect and use your information.
+                        Your privacy is important. Please review our <a href="/privacy-policy" className="text-cyan-700 hover:underline">Privacy Policy</a> to understand how we collect and use your information.
                     </p>
                 </Section>
 
@@ -156,9 +161,9 @@ const TermsOfService = () => {
                     </div>
                 </Section>
 
-                <div className="mt-10 p-6 bg-gray-50 rounded-lg border border-gray-200">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-2">Acknowledgement</h3>
-                    <p className="text-gray-700">
+                <div className="mt-10 p-6 bg-slate-50 rounded-2xl border border-slate-200">
+                    <h3 className="text-lg font-semibold text-slate-900 mb-2">Acknowledgement</h3>
+                    <p className="text-slate-700">
                         By using SalonHub, you acknowledge that you have read these Terms of Service, understand them, and agree to be bound by them. If you do not agree, please discontinue use of our services immediately.
                     </p>
                 </div>
@@ -169,8 +174,8 @@ const TermsOfService = () => {
 
 const Section = ({ title, children }) => (
     <div className="mb-8">
-        <h2 className="text-xl md:text-2xl font-semibold text-gray-800 mb-3">{title}</h2>
-        <div className="text-gray-700 space-y-3">{children}</div>
+        <h2 className="mb-3 border-b border-slate-200 pb-2 text-xl md:text-2xl font-semibold text-slate-900">{title}</h2>
+        <div className="text-slate-700 space-y-3">{children}</div>
     </div>
 );
 

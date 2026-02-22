@@ -1,5 +1,17 @@
 const mongoose = require("mongoose");
 
+const toCoordinateNumber = (value) => {
+  if (value === null || value === undefined || value === "") return value;
+
+  if (typeof value === "object" && value.$numberDecimal) {
+    const decimalValue = Number(value.$numberDecimal);
+    return Number.isFinite(decimalValue) ? decimalValue : value;
+  }
+
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : value;
+};
+
 const serviceSchema = new mongoose.Schema({
   service: {
     type: String,
@@ -70,37 +82,27 @@ const shopSchema = new mongoose.Schema({
   },
   services: [serviceSchema],
   
-  // Location coordinates - numeric for calculations
+  // Location coordinates
   lat: {
     type: Number,
     required: [true, "Latitude is required"],
+    set: toCoordinateNumber,
     min: -90,
     max: 90
   },
   lng: {
     type: Number,
     required: [true, "Longitude is required"],
+    set: toCoordinateNumber,
     min: -180,
     max: 180
   },
-  
-  // Location coordinates - string for full precision
-  latString: {
-    type: String,
-    required: [true, "Latitude string is required"],
-    match: [/^-?\d{1,3}(\.\d+)?$/, "Invalid latitude format"]
-  },
-  lngString: {
-    type: String,
-    required: [true, "Longitude string is required"],
-    match: [/^-?\d{1,3}(\.\d+)?$/, "Invalid longitude format"]
-  },
-  
+
   // Track coordinate source
   coordinatesSource: {
     type: String,
-    enum: ['client_provided', 'mapmyindia', 'manual_update', 'fallback'],
-    default: 'client_provided'
+    enum: ['device_gps', 'google_geocode', 'manual_update', 'fallback'],
+    default: 'device_gps'
   },
   
   // Approval status
@@ -149,54 +151,3 @@ shopSchema.index({ state: 1, district: 1, city: 1 });
 shopSchema.index({ isApproved: 1 });
 
 module.exports = mongoose.model("Shop", shopSchema);
-
-
-
-
-
-
-
-// const mongoose = require('mongoose');
-
-// // In your shop model file
-// const shopSchema = new mongoose.Schema({
-//   name: { type: String, required: true },
-//   email: { type: String, required: true, unique: true },
-//   phone: { type: String, required: true },
-//   password: { type: String },
-//   shopname: { type: String, required: true },
-//   state: { type: String, required: true },
-//   district: { type: String, required: true },
-//   city: { type: String, required: true },
-//   street: { type: String, required: true },
-//   pin: { type: String, required: true },
-//   services: [{
-//     service: { type: String, required: true },
-//     price: { type: String, required: true }
-//   }],
-//   // Store as numbers for backward compatibility
-//   lat: Number,
-//   lng: Number,
-//   // Store as strings for full precision
-//   latString: {
-//     type: String,
-//     required: true
-//   },
-//   lngString: {
-//     type: String,
-//     required: true
-//   },
-//   isApproved: { type: Boolean, default: false },
-//   // Add shop status field
-//   status: {
-//     type: String,
-//     enum: ['open', 'closed', 'break'],
-//     default: 'open'
-//   },
-//   statusLastUpdated: {
-//     type: Date,
-//     default: Date.now
-//   }
-// }, { timestamps: true });
-
-// module.exports = mongoose.model('Shop', shopSchema);

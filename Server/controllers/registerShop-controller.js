@@ -4,6 +4,40 @@ const bcrypt = require("bcrypt")
 const Appointment = require("../models/appointment-model")
 const { sendShopStatusNotification } = require("../utils/mail");
 
+const VALID_COORDINATE_SOURCES = new Set([
+  "device_gps",
+  "google_geocode",
+  "manual_update",
+  "fallback",
+]);
+
+const toCoordinateNumber = (value) => {
+  if (value === null || value === undefined || value === "") {
+    return null;
+  }
+
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+};
+
+const haversineDistanceKm = (lat1, lng1, lat2, lng2) => {
+  const toRadians = (value) => (value * Math.PI) / 180;
+  const earthRadiusKm = 6371;
+
+  const latDiff = toRadians(lat2 - lat1);
+  const lngDiff = toRadians(lng2 - lng1);
+
+  const a =
+    Math.sin(latDiff / 2) * Math.sin(latDiff / 2) +
+    Math.cos(toRadians(lat1)) *
+      Math.cos(toRadians(lat2)) *
+      Math.sin(lngDiff / 2) *
+      Math.sin(lngDiff / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return earthRadiusKm * c;
+};
+
 
 exports.registershop = async (req, res, next) => {
   try {
@@ -12,7 +46,7 @@ exports.registershop = async (req, res, next) => {
       shopname, state, district, city, street, pin,
       services,
       lat, lng,
-      latString, lngString // Add the new string coordinates
+      coordinatesSource
     } = req.body;
 
     // Required fields for all cases
@@ -21,31 +55,20 @@ exports.registershop = async (req, res, next) => {
       'city', 'street', 'pin', 'services'
     ];
 
+    const latitude = toCoordinateNumber(lat);
+    const longitude = toCoordinateNumber(lng);
+
     // Validate required fields including coordinates
-    if (!lat || !lng) {
+    if (latitude === null || longitude === null) {
       return res.status(400).json({
         message: "Shop location coordinates are required"
       });
     }
 
-    // Use string coordinates if provided, otherwise convert number coordinates to strings
-    const finalLatString = latString || lat.toString();
-    const finalLngString = lngString || lng.toString();
-
     // Validate coordinate ranges for number coordinates
-    if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+    if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
       return res.status(400).json({
         message: "Invalid coordinates provided"
-      });
-    }
-
-    // Validate string coordinates format
-    const latRegex = /^-?\d{1,3}\.\d+$/;
-    const lngRegex = /^-?\d{1,3}\.\d+$/;
-    
-    if (!latRegex.test(finalLatString) || !lngRegex.test(finalLngString)) {
-      return res.status(400).json({
-        message: "Invalid coordinate format"
       });
     }
 
@@ -95,6 +118,10 @@ exports.registershop = async (req, res, next) => {
       hash_password = await bcrypt.hash(password, saltRound);
     }
 
+    const finalCoordinateSource = VALID_COORDINATE_SOURCES.has(coordinatesSource)
+      ? coordinatesSource
+      : "device_gps";
+
     // Create the shop (works for both admin and shop owner cases)
     const newShop = await Shops.create({
       name,
@@ -108,24 +135,10 @@ exports.registershop = async (req, res, next) => {
       street,
       pin,
       services,
-      // Store as numbers for backward compatibility
-      lat: parseFloat(lat),
-      lng: parseFloat(lng),
-      // Store as strings for full precision
-      latString: finalLatString,
-      lngString: finalLngString,
+      lat: latitude,
+      lng: longitude,
+      coordinatesSource: finalCoordinateSource,
       isApproved: !password // Auto-approve if created by admin (no password)
-    });
-
-    console.log("Shop registered with full precision coordinates:", {
-      latNumber: newShop.lat,
-      lngNumber: newShop.lng,
-      latString: newShop.latString,
-      lngString: newShop.lngString,
-      stringLength: {
-        lat: newShop.latString.length,
-        lng: newShop.lngString.length
-      }
     });
 
     return res.status(201).json({
@@ -140,9 +153,7 @@ exports.registershop = async (req, res, next) => {
         isApproved: newShop.isApproved,
         location: {
           lat: newShop.lat,
-          lng: newShop.lng,
-          latString: newShop.latString, // Include string coordinates in response
-          lngString: newShop.lngString
+          lng: newShop.lng
         }
       }
     });
@@ -161,19 +172,25 @@ exports.registershop = async (req, res, next) => {
 exports.checkShopExists = async (req, res) => {
   try {
     const { email } = req.params;
-
-    const shop = await Shops.findOne({ email: email.toLowerCase() });
+    const normalizedEmail = (email || '').trim();
+    const escapedEmail = normalizedEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const shop = await Shops.findOne({
+      email: { $regex: new RegExp(`^${escapedEmail}$`, 'i') }
+    });
     
     if (shop) {
       return res.status(200).json({ 
+        success: true,
         exists: true, 
         shop: shop,
         isApproved: shop.isApproved 
       });
     } else {
       return res.status(200).json({ 
-        success: false,
-        exists: false 
+        success: true,
+        exists: false,
+        shop: null,
+        isApproved: false 
       });
     }
   } catch (error) {
@@ -186,7 +203,7 @@ exports.checkShopExists = async (req, res) => {
 // Get all approved shops (for customers)
 exports.getAllApprovedShops = async(req, res) => {
   try {
-    const { state, district, city } = req.query;
+    const { state, district, city, lat, lng } = req.query;
     const query = { isApproved: true }; // Only fetch approved shops
     
     if (state) {
@@ -199,15 +216,43 @@ exports.getAllApprovedShops = async(req, res) => {
       query.city = { $regex: new RegExp(city, 'i') };
     }
 
-    const shops = await Shops.find(query);
-    if(!shops || shops.length === 0) {
-      return res.status(200).json({ 
-        success: false,
-        message: 'No approved shops found' 
-      });
+    const requesterLat = toCoordinateNumber(lat);
+    const requesterLng = toCoordinateNumber(lng);
+    const shouldSortByDistance =
+      requesterLat !== null &&
+      requesterLng !== null &&
+      requesterLat >= -90 &&
+      requesterLat <= 90 &&
+      requesterLng >= -180 &&
+      requesterLng <= 180;
+
+    let shops = await Shops.find(query).lean();
+
+    if (shouldSortByDistance) {
+      shops = shops
+        .map((shop) => {
+          const shopLat = toCoordinateNumber(shop.lat);
+          const shopLng = toCoordinateNumber(shop.lng);
+          const hasCoordinates = shopLat !== null && shopLng !== null;
+          const distance = hasCoordinates
+            ? haversineDistanceKm(requesterLat, requesterLng, shopLat, shopLng)
+            : Infinity;
+
+          return {
+            ...shop,
+            distance: Number.isFinite(distance) ? Number(distance.toFixed(3)) : null,
+          };
+        })
+        .sort((a, b) => {
+          const first = Number.isFinite(a.distance) ? a.distance : Infinity;
+          const second = Number.isFinite(b.distance) ? b.distance : Infinity;
+          return first - second;
+        });
     }
 
-    res.json(shops);
+    // For list endpoints, return an empty array instead of success:false
+    // so the frontend can render an empty state without throwing.
+    return res.status(200).json(Array.isArray(shops) ? shops : []);
   } catch (error) {
     console.log("Error while getting all shops", error);
     res.status(500).json({ 
@@ -246,18 +291,75 @@ exports.getShopById = async(req,res) => {
   
   
   // update barber Profile by email
-  exports.updateBarberProfile = async (req, res) => {
-    try {
-      const { email } = req.body;  // Assuming the email is sent in the request body
-      const updatedData = req.body;
+exports.updateBarberProfile = async (req, res) => {
+  try {
+    const { email, lat, lng, latString, lngString, ...rest } = req.body;
 
-      // Find and update the barber profile by email
-      const updatedProfile = await Shops.findOneAndUpdate({ email }, updatedData, { new: true });
-      
-      if (!updatedProfile) {
-      return res.status(200).json({success:false, message: "Profile not found" });
+    if (!email) {
+      return res.status(400).json({ success: false, message: "Email is required" });
     }
-    
+
+    const hasLat = lat !== undefined;
+    const hasLng = lng !== undefined;
+    const updatePayload = { ...rest };
+    delete updatePayload._id;
+    delete updatePayload.__v;
+    delete updatePayload.createdAt;
+    delete updatePayload.updatedAt;
+    delete updatePayload.password;
+    if (!VALID_COORDINATE_SOURCES.has(updatePayload.coordinatesSource)) {
+      delete updatePayload.coordinatesSource;
+    }
+
+    if (hasLat !== hasLng) {
+      return res.status(400).json({
+        success: false,
+        message: "Both latitude and longitude are required together"
+      });
+    }
+
+    if (hasLat && hasLng) {
+      const latitude = toCoordinateNumber(lat);
+      const longitude = toCoordinateNumber(lng);
+
+      if (latitude === null || longitude === null) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid coordinates provided"
+        });
+      }
+
+      if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
+        return res.status(400).json({
+          success: false,
+          message: "Coordinates are out of valid range"
+        });
+      }
+
+      updatePayload.lat = latitude;
+      updatePayload.lng = longitude;
+      updatePayload.coordinatesSource =
+        updatePayload.coordinatesSource || "manual_update";
+    }
+
+    // Remove legacy redundant fields if clients still send them.
+    if (latString !== undefined || lngString !== undefined) {
+      updatePayload.coordinatesSource = updatePayload.coordinatesSource || "manual_update";
+    }
+
+    const updatedProfile = await Shops.findOneAndUpdate(
+      { email },
+      {
+        $set: updatePayload,
+        $unset: { latString: 1, lngString: 1 }
+      },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedProfile) {
+      return res.status(200).json({ success: false, message: "Profile not found" });
+    }
+
     res.status(200).json(updatedProfile);
   } catch (error) {
     res.status(500).json({ message: "Error updating profile", error });

@@ -4,6 +4,8 @@ const Shop = require('../models/registerShop-model');
 const Appointment = require('../models/appointment-model');
 const mongoose = require('mongoose');
 
+const escapeRegex = (value = '') => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 exports.submitReview = async (req, res) => {
   try {
     const { shopId, appointmentId, rating, comment } = req.body;
@@ -29,6 +31,20 @@ exports.submitReview = async (req, res) => {
       return res.status(400).json({ 
         success: false, 
         message: 'Shop ID is required' 
+      });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(appointmentId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid appointment ID'
+      });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(shopId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid shop ID'
       });
     }
 
@@ -85,6 +101,13 @@ exports.submitReview = async (req, res) => {
       return res.status(404).json({ 
         success: false, 
         message: 'Appointment not found or does not belong to you' 
+      });
+    }
+
+    if (String(appointment.shopId) !== String(shopId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Appointment does not belong to this shop'
       });
     }
 
@@ -175,7 +198,8 @@ exports.getShopReviews = async (req, res) => {
       limit = 10, 
       sort = 'recent', 
       rating, 
-      status = 'approved' 
+      status = 'approved',
+      search = '' 
     } = req.query;
 
     // Validate shopId
@@ -186,12 +210,29 @@ exports.getShopReviews = async (req, res) => {
       });
     }
 
-    const query = { shopId, status };
+    const pageNum = Math.max(parseInt(page, 10) || 1, 1);
+    const limitNum = Math.min(Math.max(parseInt(limit, 10) || 10, 1), 50);
+
+    const query = { shopId };
+    if (status && status !== 'all') {
+      query.status = status;
+    }
+
     if (rating) {
       const ratingNum = parseInt(rating);
       if (ratingNum >= 1 && ratingNum <= 5) {
         query.rating = ratingNum;
       }
+    }
+
+    const normalizedSearch = String(search || '').trim();
+    if (normalizedSearch) {
+      const regex = new RegExp(escapeRegex(normalizedSearch), 'i');
+      query.$or = [
+        { userName: regex },
+        { userEmail: regex },
+        { comment: regex }
+      ];
     }
 
     // Set sort options
@@ -200,8 +241,7 @@ exports.getShopReviews = async (req, res) => {
     if (sort === 'highest') sortOption = { rating: -1 };
     if (sort === 'lowest') sortOption = { rating: 1 };
 
-    const skip = (parseInt(page) - 1) * parseInt(limit);
-    const limitNum = parseInt(limit);
+    const skip = (pageNum - 1) * limitNum;
 
     const reviews = await Review.find(query)
       .sort(sortOption)
@@ -242,7 +282,7 @@ exports.getShopReviews = async (req, res) => {
       success: true,
       reviews,
       pagination: {
-        page: parseInt(page),
+        page: pageNum,
         limit: limitNum,
         total,
         pages: Math.ceil(total / limitNum)
@@ -312,7 +352,7 @@ exports.getUserReviews = async (req, res) => {
 exports.checkUserReview = async (req, res) => {
   try {
     const userId = req.user.userId;
-    const { shopId } = req.query;
+    const { shopId, appointmentId } = req.query;
     
     if (!shopId) {
       return res.status(400).json({ 
@@ -328,7 +368,19 @@ exports.checkUserReview = async (req, res) => {
       });
     }
 
-    const review = await Review.findOne({ shopId, userId })
+    const query = { shopId, userId };
+    if (appointmentId) {
+      if (!mongoose.Types.ObjectId.isValid(appointmentId)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid appointment ID'
+        });
+      }
+      query.appointmentId = appointmentId;
+    }
+
+    const review = await Review.findOne(query)
+      .sort({ createdAt: -1 })
       .select('rating comment status createdAt');
 
     res.json({ 
@@ -417,6 +469,7 @@ exports.getUserReviewForShop = async (req, res) => {
   try {
     const { shopId } = req.params;
     const userId = req.user.userId;
+    const { appointmentId } = req.query;
 
     // Validate shopId
     if (!mongoose.Types.ObjectId.isValid(shopId)) {
@@ -426,7 +479,19 @@ exports.getUserReviewForShop = async (req, res) => {
       });
     }
 
-    const review = await Review.findOne({ shopId, userId })
+    const query = { shopId, userId };
+    if (appointmentId) {
+      if (!mongoose.Types.ObjectId.isValid(appointmentId)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid appointment ID'
+        });
+      }
+      query.appointmentId = appointmentId;
+    }
+
+    const review = await Review.findOne(query)
+      .sort({ createdAt: -1 })
       .select('-__v -updatedAt');
 
     res.json({ 
@@ -494,11 +559,15 @@ exports.getAllReviews = async (req, res) => {
       status, 
       shopId, 
       userId, 
-      sort = 'recent' 
+      sort = 'recent',
+      search = '' 
     } = req.query;
 
+    const pageNum = Math.max(parseInt(page, 10) || 1, 1);
+    const limitNum = Math.min(Math.max(parseInt(limit, 10) || 20, 1), 100);
+
     const query = {};
-    if (status) query.status = status;
+    if (status && status !== 'all') query.status = status;
     if (shopId) {
       if (!mongoose.Types.ObjectId.isValid(shopId)) {
         return res.status(400).json({ 
@@ -518,8 +587,21 @@ exports.getAllReviews = async (req, res) => {
       query.userId = userId;
     }
 
-    const skip = (parseInt(page) - 1) * parseInt(limit);
-    const limitNum = parseInt(limit);
+    const normalizedSearch = String(search || '').trim();
+    if (normalizedSearch) {
+      const regex = new RegExp(escapeRegex(normalizedSearch), 'i');
+      const matchingShops = await Shop.find({ shopname: regex }).select('_id');
+      const matchingShopIds = matchingShops.map((shop) => shop._id);
+
+      query.$or = [
+        { userName: regex },
+        { userEmail: regex },
+        { comment: regex },
+        ...(matchingShopIds.length > 0 ? [{ shopId: { $in: matchingShopIds } }] : [])
+      ];
+    }
+
+    const skip = (pageNum - 1) * limitNum;
 
     // Set sort options
     let sortOption = { createdAt: -1 };
@@ -541,7 +623,7 @@ exports.getAllReviews = async (req, res) => {
       success: true,
       reviews,
       pagination: {
-        page: parseInt(page),
+        page: pageNum,
         limit: limitNum,
         total,
         pages: Math.ceil(total / limitNum)

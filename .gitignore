@@ -10,8 +10,6 @@ firebase-debug.*.log*
 # Firebase cache
 .firebase/
 
-private.txt
-
 # Firebase config
 
 # Uncomment this if you'd like others to create their own Firebase project.
@@ -79,3 +77,7 @@ Server/.env.production
 /playwright/.cache/
 /playwright/.auth/
 .env*.local
+
+# Personal files
+private.txt
+SalonHub-logo/

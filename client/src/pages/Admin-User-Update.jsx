@@ -2,7 +2,6 @@ import React from "react";
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useLogin } from "../components/LoginContext";
-import { toast } from "react-toastify";
 import Swal from 'sweetalert2';
 import { api } from '../utils/api';
 
@@ -13,7 +12,7 @@ export const AdminUserUpdate = () => {
         name: "",
         email: "",
         phone: "",
-        usertype: user.usertype || "customer" // default to 'user' if not available
+        usertype: user?.usertype || "customer"
     });
     const [loading, setLoading] = useState(false);
     const [fetchLoading, setFetchLoading] = useState(true);
@@ -142,46 +141,54 @@ export const AdminUserUpdate = () => {
 
     if (fetchLoading) {
         return (
-            <div className="flex justify-center items-center h-screen bg-gray-100">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto mb-4"></div>
-                    <p className="text-gray-600">Loading user data...</p>
-                    <p className="text-sm text-gray-500 mt-2">User ID: {params.id}</p>
+            <main className="min-h-screen bg-gradient-to-b from-slate-50 via-cyan-50 to-amber-50 px-4 py-12">
+                <div className="mx-auto flex max-w-xl items-center justify-center rounded-3xl border border-white/70 bg-white/90 p-10 shadow-[0_24px_70px_-20px_rgba(15,23,42,0.35)]">
+                    <div className="text-center">
+                        <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-t-2 border-cyan-500" />
+                        <p className="font-semibold text-slate-700">Loading user data...</p>
+                        <p className="mt-2 text-xs text-slate-500">User ID: {params.id}</p>
+                    </div>
                 </div>
-            </div>
+            </main>
         );
     }
 
     if (error && !fetchLoading) {
         return (
-            <div className="flex justify-center items-center h-screen bg-gray-100">
-                <div className="text-center">
-                    <div className="text-red-500 text-6xl mb-4">⚠️</div>
-                    <h2 className="text-xl font-bold text-gray-800 mb-2">Error Loading User</h2>
-                    <p className="text-gray-600 mb-4">{error}</p>
+            <main className="min-h-screen bg-gradient-to-b from-slate-50 via-cyan-50 to-amber-50 px-4 py-12">
+                <div className="mx-auto max-w-xl rounded-3xl border border-rose-200 bg-white/90 p-10 text-center shadow-[0_24px_70px_-20px_rgba(15,23,42,0.35)]">
+                    <div className="mb-4 text-5xl text-rose-500">⚠️</div>
+                    <h2 className="mb-2 text-2xl font-black text-slate-900">Error Loading User</h2>
+                    <p className="mb-5 text-sm text-slate-600">{error}</p>
                     <button
                         onClick={() => navigate('/admin/users')}
-                        className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg"
+                        className="rounded-xl bg-gradient-to-r from-cyan-500 via-teal-500 to-amber-400 px-6 py-2.5 text-sm font-bold text-slate-950 transition hover:brightness-110"
                     >
                         Back to Users
                     </button>
                 </div>
-            </div>
+            </main>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gray-100 py-8 px-4">
-            <section className="max-w-md mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
-                <div className="bg-blue-600 text-white p-6">
-                    <h1 className="text-2xl font-bold text-center">Update User Data</h1>
-                    <p className="text-center text-blue-100 mt-2">User ID: {params.id}</p>
+        <main className="relative min-h-screen overflow-hidden bg-gradient-to-b from-slate-50 via-cyan-50 to-amber-50 px-4 py-10 sm:px-6">
+            <div className="pointer-events-none absolute -left-20 top-20 h-64 w-64 rounded-full bg-cyan-200/60 blur-3xl" />
+            <div className="pointer-events-none absolute -right-20 top-36 h-64 w-64 rounded-full bg-amber-200/60 blur-3xl" />
+
+            <section className="relative mx-auto w-full max-w-lg overflow-hidden rounded-3xl border border-white/70 bg-white/90 shadow-[0_24px_70px_-20px_rgba(15,23,42,0.35)] backdrop-blur">
+                <div className="bg-slate-900 p-7 text-center text-white">
+                    <p className="inline-flex rounded-full bg-white/10 px-4 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-cyan-200">
+                        Admin Control
+                    </p>
+                    <h1 className="mt-3 text-3xl font-black">Update User Data</h1>
+                    <p className="mt-2 text-xs text-slate-300">User ID: {params.id}</p>
                 </div>
                 
-                <div className="p-6">
+                <div className="p-6 sm:p-7">
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
-                            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+                            <label htmlFor="name" className="mb-1 block text-sm font-semibold text-slate-700">
                                 Full Name *
                             </label>
                             <input
@@ -191,13 +198,13 @@ export const AdminUserUpdate = () => {
                                 value={data.name}
                                 onChange={handleInput}
                                 required
-                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                                className="h-11 w-full rounded-xl border border-slate-300 bg-white px-4 text-sm text-slate-800 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-200"
                                 placeholder="Enter full name"
                             />
                         </div>
 
                         <div>
-                            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                            <label htmlFor="email" className="mb-1 block text-sm font-semibold text-slate-700">
                                 Email Address *
                             </label>
                             <input
@@ -207,13 +214,13 @@ export const AdminUserUpdate = () => {
                                 value={data.email}
                                 onChange={handleInput}
                                 required
-                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                                className="h-11 w-full rounded-xl border border-slate-300 bg-white px-4 text-sm text-slate-800 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-200"
                                 placeholder="Enter email address"
                             />
                         </div>
 
                         <div>
-                            <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
+                            <label htmlFor="phone" className="mb-1 block text-sm font-semibold text-slate-700">
                                 Phone Number *
                             </label>
                             <input
@@ -223,13 +230,13 @@ export const AdminUserUpdate = () => {
                                 value={data.phone}
                                 onChange={handleInput}
                                 required
-                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                                className="h-11 w-full rounded-xl border border-slate-300 bg-white px-4 text-sm text-slate-800 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-200"
                                 placeholder="Enter phone number"
                             />
                         </div>
 
                         <div>
-                            <label htmlFor="usertype" className="block text-sm font-medium text-gray-700 mb-1">
+                            <label htmlFor="usertype" className="mb-1 block text-sm font-semibold text-slate-700">
                                 User Type *
                             </label>
                             <select
@@ -238,7 +245,7 @@ export const AdminUserUpdate = () => {
                                 value={data.usertype}
                                 onChange={handleInput}
                                 required
-                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                                className="h-11 w-full rounded-xl border border-slate-300 bg-white px-4 text-sm text-slate-800 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-200"
                             >
                                 {/* <option value="">Select User Type</option> */}
                                 <option value="customer">Customer</option>
@@ -251,24 +258,24 @@ export const AdminUserUpdate = () => {
                             <button
                                 type="button"
                                 onClick={() => navigate('/admin/users')}
-                                className="flex-1 bg-gray-500 text-white py-3 px-4 rounded-lg hover:bg-gray-600 transition font-medium"
+                                className="flex-1 rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-400"
                             >
                                 Cancel
                             </button>
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className={`flex-1 bg-blue-600 text-white py-3 px-4 rounded-lg font-medium transition ${
+                                className={`flex-1 rounded-xl bg-gradient-to-r from-cyan-500 via-teal-500 to-amber-400 px-4 py-3 text-sm font-black text-slate-950 transition ${
                                     loading 
                                         ? 'opacity-50 cursor-not-allowed' 
-                                        : 'hover:bg-blue-700 transform hover:scale-105'
+                                        : 'hover:brightness-110'
                                 }`}
                             >
                                 {loading ? (
                                     <span className="flex items-center justify-center">
                                         <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
                                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                         </svg>
                                         Updating...
                                     </span>
@@ -280,7 +287,7 @@ export const AdminUserUpdate = () => {
                     </form>
                 </div>
             </section>
-        </div>
+        </main>
     );
 };
 

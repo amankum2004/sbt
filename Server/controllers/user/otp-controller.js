@@ -7,12 +7,19 @@ const {mailOtp} = require('../../utils/mail')
 
 
 exports.userOTP = async (req, res) => {
-  const { email } = req.body;
+  const normalizedEmail = req.body?.email?.trim()?.toLowerCase();
   
   try {
-    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!normalizedEmail) {
+      return res.status(400).json({ success: false, message: "Email is required" });
+    }
+
+    const user = await User.findOne({ email: normalizedEmail });
     if (user) {
-      return res.status(401).json({ error: "User already exists please login" });
+      return res.status(200).json({
+        success: false,
+        message: "User already exists please login"
+      });
     }
 
     const otp = otpGenerator.generate(6, {
@@ -22,7 +29,7 @@ exports.userOTP = async (req, res) => {
     });
 
     // Save OTP in DB
-    await OTP.create({ email: email.toLowerCase(), otp });
+    await OTP.create({ email: normalizedEmail, otp });
 
     // ✅ Respond immediately
     res.status(200).json({
@@ -31,8 +38,8 @@ exports.userOTP = async (req, res) => {
     });
 
     // 🚀 Send mail in background (non-blocking)
-    mailOtp(otp, email.toLowerCase())
-      .then(() => console.log("OTP email sent:", email))
+    mailOtp(otp, normalizedEmail)
+      .then(() => console.log("OTP email sent:", normalizedEmail))
       .catch(err => console.error("Failed to send OTP email:", err));
 
   } catch (error) {
@@ -150,7 +157,19 @@ exports.userOTP = async (req, res) => {
 
 exports.sendOTPforgot = async (req, res) => {
   try {
-    const { email } = req.body;
+    const normalizedEmail = req.body?.email?.trim()?.toLowerCase();
+
+    if (!normalizedEmail) {
+      return res.status(400).json({ success: false, message: "Email is required" });
+    }
+
+    const user = await User.findOne({ email: normalizedEmail });
+    if (!user) {
+      return res.status(200).json({
+        success: false,
+        message: "User does not exist. Please sign up."
+      });
+    }
 
     const otp = otpGenerator.generate(6, {
       upperCaseAlphabets: false,
@@ -158,9 +177,9 @@ exports.sendOTPforgot = async (req, res) => {
       specialChars: false,
     });
 
-    await OTP.create({ email, otp });
+    await OTP.create({ email: normalizedEmail, otp });
     console.log("fine till here");
-    await mailOtp(otp, email.toLowerCase())
+    await mailOtp(otp, normalizedEmail)
     res.status(200).json({
       success: true,
       message: 'OTP sent successfully'

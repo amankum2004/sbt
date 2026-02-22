@@ -128,62 +128,71 @@ export const Payment = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Confirm Your Booking</h2>
-          
-          <div className="space-y-4 mb-6">
+    <main className="relative min-h-screen overflow-hidden bg-gradient-to-b from-slate-50 via-cyan-50 to-amber-50 px-4 py-10 sm:px-6 lg:px-8">
+      <div className="pointer-events-none absolute -left-20 top-24 h-64 w-64 rounded-full bg-cyan-200/60 blur-3xl" />
+      <div className="pointer-events-none absolute -right-20 top-40 h-64 w-64 rounded-full bg-amber-200/60 blur-3xl" />
+
+      <div className="relative mx-auto mt-6 w-full max-w-4xl">
+        <div className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_24px_70px_-20px_rgba(15,23,42,0.35)] backdrop-blur sm:p-8">
+          <p className="inline-flex rounded-full bg-slate-900 px-4 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-cyan-200">
+            Booking Checkout
+          </p>
+          <h2 className="mt-3 text-3xl font-black text-slate-900">Confirm Your Booking</h2>
+          <p className="mt-1 text-sm text-slate-600">Verify details before final confirmation.</p>
+
+          <div className="mb-7 mt-6 space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-600">Customer Details</h3>
-                <p><strong>Name:</strong> {customerName}</p>
-                <p><strong>Email:</strong> {customerEmail}</p>
-                <p><strong>Phone:</strong> {user?.phone || 'N/A'}</p>
+              <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                <h3 className="text-lg font-bold text-slate-900">Customer Details</h3>
+                <p className="mt-2 text-sm text-slate-700"><strong>Name:</strong> {customerName}</p>
+                <p className="text-sm text-slate-700"><strong>Email:</strong> {customerEmail}</p>
+                <p className="text-sm text-slate-700"><strong>Phone:</strong> {user?.phone || 'N/A'}</p>
               </div>
               
-              <div>
-                <h3 className="text-lg font-semibold text-gray-600">Salon Details</h3>
-                <p><strong>Salon name:</strong> {shopName}</p>
-                <p><strong>Location:</strong> {shopLocation}</p>
+              <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                <h3 className="text-lg font-bold text-slate-900">Salon Details</h3>
+                <p className="mt-2 text-sm text-slate-700"><strong>Salon name:</strong> {shopName}</p>
+                <p className="text-sm text-slate-700"><strong>Location:</strong> {shopLocation}</p>
               </div>
             </div>
 
             <div>
-              <h3 className="text-lg font-semibold text-gray-600">Selected Time Slots</h3>
+              <h3 className="text-lg font-bold text-slate-900">Selected Time Slots</h3>
               {selectedShowtimes?.map((slot, index) => (
-                <div key={index} className="bg-gray-50 p-3 rounded mb-2">
-                  <p><strong>Date:</strong> {formatDate(slot.showtimeDate)}</p>
-                  <p><strong>Time:</strong> {formatTimeAMPM(slot.showtimeDate)}</p>
+                <div key={index} className="mb-2 rounded-xl border border-slate-200 bg-white p-3">
+                  <p className="text-sm text-slate-700"><strong>Date:</strong> {formatDate(slot.showtimeDate)}</p>
+                  <p className="text-sm text-slate-700"><strong>Time:</strong> {formatTimeAMPM(slot.showtimeDate)}</p>
                   {showtimeServices[slot.showtimeId] && (
-                    <p><strong>Service:</strong> {showtimeServices[slot.showtimeId].service} - ₹{showtimeServices[slot.showtimeId].price}</p>
+                    <p className="text-sm text-slate-700">
+                      <strong>Service:</strong> {showtimeServices[slot.showtimeId].service} - ₹{showtimeServices[slot.showtimeId].price}
+                    </p>
                   )}
                 </div>
               ))}
             </div>
 
-            <div className="border-t pt-4">
-              <h3 className="text-xl font-bold text-gray-800">Total Amount: ₹{totalAmount}</h3>
+            <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+              <h3 className="text-xl font-black text-slate-900">Total Amount: ₹{totalAmount}</h3>
             </div>
           </div>
 
-          <div className="flex space-x-4">
+          <div className="flex flex-col gap-3 sm:flex-row">
             <button
               onClick={() => navigate(-1)}
-              className="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+              className="rounded-xl border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-400"
             >
               Go Back
             </button>
             <button
               onClick={confirmBooking}
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex-1"
+              className="flex-1 rounded-xl bg-gradient-to-r from-cyan-500 via-teal-500 to-amber-400 px-6 py-3 text-sm font-black text-slate-950 transition hover:brightness-110"
             >
               Confirm Booking
             </button>
           </div>
         </div>
       </div>
-    </div>
+    </main>
   );
 };
 

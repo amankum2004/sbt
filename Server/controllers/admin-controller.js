@@ -58,11 +58,34 @@ const deleteUserById = async(req,res) => {
 // LOGIC TO GET ALL CONTACTS IN ADMIN
 const getAllContacts = async(req,res) => {
     try {
-        const contacts = await Contact.find();
-        if(!contacts || contacts.length===0){
+        const contacts = await Contact.find().sort({ createdAt: -1 }).lean();
+        if (!contacts || contacts.length === 0) {
             return res.status(404).json({message:"No Contacts found"});
         }
-        return res.status(200).json(contacts);
+
+        // Enrich contacts with usertype via user email lookup.
+        const contactEmails = contacts
+            .map((contact) => (contact.email || "").toLowerCase().trim())
+            .filter(Boolean);
+
+        const users = await User.find(
+            { email: { $in: contactEmails } },
+            { email: 1, usertype: 1, _id: 0 }
+        ).lean();
+
+        const userTypeByEmail = new Map(
+            users.map((user) => [(user.email || "").toLowerCase().trim(), user.usertype || "customer"])
+        );
+
+        const contactsWithUserType = contacts.map((contact) => {
+            const normalizedEmail = (contact.email || "").toLowerCase().trim();
+            return {
+                ...contact,
+                usertype: userTypeByEmail.get(normalizedEmail) || "guest",
+            };
+        });
+
+        return res.status(200).json(contactsWithUserType);
     } catch (error) {
         // next(error);
         console.log(error)
@@ -84,15 +107,13 @@ const deleteContactById = async(req,res) => {
 // LOGIC TO GET ALL SHOPS IN ADMIN
 const getAllShops = async(req,res) => {
     try {
-        const shops = await Shop.find({isApproved:true},{password:0});
-        console.log(shops);
-        if(!shops || shops.length===0){
-            return res.status(404).json({message:"No shops found"});
-        }
-        return res.status(200).json(shops);
+        const shops = await Shop.find({ isApproved: true }, { password: 0 }).sort({ createdAt: -1 });
+        // Return empty list instead of 404 so frontend can render empty state.
+        return res.status(200).json(Array.isArray(shops) ? shops : []);
     } catch (error) {
         // next(error);
-        console.log(error)
+        console.log(error);
+        return res.status(500).json({ message: "Failed to fetch shops", error: error.message });
     }
 }
 
@@ -138,10 +159,10 @@ const deleteShopById = async(req,res) => {
 // Admin: get all pending (unapproved) shops
 const getPendingShops = async (req, res) => {
   try {
-    const pendingShops = await Shop.find({ isApproved: false });
-    res.json(pendingShops);
+    const pendingShops = await Shop.find({ isApproved: false }).sort({ createdAt: -1 });
+    res.status(200).json(Array.isArray(pendingShops) ? pendingShops : []);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ message: "Failed to fetch pending shops", error: err.message });
   }
 };
 

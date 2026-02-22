@@ -83,54 +83,37 @@ export const TemplateForm = () => {
                         phone: shopData?.phone || "",
                     }));
 
-                    // Check for existing template - FIXED THIS PART
+                    // Fetch template: "no template found" is a normal first-time state.
                     try {
-                        console.log('🔍 Fetching template for shop ID:', shopData._id);
-                        const templateRes = await api.get(`/time/template/${shopData._id}`);
-                        console.log('📋 Template response:', templateRes.data);
-                        
-                        // Check if template exists (not empty array and has data)
-                        // if (templateRes.data && Array.isArray(templateRes.data) && templateRes.data.length > 0) {
-                        if (templateRes.data && templateRes.data.success) {
-                            // Get the first template (assuming one template per shop)
-                            // const template = templateRes.data[0];
-                            const template = templateRes.data.data;
-                            
-                            console.log('📋 Found existing template:', {
-                                _id: template._id,
-                                workingDays: template.workingDays,
-                                startTime: template.startTime,
-                                endTime: template.endTime,
-                                slotInterval: template.slotInterval,
-                                // isDefault: templateRes.data.isDefault
-                            });
+                        const templateRes = await api.get(`/time/template/${shopData._id}`, {
+                            allowSuccessFalse: true,
+                        });
+                        const payload = templateRes?.data;
 
-                            // setExistingTemplate(template);
-                             // Only set as existing template if it's not a default one
-                            if (!templateRes.data.isDefault && template._id) {
+                        if (!payload || payload.success === false || !payload.data) {
+                            setExistingTemplate(null);
+                        } else {
+                            const template = payload.data;
+                            const hasRealTemplate = !payload.isDefault && template?._id;
+
+                            if (hasRealTemplate) {
                                 setExistingTemplate(template);
-                                console.log('✅ Setting existing template');
+
+                                // Pre-fill form with existing template data
+                                setForm((prev) => ({
+                                    ...prev,
+                                    workingDays: template.workingDays || [],
+                                    startTime: template.startTime || "08:00",
+                                    endTime: template.endTime || "20:00",
+                                    slotInterval: template.slotInterval || 30,
+                                }));
                             } else {
                                 setExistingTemplate(null);
-                                console.log('🆕 No existing template, will create new one');
                             }
-                            
-                            // Pre-fill form with existing template data
-                            setForm(prev => ({
-                                ...prev,
-                                workingDays: template.workingDays || [],
-                                startTime: template.startTime || "08:00",
-                                endTime: template.endTime || "20:00",
-                                slotInterval: template.slotInterval || 30
-                            }));
-                        } else {
-                            // No template exists - reset existing template state
-                            setExistingTemplate(null);
-                            console.log("No existing template found - empty array returned");
                         }
                     } catch (error) {
-                        // No existing template found or other error
-                        console.log("No existing template found or error:", error);
+                        // Only unexpected/network errors should land here.
+                        console.error("Error while fetching template:", error);
                         setExistingTemplate(null);
                     }
 
@@ -271,9 +254,9 @@ export const TemplateForm = () => {
     // Show loading state
     if (userLoading || isLoading) {
         return (
-            <div className="flex justify-center items-center h-screen bg-gray-100">
+            <div className="flex justify-center items-center h-screen bg-gradient-to-b from-slate-50 via-cyan-50 to-amber-50">
                 <div className="text-xl text-gray-700 flex items-center">
-                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-cyan-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
@@ -286,14 +269,14 @@ export const TemplateForm = () => {
     // Check if user is not logged in
     if (!user) {
         return (
-            <div className="flex justify-center items-center h-screen bg-gray-100">
-                <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full text-center">
+            <div className="flex justify-center items-center h-screen bg-gradient-to-b from-slate-50 via-cyan-50 to-amber-50">
+                <div className="rounded-2xl border border-white/80 bg-white/90 p-8 shadow-[0_16px_35px_-20px_rgba(15,23,42,0.45)] max-w-md w-full text-center">
                     <div className="text-red-500 text-6xl mb-4">🔒</div>
                     <h2 className="text-2xl font-bold text-gray-800 mb-4">Access Denied</h2>
                     <p className="text-gray-600 mb-6">Please log in to manage your time template.</p>
                     <button
                         onClick={() => navigate('/login')}
-                        className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition duration-200"
+                        className="rounded-lg bg-gradient-to-r from-cyan-500 to-amber-400 px-6 py-2 font-semibold text-slate-950 transition hover:brightness-110"
                     >
                         Go to Login
                     </button>
@@ -329,8 +312,8 @@ export const TemplateForm = () => {
         }
 
         return (
-            <div className="flex justify-center items-center h-screen bg-gray-100">
-                <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full text-center">
+            <div className="flex justify-center items-center h-screen bg-gradient-to-b from-slate-50 via-cyan-50 to-amber-50">
+                <div className="rounded-2xl border border-white/80 bg-white/90 p-8 shadow-[0_16px_35px_-20px_rgba(15,23,42,0.45)] max-w-md w-full text-center">
                     <div className="text-6xl mb-4">{icon}</div>
                     <h2 className="text-2xl font-bold text-gray-800 mb-4">{title}</h2>
                     <p className="text-gray-600 mb-6">{message}</p>
@@ -345,7 +328,7 @@ export const TemplateForm = () => {
                         )}
                         <button
                             onClick={() => navigate('/')}
-                            className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition duration-200"
+                            className="rounded-lg bg-gradient-to-r from-cyan-500 to-amber-400 px-6 py-2 font-semibold text-slate-950 transition hover:brightness-110"
                         >
                             Go to Home
                         </button>
@@ -356,9 +339,12 @@ export const TemplateForm = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 py-4 px-3 sm:px-4">
-            <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-md p-4 sm:p-6">
+        <div className="min-h-screen bg-gradient-to-b from-slate-50 via-cyan-50 to-amber-50 py-4 px-3 sm:px-4">
+            <div className="max-w-2xl mx-auto rounded-3xl border border-white/80 bg-white/90 shadow-[0_20px_45px_-25px_rgba(15,23,42,0.45)] p-4 sm:p-6">
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 mt-4 sm:mt-8 space-y-2 sm:space-y-0">
+                    <p className="inline-flex rounded-full bg-slate-900 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-cyan-200 sm:hidden">
+                        Schedule Setup
+                    </p>
                     <h1 className="text-xl mt-3 sm:text-2xl font-bold text-gray-800 text-center sm:text-left">
                         {existingTemplate ? "Update Time Template" : "Create Time Template"}
                     </h1>
@@ -389,7 +375,7 @@ export const TemplateForm = () => {
                                         onClick={() => toggleDay(day)}
                                         className={`p-2 sm:p-3 rounded border text-xs sm:text-sm font-medium transition-colors ${
                                             form.workingDays.includes(day)
-                                                ? "bg-blue-500 text-white border-blue-500"
+                                                ? "bg-cyan-600 text-white border-cyan-600"
                                                 : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
                                         }`}
                                     >
@@ -406,7 +392,7 @@ export const TemplateForm = () => {
                                         onClick={() => toggleDay(day)}
                                         className={`p-2 sm:p-3 rounded border text-xs sm:text-sm font-medium transition-colors ${
                                             form.workingDays.includes(day)
-                                                ? "bg-blue-500 text-white border-blue-500"
+                                                ? "bg-cyan-600 text-white border-cyan-600"
                                                 : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
                                         }`}
                                     >
@@ -460,9 +446,9 @@ export const TemplateForm = () => {
                     </div>
 
                     {/* Slot Calculation Display */}
-                    <div className="bg-blue-50 p-3 sm:p-4 rounded-lg">
-                        <h3 className="font-medium text-blue-800 mb-1 sm:mb-2 text-sm sm:text-base">Slot Information</h3>
-                        <p className="text-blue-700 text-sm sm:text-base">
+                    <div className="bg-cyan-50 p-3 sm:p-4 rounded-lg">
+                        <h3 className="font-medium text-cyan-800 mb-1 sm:mb-2 text-sm sm:text-base">Slot Information</h3>
+                        <p className="text-cyan-700 text-sm sm:text-base">
                             {slotsPerDay} slots per day × {form.workingDays.length} days ={" "}
                             <strong>{totalSlots} slots per week</strong>
                         </p>
@@ -472,7 +458,7 @@ export const TemplateForm = () => {
                     <button
                         type="submit"
                         disabled={isSubmitting}
-                        className="w-full bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white py-3 px-4 rounded-lg font-medium transition duration-200 text-sm sm:text-base"
+                        className="w-full rounded-lg bg-gradient-to-r from-cyan-500 to-amber-400 py-3 px-4 text-sm font-black text-slate-950 transition duration-200 hover:brightness-110 disabled:cursor-not-allowed disabled:bg-slate-300 sm:text-base"
                     >
                         {isSubmitting 
                             ? "Processing..." 
@@ -687,7 +673,7 @@ export const TemplateForm = () => {
 //     // Show loading state
 //     if (userLoading || isLoading) {
 //         return (
-//             <div className="flex justify-center items-center h-screen bg-gray-100">
+//             <div className="flex justify-center items-center h-screen bg-gradient-to-b from-slate-50 via-cyan-50 to-amber-50">
 //                 <div className="text-xl text-gray-700 flex items-center">
 //                     <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
 //                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -702,14 +688,14 @@ export const TemplateForm = () => {
 //     // Check if user is not logged in
 //     if (!user) {
 //         return (
-//             <div className="flex justify-center items-center h-screen bg-gray-100">
-//                 <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full text-center">
+//             <div className="flex justify-center items-center h-screen bg-gradient-to-b from-slate-50 via-cyan-50 to-amber-50">
+//                 <div className="rounded-2xl border border-white/80 bg-white/90 p-8 shadow-[0_16px_35px_-20px_rgba(15,23,42,0.45)] max-w-md w-full text-center">
 //                     <div className="text-red-500 text-6xl mb-4">🔒</div>
 //                     <h2 className="text-2xl font-bold text-gray-800 mb-4">Access Denied</h2>
 //                     <p className="text-gray-600 mb-6">Please log in to manage your time template.</p>
 //                     <button
 //                         onClick={() => navigate('/login')}
-//                         className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition duration-200"
+//                         className="bg-gradient-to-r from-cyan-500 to-amber-400 hover:brightness-110 text-white px-6 py-2 rounded-lg transition duration-200"
 //                     >
 //                         Go to Login
 //                     </button>
@@ -745,8 +731,8 @@ export const TemplateForm = () => {
 //         }
 
 //         return (
-//             <div className="flex justify-center items-center h-screen bg-gray-100">
-//                 <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full text-center">
+//             <div className="flex justify-center items-center h-screen bg-gradient-to-b from-slate-50 via-cyan-50 to-amber-50">
+//                 <div className="rounded-2xl border border-white/80 bg-white/90 p-8 shadow-[0_16px_35px_-20px_rgba(15,23,42,0.45)] max-w-md w-full text-center">
 //                     <div className="text-6xl mb-4">{icon}</div>
 //                     <h2 className="text-2xl font-bold text-gray-800 mb-4">{title}</h2>
 //                     <p className="text-gray-600 mb-6">{message}</p>
@@ -761,7 +747,7 @@ export const TemplateForm = () => {
 //                         )}
 //                         <button
 //                             onClick={() => navigate('/')}
-//                             className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition duration-200"
+//                             className="bg-gradient-to-r from-cyan-500 to-amber-400 hover:brightness-110 text-white px-6 py-2 rounded-lg transition duration-200"
 //                         >
 //                             Go to Home
 //                         </button>
@@ -772,7 +758,7 @@ export const TemplateForm = () => {
 //     }
 
 //     return (
-//         <div className="min-h-screen bg-gray-50 py-8 px-4">
+//         <div className="min-h-screen bg-gradient-to-b from-slate-50 via-cyan-50 to-amber-50 py-8 px-4">
 //             <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-md p-6">
 //                 <div className="flex justify-between items-center mb-4 mt-8">
 //                     <h1 className="text-2xl font-bold text-gray-800">
@@ -803,7 +789,7 @@ export const TemplateForm = () => {
 //                                     onClick={() => toggleDay(day)}
 //                                     className={`p-2 rounded border ${
 //                                         form.workingDays.includes(day)
-//                                             ? "bg-blue-500 text-white border-blue-500"
+//                                             ? "bg-cyan-600 text-white border-cyan-600"
 //                                             : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
 //                                     }`}
 //                                 >
@@ -852,9 +838,9 @@ export const TemplateForm = () => {
 //                     </div>
 
 //                     {/* Slot Calculation Display */}
-//                     <div className="bg-blue-50 p-4 rounded-lg">
-//                         <h3 className="font-medium text-blue-800 mb-2">Slot Information</h3>
-//                         <p className="text-blue-700">
+//                     <div className="bg-cyan-50 p-4 rounded-lg">
+//                         <h3 className="font-medium text-cyan-800 mb-2">Slot Information</h3>
+//                         <p className="text-cyan-700">
 //                             {slotsPerDay} slots per day × {form.workingDays.length} days ={" "}
 //                             <strong>{totalSlots} total slots per week</strong>
 //                         </p>
@@ -864,7 +850,7 @@ export const TemplateForm = () => {
 //                     <button
 //                         type="submit"
 //                         disabled={isSubmitting}
-//                         className="w-full bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white py-3 px-4 rounded-lg font-medium transition duration-200"
+//                         className="w-full bg-gradient-to-r from-cyan-500 to-amber-400 hover:brightness-110 disabled:bg-slate-300 text-white py-3 px-4 rounded-lg font-medium transition duration-200"
 //                     >
 //                         {isSubmitting 
 //                             ? "Processing..." 

@@ -4,6 +4,7 @@ import { FaMapMarkerAlt, FaStar, FaTimes, FaRedo } from "react-icons/fa";
 import { api } from '../utils/api';
 import Swal from 'sweetalert2';
 import ReviewForm from '../components/ReviewForm';
+import { buildDirectionsLinksFromShop } from "../utils/googleMaps";
 
 const CustomerDashboard = () => {
   const { user } = useLogin();
@@ -14,6 +15,13 @@ const CustomerDashboard = () => {
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [selectedAppointmentForReview, setSelectedAppointmentForReview] = useState(null);
   const [reviewsGiven, setReviewsGiven] = useState({}); // Track which appointments have been reviewed
+  const [userLocation, setUserLocation] = useState(null);
+  const [directionsModal, setDirectionsModal] = useState({
+    isOpen: false,
+    embedUrl: "",
+    webUrl: "#",
+    shopName: "",
+  });
 
   useEffect(() => {
     if (user?.email) {
@@ -39,6 +47,28 @@ const CustomerDashboard = () => {
         console.log('Notification permission:', permission);
       });
     }
+  }, []);
+
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setUserLocation({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        });
+      },
+      (error) => {
+        console.warn("Customer geolocation unavailable:", error);
+        setUserLocation(null);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 20000,
+        maximumAge: 0,
+      }
+    );
   }, []);
 
   // Function to sort appointments by date and time
@@ -326,19 +356,29 @@ const CustomerDashboard = () => {
     setSelectedAppointmentForReview(null);
   };
 
-  // Function to generate Google Maps directions URL
-  const getGoogleMapsUrl = (shop) => {
-    if (!shop) return '#';
+  const openDirections = (shop) => {
+    const { embedUrl, webUrl } = buildDirectionsLinksFromShop({
+      shop,
+      userLocation,
+    });
 
-    const { street, city, state, pin, lat, lng } = shop;
-
-    if (lat && lng) {
-      return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+    if (embedUrl) {
+      setDirectionsModal({
+        isOpen: true,
+        embedUrl,
+        webUrl,
+        shopName: shop?.shopname || "Shop",
+      });
+      return;
     }
 
-    const address = `${street}, ${city}, ${state} ${pin}`;
-    const encodedAddress = encodeURIComponent(address);
-    return `https://www.google.com/maps/dir/?api=1&destination=${encodedAddress}`;
+    if (webUrl && webUrl !== "#") {
+      window.open(webUrl, "_blank", "noopener,noreferrer");
+    }
+  };
+
+  const closeDirectionsModal = () => {
+    setDirectionsModal((prev) => ({ ...prev, isOpen: false }));
   };
 
   // Function to format complete address
@@ -359,10 +399,13 @@ const CustomerDashboard = () => {
 
   const AppointmentCard = ({ appointment, isCurrent }) => {
     const shop = appointment.shopId;
-    const googleMapsUrl = getGoogleMapsUrl(shop);
+    const directionsLinks = buildDirectionsLinksFromShop({ shop, userLocation });
     const completeAddress = getCompleteAddress(shop);
     const eligibleForReview = isEligibleForReview(appointment);
     const hasReviewed = reviewsGiven[appointment._id]?.hasReviewed || false;
+    const firstSlotDate =
+      appointment.showtimes?.[0]?.date || appointment.timeSlot?.date || null;
+    const extraSlotsCount = Math.max((appointment.showtimes?.length || 0) - 1, 0);
 
     // Debug logging for each appointment
     useEffect(() => {
@@ -442,15 +485,15 @@ const CustomerDashboard = () => {
       }
 
       if (status === 'completed') {
-        return <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">Service Completed</span>;
+        return <span className="px-2 py-1 bg-cyan-100 text-cyan-800 rounded-full text-xs font-medium">Service Completed</span>;
       }
 
       return <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-medium">Pending</span>;
     };
 
     return (
-      <div className="bg-white rounded-lg shadow-md border border-gray-200 p-4 sm:p-6 mb-4 hover:shadow-lg transition-shadow">
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-4 sm:mb-6">
+      <div className="rounded-2xl border border-white/80 bg-white/90 shadow-[0_16px_35px_-20px_rgba(15,23,42,0.45)] p-4 sm:p-6 mb-4 hover:shadow-lg transition-shadow">
+        <div className="mb-4 flex flex-col gap-4 sm:mb-6 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex-1">
             <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-3">
               <h3 className="text-lg sm:text-xl font-semibold text-gray-800">
@@ -495,30 +538,10 @@ const CustomerDashboard = () => {
                   </span>
                 </div>
               )}
-            </div>
-          </div>
 
-          {/* Right Side - Address & Directions */}
-          <div className="flex-1 sm:text-right">
-            <div className="text-gray-600">
-              <div className="flex items-start sm:items-center sm:justify-end space-x-2">
-                <FaMapMarkerAlt className="text-lg sm:text-xl text-blue-600 hover:text-blue-800 mt-1 sm:mt-0 flex-shrink-0" />
-                <div className="flex-1">
-                  <p className="text-sm mb-1 line-clamp-2">{completeAddress}</p>
-                  {completeAddress !== 'Location not available' && (
-                    <a
-                      href={googleMapsUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center text-blue-600 hover:text-blue-800 text-xs sm:text-sm font-medium transition-colors"
-                    >
-                      <svg className="w-3 h-3 sm:w-4 sm:h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M12 1.586l-4 4v12.828l4-4V1.586zM3.707.293A1 1 0 002 1v14a1 1 0 00.293.707l4 4A1 1 0 007 20h10a1 1 0 001-1V1a1 1 0 00-1-1H7a1 1 0 00-.707.293l-4 4z" clipRule="evenodd" />
-                      </svg>
-                      Get Directions
-                    </a>
-                  )}
-                </div>
+              <div className="flex items-start">
+                <FaMapMarkerAlt className="mt-0.5 mr-2 flex-shrink-0 text-cyan-700" />
+                <p className="line-clamp-2 text-sm text-slate-600">{completeAddress}</p>
               </div>
             </div>
           </div>
@@ -529,104 +552,80 @@ const CustomerDashboard = () => {
           </div>
         </div>
 
-        {/* Appointment Date & Time in single row for all screens */}
-        <div className="mb-4 p-3 sm:p-4 bg-gray-50 rounded-lg">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-            {/* Combined Date & Time Section */}
-            <div className="col-span-1 sm:col-span-2 lg:col-span-1">
-              <div className="flex flex-row items-start gap-3 sm:gap-4">
-                {/* Appointment Date */}
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs text-gray-600 font-medium mb-1">
-                    <span className="hidden sm:inline">Appointment Date</span>
-                    <span className="sm:hidden">Date</span>
-                  </p>
-                  <p className="text-sm sm:text-base font-semibold text-gray-800 truncate">
-                    <span className="hidden sm:inline">
-                      {appointment.timeSlot?.date ? formatDate(appointment.timeSlot.date) : 'N/A'}
-                    </span>
-                    <span className="sm:hidden">
-                      {appointment.timeSlot?.date ? formatShortDate(appointment.timeSlot.date) : 'N/A'}
-                    </span>
-                  </p>
-                </div>
-                
-                {/* Scheduled Time(s) */}
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs text-gray-600 font-medium mb-1">
-                    <span className="hidden sm:inline">Scheduled Time</span>
-                    <span className="sm:hidden">Time</span>
-                  </p>
-                  <div className="space-y-1">
-                    {appointment.showtimes && appointment.showtimes.length > 0 ? (
-                      appointment.showtimes.map((showtime, index) => (
-                        <div key={index} className="flex items-center space-x-2">
-                          <span className="text-sm sm:text-base font-semibold text-gray-800 truncate">
-                            <span className="hidden sm:inline">
-                              {showtime.date ? formatTime(showtime.date) : 'N/A'}
-                            </span>
-                            <span className="sm:hidden">
-                              {showtime.date ? formatShortTime(showtime.date) : 'N/A'}
-                            </span>
-                          </span>
-                          {appointment.showtimes.length > 1 && (
-                            <span className="text-xs text-gray-500">({index + 1})</span>
-                          )}
-                        </div>
-                      ))
-                    ) : (
-                      <span className="text-gray-500 text-xs sm:text-sm">No times scheduled</span>
-                    )}
-                  </div>
-                </div>
+        <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 sm:p-4">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-5">
+            <div className="rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-center">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Date</p>
+              <p className="mt-1 text-sm font-bold text-slate-800">
+                {firstSlotDate ? formatShortDate(firstSlotDate) : "N/A"}
+              </p>
+            </div>
+
+            <div className="rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-center">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Time</p>
+              <p className="mt-1 text-sm font-bold text-slate-800">
+                {firstSlotDate ? formatShortTime(firstSlotDate) : "N/A"}
+              </p>
+              {extraSlotsCount > 0 && (
+                <p className="mt-0.5 text-[11px] text-slate-500">+{extraSlotsCount} more</p>
+              )}
+            </div>
+
+            <div className="rounded-lg border border-slate-200 bg-white px-2 py-2.5 text-center">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Review</p>
+              <div className="mt-1 flex min-h-[36px] items-center justify-center">
+                {eligibleForReview ? (
+                  <button
+                    onClick={() => handleReviewClick(appointment)}
+                    className="inline-flex h-9 w-full items-center justify-center gap-1 rounded-lg bg-gradient-to-r from-cyan-500 to-amber-400 px-2 text-xs font-black text-slate-950 transition hover:brightness-110"
+                  >
+                    <FaStar className="text-xs" />
+                    Write
+                  </button>
+                ) : hasReviewed ? (
+                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600">
+                    <FaStar className="text-xs" />
+                    {reviewsGiven[appointment._id]?.rating ? `${reviewsGiven[appointment._id].rating}★` : "Done"}
+                  </span>
+                ) : (
+                  <span className="text-xs text-slate-400">N/A</span>
+                )}
               </div>
             </div>
 
-            {/* Review Button or Status */}
-            <div className="col-span-1 lg:col-span-1 flex items-center justify-center sm:justify-start">
-              {eligibleForReview ? (
-                <button
-                  onClick={() => handleReviewClick(appointment)}
-                  className="px-3 sm:px-4 py-2 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white rounded-lg transition-all duration-200 text-xs sm:text-sm font-medium flex items-center justify-center gap-2 shadow-sm hover:shadow w-full sm:w-auto"
-                >
-                  <FaStar className="text-sm sm:text-base" />
-                  <span className="hidden sm:inline">Write Review</span>
-                  <span className="sm:hidden">Review</span>
-                </button>
-              ) : hasReviewed ? (
-                <div className="flex items-center gap-2 text-green-600 justify-center sm:justify-start w-full sm:w-auto">
-                  <FaStar className="text-sm sm:text-base" />
-                  <span className="text-xs sm:text-sm font-medium hidden sm:inline">
-                    Reviewed {reviewsGiven[appointment._id]?.rating && `(${reviewsGiven[appointment._id].rating}★)`}
-                  </span>
-                  <span className="text-xs sm:text-sm font-medium sm:hidden">
-                    {reviewsGiven[appointment._id]?.rating ? `Reviewed ${reviewsGiven[appointment._id].rating}★` : 'Done'}
-                  </span>
-                </div>
-              ) : (
-                <div className="h-10 flex items-center justify-center w-full sm:w-auto">
-                  <span className="text-gray-400 text-xs sm:text-sm hidden sm:inline">Review not available</span>
-                  <span className="text-gray-400 text-xs sm:text-sm sm:hidden">No Review</span>
-                </div>
-              )}
+            <div className="rounded-lg border border-slate-200 bg-white px-2 py-2.5 text-center">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Cancel</p>
+              <div className="mt-1 flex min-h-[36px] items-center justify-center">
+                {isCurrent && appointment.status === 'confirmed' ? (
+                  <button
+                    onClick={() => cancelAppointment(appointment._id)}
+                    className="inline-flex h-9 w-full items-center justify-center rounded-lg bg-rose-500 px-2 text-xs font-semibold text-white transition hover:bg-rose-600"
+                  >
+                    Cancel
+                  </button>
+                ) : (
+                  <span className="text-xs text-slate-400">N/A</span>
+                )}
+              </div>
             </div>
 
-            {/* Cancel Appointment Button */}
-            <div className="col-span-1 lg:col-span-1 flex items-center justify-center">
-              {isCurrent && appointment.status === 'confirmed' ? (
-                <button
-                  onClick={() => cancelAppointment(appointment._id)}
-                  className="px-3 sm:px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors text-xs sm:text-sm font-medium w-full sm:max-w-[150px]"
-                >
-                  <span className="hidden sm:inline">Cancel Appointment</span>
-                  <span className="sm:hidden">Cancel</span>
-                </button>
-              ) : (
-                <div className="h-10 flex items-center justify-center w-full">
-                  <span className="text-gray-400 text-xs sm:text-sm hidden sm:inline">Not available</span>
-                  <span className="text-gray-400 text-xs sm:text-sm sm:hidden">N/A</span>
-                </div>
-              )}
+            <div className="col-span-2 rounded-lg border border-slate-200 bg-white px-2 py-2.5 text-center lg:col-span-1">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Directions</p>
+              <div className="mt-1 flex min-h-[36px] items-center justify-center">
+                {completeAddress !== 'Location not available' ? (
+                  <button
+                    type="button"
+                    onClick={() => openDirections(shop)}
+                    className="inline-flex h-9 w-full items-center justify-center gap-1 rounded-lg border border-cyan-200 bg-cyan-50 px-2 text-xs font-semibold text-cyan-700 transition hover:bg-cyan-100"
+                    disabled={!directionsLinks.webUrl || directionsLinks.webUrl === "#"}
+                  >
+                    <FaMapMarkerAlt className="text-xs" />
+                    Get Directions
+                  </button>
+                ) : (
+                  <span className="text-xs text-slate-400">N/A</span>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -640,7 +639,7 @@ const CustomerDashboard = () => {
 
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-xl w-full max-w-2xl relative max-h-[90vh] overflow-y-auto">
+        <div className="rounded-2xl border border-white/80 bg-white/95 w-full max-w-2xl relative max-h-[90vh] overflow-y-auto shadow-[0_24px_60px_-28px_rgba(15,23,42,0.5)]">
           <div className="sticky top-0 bg-white p-4 sm:p-6 border-b border-gray-200 flex justify-between items-center z-10">
             <div>
               <h3 className="text-lg sm:text-xl font-semibold text-gray-900">
@@ -675,6 +674,49 @@ const CustomerDashboard = () => {
     );
   };
 
+  const DirectionsModal = () => {
+    if (!directionsModal.isOpen) return null;
+
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4">
+        <div className="w-full max-w-4xl overflow-hidden rounded-2xl border border-white/30 bg-white shadow-2xl">
+          <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
+            <h3 className="text-sm font-bold text-slate-900">
+              Directions to {directionsModal.shopName}
+            </h3>
+            <button
+              type="button"
+              onClick={closeDirectionsModal}
+              className="rounded-md px-2 py-1 text-sm font-semibold text-slate-600 hover:bg-slate-100"
+            >
+              Close
+            </button>
+          </div>
+          <div className="aspect-[16/10] w-full bg-slate-100">
+            <iframe
+              title={`Directions to ${directionsModal.shopName}`}
+              src={directionsModal.embedUrl}
+              className="h-full w-full border-0"
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              allowFullScreen
+            />
+          </div>
+          <div className="border-t border-slate-200 px-4 py-3">
+            <a
+              href={directionsModal.webUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center rounded-lg border border-cyan-300 bg-cyan-50 px-3 py-2 text-sm font-semibold text-cyan-700 hover:bg-cyan-100"
+            >
+              Open In Google Maps
+            </a>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   // Diagnostic function
   const runDiagnostic = () => {
     console.log('=== CUSTOMER DASHBOARD DIAGNOSTIC ===');
@@ -698,8 +740,8 @@ const CustomerDashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      <div className="min-h-screen bg-gradient-to-b from-slate-50 via-cyan-50 to-amber-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan-600"></div>
       </div>
     );
   }
@@ -710,7 +752,7 @@ const CustomerDashboard = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 py-4 sm:py-8">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-cyan-50 to-amber-50 py-4 sm:py-8">
       <div className="max-w-6xl mx-auto px-3 sm:px-4 lg:px-8">
         {/* Header */}
         <div className="mb-4 sm:mb-6">
@@ -728,7 +770,7 @@ const CustomerDashboard = () => {
               </button>
               <button
                 onClick={fetchUserReviews}
-                className="px-3 py-1.5 bg-blue-100 text-blue-700 text-xs rounded-lg hover:bg-blue-200 flex items-center gap-1"
+                className="px-3 py-1.5 bg-cyan-100 text-cyan-700 text-xs rounded-lg hover:bg-blue-200 flex items-center gap-1"
               >
                 <FaRedo className="text-xs" />
                 Refresh Reviews
@@ -770,7 +812,7 @@ const CustomerDashboard = () => {
                     handleReviewClick(pendingReviewAppointments[0]);
                   }
                 }}
-                className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-medium transition-all duration-200 shadow-sm hover:shadow"
+                className="bg-gradient-to-r from-cyan-500 to-amber-400 hover:brightness-110 text-slate-950 px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-black transition-all duration-200 shadow-sm hover:shadow"
               >
                 Write Reviews
               </button>
@@ -779,13 +821,13 @@ const CustomerDashboard = () => {
         )}
 
         {/* Tabs */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-4 sm:mb-6">
+        <div className="rounded-2xl border border-white/80 bg-white/90 shadow-[0_16px_35px_-20px_rgba(15,23,42,0.45)] mb-4 sm:mb-6">
           <div className="flex border-b border-gray-200">
             <button
               onClick={() => setActiveTab('current')}
               className={`flex-1 py-3 sm:py-4 px-4 sm:px-6 text-center font-medium text-sm sm:text-base ${
                 activeTab === 'current'
-                  ? 'text-blue-600 border-b-2 border-blue-600'
+                  ? 'text-cyan-700 border-b-2 border-cyan-500'
                   : 'text-gray-500 hover:text-gray-700'
                 }`}
             >
@@ -795,7 +837,7 @@ const CustomerDashboard = () => {
               onClick={() => setActiveTab('history')}
               className={`flex-1 py-3 sm:py-4 px-4 sm:px-6 text-center font-medium text-sm sm:text-base ${
                 activeTab === 'history'
-                  ? 'text-blue-600 border-b-2 border-blue-600'
+                  ? 'text-cyan-700 border-b-2 border-cyan-500'
                   : 'text-gray-500 hover:text-gray-700'
                 }`}
             >
@@ -861,10 +903,10 @@ const CustomerDashboard = () => {
 
         {/* Stats - Responsive Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+          <div className="rounded-2xl border border-white/80 bg-white/90 shadow-[0_16px_35px_-20px_rgba(15,23,42,0.45)] p-4 sm:p-6">
             <div className="flex items-center">
-              <div className="p-2 sm:p-3 bg-blue-100 rounded-lg">
-                <span className="text-blue-600 text-xl sm:text-2xl">📅</span>
+              <div className="p-2 sm:p-3 bg-cyan-100 rounded-lg">
+                <span className="text-cyan-700 text-xl sm:text-2xl">📅</span>
               </div>
               <div className="ml-3 sm:ml-4">
                 <p className="text-xs sm:text-sm font-medium text-gray-600">Upcoming</p>
@@ -872,7 +914,7 @@ const CustomerDashboard = () => {
               </div>
             </div>
           </div>
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+          <div className="rounded-2xl border border-white/80 bg-white/90 shadow-[0_16px_35px_-20px_rgba(15,23,42,0.45)] p-4 sm:p-6">
             <div className="flex items-center">
               <div className="p-2 sm:p-3 bg-green-100 rounded-lg">
                 <span className="text-green-600 text-xl sm:text-2xl">✅</span>
@@ -887,7 +929,7 @@ const CustomerDashboard = () => {
               </div>
             </div>
           </div>
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+          <div className="rounded-2xl border border-white/80 bg-white/90 shadow-[0_16px_35px_-20px_rgba(15,23,42,0.45)] p-4 sm:p-6">
             <div className="flex items-center">
               <div className="p-2 sm:p-3 bg-yellow-100 rounded-lg">
                 <span className="text-yellow-600 text-xl sm:text-2xl">⭐</span>
@@ -900,7 +942,7 @@ const CustomerDashboard = () => {
               </div>
             </div>
           </div>
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+          <div className="rounded-2xl border border-white/80 bg-white/90 shadow-[0_16px_35px_-20px_rgba(15,23,42,0.45)] p-4 sm:p-6">
             <div className="flex items-center">
               <div className="p-2 sm:p-3 bg-red-100 rounded-lg">
                 <span className="text-red-600 text-xl sm:text-2xl">❌</span>
@@ -918,6 +960,7 @@ const CustomerDashboard = () => {
 
       {/* Review Modal */}
       <ReviewModal />
+      <DirectionsModal />
     </div>
   );
 };

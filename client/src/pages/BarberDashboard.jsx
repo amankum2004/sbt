@@ -232,9 +232,9 @@ const BarberDashboard = () => {
   // Show loading while checking shop status
   if (checkingShopStatus) {
     return (
-      <div className="flex justify-center items-center h-screen bg-gray-100">
+      <div className="flex justify-center items-center h-screen bg-gradient-to-b from-slate-50 via-cyan-50 to-amber-50">
         <div className="text-xl text-gray-700 flex items-center">
-          <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-cyan-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
           </svg>
@@ -271,8 +271,8 @@ const BarberDashboard = () => {
     }
 
     return (
-      <div className="flex justify-center items-center h-screen bg-gray-100 px-4">
-        <div className="bg-white p-6 sm:p-8 rounded-lg shadow-md max-w-md w-full text-center">
+      <div className="flex justify-center items-center h-screen bg-gradient-to-b from-slate-50 via-cyan-50 to-amber-50 px-4">
+        <div className="rounded-2xl border border-white/70 bg-white/90 p-6 sm:p-8 shadow-[0_18px_40px_-24px_rgba(15,23,42,0.45)] max-w-md w-full text-center">
           <div className="text-6xl mb-4">{icon}</div>
           <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4">{title}</h2>
           <p className="text-gray-600 mb-6 text-sm sm:text-base">{message}</p>
@@ -287,7 +287,7 @@ const BarberDashboard = () => {
             )}
             <button
               onClick={() => navigate('/')}
-              className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition duration-200 text-sm sm:text-base"
+              className="rounded-lg bg-gradient-to-r from-cyan-500 to-amber-400 px-6 py-2 text-sm font-semibold text-slate-950 transition hover:brightness-110 sm:text-base"
             >
               Go to Home
             </button>
@@ -387,7 +387,7 @@ const BarberDashboard = () => {
       { value: 'confirmed', label: 'Confirmed', color: 'text-green-600' },
       { value: 'pending', label: 'Pending', color: 'text-yellow-600' },
       { value: 'cancelled', label: 'Cancelled', color: 'text-red-600' },
-      { value: 'completed', label: 'Completed', color: 'text-blue-600' }
+      { value: 'completed', label: 'Completed', color: 'text-cyan-700' }
     ];
 
     return allStatuses.filter(status => status.value !== currentStatus);
@@ -406,14 +406,14 @@ const BarberDashboard = () => {
     const appointmentDate = getAppointmentDate(appointment);
     
     return (
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4 mb-3 hover:shadow-md transition-shadow">
+      <div className="rounded-2xl border border-white/80 bg-white/90 shadow-[0_16px_35px_-20px_rgba(15,23,42,0.45)] p-3 sm:p-4 mb-3 hover:shadow-md transition-shadow">
         {/* Mobile: Stacked layout, Desktop: Horizontal layout */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           {/* Customer Info */}
           <div className="flex items-center space-x-3 min-w-0 flex-1">
             <div className="flex-shrink-0">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                <span className="text-blue-600 font-semibold text-sm sm:text-base">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-cyan-100 rounded-full flex items-center justify-center">
+                <span className="text-cyan-700 font-semibold text-sm sm:text-base">
                   {(appointment.userId?.name || appointment.customerName || 'C')[0].toUpperCase()}
                 </span>
               </div>
@@ -472,7 +472,7 @@ const BarberDashboard = () => {
                 <select
                   value=""
                   onChange={(e) => updateAppointmentStatus(appointment._id, e.target.value)}
-                  className="text-xs sm:text-sm border border-gray-300 rounded px-2 sm:px-3 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="text-xs sm:text-sm border border-gray-300 rounded px-2 sm:px-3 py-1 focus:outline-none focus:ring-1 focus:ring-cyan-500"
                 >
                   <option value="">Change</option>
                   {getStatusOptions(appointment.status).map(option => (
@@ -517,8 +517,8 @@ const BarberDashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      <div className="min-h-screen bg-gradient-to-b from-slate-50 via-cyan-50 to-amber-50 flex items-center justify-center">
+        <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-t-2 border-cyan-600"></div>
       </div>
     );
   }
@@ -526,7 +526,7 @@ const BarberDashboard = () => {
   const totalEarnings = calculateTotalEarnings();
 
   return (
-    <div className="min-h-screen bg-gray-50 py-4 sm:py-6">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-cyan-50 to-amber-50 py-4 sm:py-6">
       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
         {/* Header */}
         <div className="mb-4 px-1">
@@ -534,14 +534,14 @@ const BarberDashboard = () => {
         </div>
 
         {/* Tabs */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+        <div className="rounded-2xl border border-white/80 bg-white/90 shadow-[0_16px_35px_-20px_rgba(15,23,42,0.45)]">
           {/* Scrollable tabs for mobile */}
           <div className="flex overflow-x-auto border-b border-gray-200 scrollbar-hide">
             <button
               onClick={() => setActiveTab('today')}
               className={`flex-shrink-0 py-3 px-4 text-center font-medium text-sm sm:text-base ${
                 activeTab === 'today'
-                  ? 'text-blue-600 border-b-2 border-blue-600'
+                  ? 'text-cyan-700 border-b-2 border-cyan-500'
                   : 'text-gray-500 hover:text-gray-700'
               }`}
             >
@@ -551,7 +551,7 @@ const BarberDashboard = () => {
               onClick={() => setActiveTab('upcoming')}
               className={`flex-shrink-0 py-3 px-4 text-center font-medium text-sm sm:text-base ${
                 activeTab === 'upcoming'
-                  ? 'text-blue-600 border-b-2 border-blue-600'
+                  ? 'text-cyan-700 border-b-2 border-cyan-500'
                   : 'text-gray-500 hover:text-gray-700'
               }`}
             >
@@ -561,7 +561,7 @@ const BarberDashboard = () => {
               onClick={() => setActiveTab('history')}
               className={`flex-shrink-0 py-3 px-4 text-center font-medium text-sm sm:text-base ${
                 activeTab === 'history'
-                  ? 'text-blue-600 border-b-2 border-blue-600'
+                  ? 'text-cyan-700 border-b-2 border-cyan-500'
                   : 'text-gray-500 hover:text-gray-700'
               }`}
             >
@@ -637,7 +637,7 @@ const BarberDashboard = () => {
         
         {/* Stats - Responsive Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-4 mb-4 sm:mb-6">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4">
+          <div className="rounded-2xl border border-white/80 bg-white/90 shadow-[0_16px_35px_-20px_rgba(15,23,42,0.45)] p-3 sm:p-4">
             <div className="flex items-center">
               <div className="p-2 bg-purple-100 rounded-lg">
                 <span className="text-purple-600 text-lg sm:text-xl">📌</span>
@@ -648,7 +648,7 @@ const BarberDashboard = () => {
               </div>
             </div>
           </div>
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4">
+          <div className="rounded-2xl border border-white/80 bg-white/90 shadow-[0_16px_35px_-20px_rgba(15,23,42,0.45)] p-3 sm:p-4">
             <div className="flex items-center">
               <div className="p-2 bg-green-100 rounded-lg">
                 <span className="text-green-600 text-lg sm:text-xl">⏰</span>
@@ -659,7 +659,7 @@ const BarberDashboard = () => {
               </div>
             </div>
           </div>
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4">
+          <div className="rounded-2xl border border-white/80 bg-white/90 shadow-[0_16px_35px_-20px_rgba(15,23,42,0.45)] p-3 sm:p-4">
             <div className="flex items-center">
               <div className="p-2 bg-gray-100 rounded-lg">
                 <span className="text-gray-600 text-lg sm:text-xl">✅</span>
@@ -670,7 +670,7 @@ const BarberDashboard = () => {
               </div>
             </div>
           </div>
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4">
+          <div className="rounded-2xl border border-white/80 bg-white/90 shadow-[0_16px_35px_-20px_rgba(15,23,42,0.45)] p-3 sm:p-4">
             <div className="flex items-center">
               <div className="p-2 bg-red-100 rounded-lg">
                 <span className="text-red-600 text-lg sm:text-xl">❌</span>
@@ -681,10 +681,10 @@ const BarberDashboard = () => {
               </div>
             </div>
           </div>
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4">
+          <div className="rounded-2xl border border-white/80 bg-white/90 shadow-[0_16px_35px_-20px_rgba(15,23,42,0.45)] p-3 sm:p-4">
             <div className="flex items-center">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <span className="text-blue-600 text-lg sm:text-xl">📅</span>
+              <div className="p-2 bg-cyan-100 rounded-lg">
+                <span className="text-cyan-700 text-lg sm:text-xl">📅</span>
               </div>
               <div className="ml-2 sm:ml-3">
                 <p className="text-xs sm:text-sm font-medium text-gray-600">Total</p>
@@ -692,7 +692,7 @@ const BarberDashboard = () => {
               </div>
             </div>
           </div>
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4">
+          <div className="rounded-2xl border border-white/80 bg-white/90 shadow-[0_16px_35px_-20px_rgba(15,23,42,0.45)] p-3 sm:p-4">
             <div className="flex items-center">
               <div className="p-2 bg-green-100 rounded-lg">
                 <span className="text-green-600 text-lg sm:text-xl">💰</span>
@@ -838,7 +838,7 @@ export default BarberDashboard;
 //   // Show loading while checking shop status
 //   if (checkingShopStatus) {
 //     return (
-//       <div className="flex justify-center items-center h-screen bg-gray-100">
+//       <div className="flex justify-center items-center h-screen bg-gradient-to-b from-slate-50 via-cyan-50 to-amber-50">
 //         <div className="text-xl text-gray-700 flex items-center">
 //           <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
 //             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -877,8 +877,8 @@ export default BarberDashboard;
 //     }
 
 //     return (
-//       <div className="flex justify-center items-center h-screen bg-gray-100 px-4">
-//         <div className="bg-white p-6 sm:p-8 rounded-lg shadow-md max-w-md w-full text-center">
+//       <div className="flex justify-center items-center h-screen bg-gradient-to-b from-slate-50 via-cyan-50 to-amber-50 px-4">
+//         <div className="rounded-2xl border border-white/70 bg-white/90 p-6 sm:p-8 shadow-[0_18px_40px_-24px_rgba(15,23,42,0.45)] max-w-md w-full text-center">
 //           <div className="text-6xl mb-4">{icon}</div>
 //           <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4">{title}</h2>
 //           <p className="text-gray-600 mb-6 text-sm sm:text-base">{message}</p>
@@ -1011,7 +1011,7 @@ export default BarberDashboard;
 //       { value: 'confirmed', label: 'Confirmed', color: 'text-green-600' },
 //       { value: 'pending', label: 'Pending', color: 'text-yellow-600' },
 //       { value: 'cancelled', label: 'Cancelled', color: 'text-red-600' },
-//       { value: 'completed', label: 'Completed', color: 'text-blue-600' }
+//       { value: 'completed', label: 'Completed', color: 'text-cyan-700' }
 //     ];
 
 //     return allStatuses.filter(status => status.value !== currentStatus);
@@ -1026,14 +1026,14 @@ export default BarberDashboard;
 //   };
 
 //   const AppointmentCard = ({ appointment, showActions = true }) => (
-//     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4 mb-3 hover:shadow-md transition-shadow">
+//     <div className="rounded-2xl border border-white/80 bg-white/90 shadow-[0_16px_35px_-20px_rgba(15,23,42,0.45)] p-3 sm:p-4 mb-3 hover:shadow-md transition-shadow">
 //       {/* Mobile: Stacked layout, Desktop: Horizontal layout */}
 //       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
 //         {/* Customer Info */}
 //         <div className="flex items-center space-x-3 min-w-0 flex-1">
 //           <div className="flex-shrink-0">
-//             <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-100 rounded-full flex items-center justify-center">
-//               <span className="text-blue-600 font-semibold text-sm sm:text-base">
+//             <div className="w-8 h-8 sm:w-10 sm:h-10 bg-cyan-100 rounded-full flex items-center justify-center">
+//               <span className="text-cyan-700 font-semibold text-sm sm:text-base">
 //                 {(appointment.userId?.name || appointment.customerName || 'C')[0].toUpperCase()}
 //               </span>
 //             </div>
@@ -1092,7 +1092,7 @@ export default BarberDashboard;
 //               <select
 //                 value=""
 //                 onChange={(e) => updateAppointmentStatus(appointment._id, e.target.value)}
-//                 className="text-xs sm:text-sm border border-gray-300 rounded px-2 sm:px-3 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
+//                 className="text-xs sm:text-sm border border-gray-300 rounded px-2 sm:px-3 py-1 focus:outline-none focus:ring-1 focus:ring-cyan-500"
 //               >
 //                 <option value="">Change</option>
 //                 {getStatusOptions(appointment.status).map(option => (
@@ -1136,7 +1136,7 @@ export default BarberDashboard;
 
 //   if (loading) {
 //     return (
-//       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+//       <div className="min-h-screen bg-gradient-to-b from-slate-50 via-cyan-50 to-amber-50 flex items-center justify-center">
 //         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
 //       </div>
 //     );
@@ -1145,7 +1145,7 @@ export default BarberDashboard;
 //   const totalEarnings = calculateTotalEarnings();
 
 //   return (
-//     <div className="min-h-screen bg-gray-50 py-4 sm:py-6">
+//     <div className="min-h-screen bg-gradient-to-b from-slate-50 via-cyan-50 to-amber-50 py-4 sm:py-6">
 //       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
 //         {/* Header */}
 //         <div className="mb-4 px-1">
@@ -1154,14 +1154,14 @@ export default BarberDashboard;
 
 
 //         {/* Tabs */}
-//         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+//         <div className="rounded-2xl border border-white/80 bg-white/90 shadow-[0_16px_35px_-20px_rgba(15,23,42,0.45)]">
 //           {/* Scrollable tabs for mobile */}
 //           <div className="flex overflow-x-auto border-b border-gray-200 scrollbar-hide">
 //             <button
 //               onClick={() => setActiveTab('today')}
 //               className={`flex-shrink-0 py-3 px-4 text-center font-medium text-sm sm:text-base ${
 //                 activeTab === 'today'
-//                   ? 'text-blue-600 border-b-2 border-blue-600'
+//                   ? 'text-cyan-700 border-b-2 border-cyan-500'
 //                   : 'text-gray-500 hover:text-gray-700'
 //               }`}
 //             >
@@ -1171,7 +1171,7 @@ export default BarberDashboard;
 //               onClick={() => setActiveTab('upcoming')}
 //               className={`flex-shrink-0 py-3 px-4 text-center font-medium text-sm sm:text-base ${
 //                 activeTab === 'upcoming'
-//                   ? 'text-blue-600 border-b-2 border-blue-600'
+//                   ? 'text-cyan-700 border-b-2 border-cyan-500'
 //                   : 'text-gray-500 hover:text-gray-700'
 //               }`}
 //             >
@@ -1181,7 +1181,7 @@ export default BarberDashboard;
 //               onClick={() => setActiveTab('history')}
 //               className={`flex-shrink-0 py-3 px-4 text-center font-medium text-sm sm:text-base ${
 //                 activeTab === 'history'
-//                   ? 'text-blue-600 border-b-2 border-blue-600'
+//                   ? 'text-cyan-700 border-b-2 border-cyan-500'
 //                   : 'text-gray-500 hover:text-gray-700'
 //               }`}
 //             >
@@ -1257,7 +1257,7 @@ export default BarberDashboard;
         
 //         {/* Stats - Responsive Grid */}
 //         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-4 mb-4 sm:mb-6">
-//           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4">
+//           <div className="rounded-2xl border border-white/80 bg-white/90 shadow-[0_16px_35px_-20px_rgba(15,23,42,0.45)] p-3 sm:p-4">
 //             <div className="flex items-center">
 //               <div className="p-2 bg-purple-100 rounded-lg">
 //                 <span className="text-purple-600 text-lg sm:text-xl">📌</span>
@@ -1268,7 +1268,7 @@ export default BarberDashboard;
 //               </div>
 //             </div>
 //           </div>
-//           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4">
+//           <div className="rounded-2xl border border-white/80 bg-white/90 shadow-[0_16px_35px_-20px_rgba(15,23,42,0.45)] p-3 sm:p-4">
 //             <div className="flex items-center">
 //               <div className="p-2 bg-green-100 rounded-lg">
 //                 <span className="text-green-600 text-lg sm:text-xl">⏰</span>
@@ -1279,7 +1279,7 @@ export default BarberDashboard;
 //               </div>
 //             </div>
 //           </div>
-//           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4">
+//           <div className="rounded-2xl border border-white/80 bg-white/90 shadow-[0_16px_35px_-20px_rgba(15,23,42,0.45)] p-3 sm:p-4">
 //             <div className="flex items-center">
 //               <div className="p-2 bg-gray-100 rounded-lg">
 //                 <span className="text-gray-600 text-lg sm:text-xl">✅</span>
@@ -1290,7 +1290,7 @@ export default BarberDashboard;
 //               </div>
 //             </div>
 //           </div>
-//           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4">
+//           <div className="rounded-2xl border border-white/80 bg-white/90 shadow-[0_16px_35px_-20px_rgba(15,23,42,0.45)] p-3 sm:p-4">
 //             <div className="flex items-center">
 //               <div className="p-2 bg-red-100 rounded-lg">
 //                 <span className="text-red-600 text-lg sm:text-xl">❌</span>
@@ -1301,10 +1301,10 @@ export default BarberDashboard;
 //               </div>
 //             </div>
 //           </div>
-//           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4">
+//           <div className="rounded-2xl border border-white/80 bg-white/90 shadow-[0_16px_35px_-20px_rgba(15,23,42,0.45)] p-3 sm:p-4">
 //             <div className="flex items-center">
-//               <div className="p-2 bg-blue-100 rounded-lg">
-//                 <span className="text-blue-600 text-lg sm:text-xl">📅</span>
+//               <div className="p-2 bg-cyan-100 rounded-lg">
+//                 <span className="text-cyan-700 text-lg sm:text-xl">📅</span>
 //               </div>
 //               <div className="ml-2 sm:ml-3">
 //                 <p className="text-xs sm:text-sm font-medium text-gray-600">Total</p>
@@ -1312,7 +1312,7 @@ export default BarberDashboard;
 //               </div>
 //             </div>
 //           </div>
-//           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4">
+//           <div className="rounded-2xl border border-white/80 bg-white/90 shadow-[0_16px_35px_-20px_rgba(15,23,42,0.45)] p-3 sm:p-4">
 //             <div className="flex items-center">
 //               <div className="p-2 bg-green-100 rounded-lg">
 //                 <span className="text-green-600 text-lg sm:text-xl">💰</span>
@@ -1330,7 +1330,6 @@ export default BarberDashboard;
 // };
 
 // export default BarberDashboard;
-
 
 
 

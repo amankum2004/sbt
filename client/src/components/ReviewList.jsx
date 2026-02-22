@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { FaCheckCircle, FaUserCircle } from 'react-icons/fa';
 import { api } from '../utils/api';
 import StarRating from './StarRating';
-import { FaUserCircle, FaThumbsUp, FaFlag, FaEdit, FaTrash, FaCheckCircle } from 'react-icons/fa';
 
-const ReviewList = ({ shopId }) => {
+const ReviewList = ({ shopId, isAdminView = false, refreshKey = 0 }) => {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 10,
@@ -15,120 +16,114 @@ const ReviewList = ({ shopId }) => {
   const [filters, setFilters] = useState({
     sort: 'recent',
     rating: '',
-    page: 1
+    status: isAdminView ? 'all' : 'approved',
+    search: ''
   });
 
   useEffect(() => {
-    fetchReviews();
-  }, [shopId, filters]);
+    setFilters((prev) => ({
+      ...prev,
+      status: isAdminView ? prev.status || 'all' : 'approved'
+    }));
+  }, [isAdminView]);
 
   const fetchReviews = async () => {
     try {
       setLoading(true);
-      const params = new URLSearchParams({
-        page: filters.page,
-        limit: pagination.limit,
-        sort: filters.sort,
-        ...(filters.rating && { rating: filters.rating })
-      }).toString();
+      setError('');
 
-      const response = await api.get(`/reviews/shop/${shopId}?${params}`);
-      
-      if (response.data.success) {
-        setReviews(response.data.reviews);
-        setPagination(response.data.pagination);
+      const params = {
+        page: pagination.page,
+        limit: pagination.limit,
+        sort: filters.sort || undefined,
+        rating: filters.rating || undefined,
+        search: filters.search?.trim() || undefined,
+        status: isAdminView ? filters.status || 'all' : 'approved'
+      };
+
+      const response = await api.get(`/reviews/shop/${shopId}`, { params });
+      if (!response.data?.success) {
+        throw new Error(response.data?.message || 'Failed to load reviews');
       }
-    } catch (error) {
-      console.error('Fetch reviews error:', error);
+
+      setReviews(Array.isArray(response.data.reviews) ? response.data.reviews : []);
+      setPagination((prev) => ({
+        ...prev,
+        ...(response.data.pagination || {})
+      }));
+    } catch (fetchError) {
+      console.error('Fetch reviews error:', fetchError);
+      setReviews([]);
+      setError(fetchError?.response?.data?.message || 'Could not load reviews right now.');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleHelpful = async (reviewId) => {
-    try {
-      const response = await api.post(`/reviews/${reviewId}/helpful`);
-      if (response.data.success) {
-        setReviews(reviews.map(review => 
-          review._id === reviewId 
-            ? { ...review, helpfulCount: response.data.helpfulCount }
-            : review
-        ));
-      }
-    } catch (error) {
-      console.error('Mark helpful error:', error);
-    }
-  };
+  useEffect(() => {
+    if (!shopId) return;
+    fetchReviews();
+  }, [
+    shopId,
+    pagination.page,
+    pagination.limit,
+    filters.sort,
+    filters.rating,
+    filters.status,
+    filters.search,
+    isAdminView,
+    refreshKey
+  ]);
 
-  const handleReport = async (reviewId) => {
-    // Show confirmation dialog
-    if (window.confirm('Are you sure you want to report this review?')) {
-      try {
-        const response = await api.post(`/reviews/${reviewId}/report`, {
-          reason: 'Inappropriate content'
-        });
-        if (response.data.success) {
-          alert('Review reported successfully');
-        }
-      } catch (error) {
-        console.error('Report review error:', error);
-      }
-    }
-  };
+  const headerText = useMemo(() => {
+    if (pagination.total === 1) return '1 review found';
+    return `${pagination.total || 0} reviews found`;
+  }, [pagination.total]);
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
+    if (Number.isNaN(date.getTime())) return '-';
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
-      month: 'long',
+      month: 'short',
       day: 'numeric'
     });
   };
 
-  if (loading && reviews.length === 0) {
-    return (
-      <div className="text-center py-8">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-        <p className="text-gray-600 mt-2">Loading reviews...</p>
-      </div>
-    );
-  }
+  const getStatusBadgeClass = (status) => {
+    if (status === 'approved') return 'bg-emerald-100 text-emerald-700 border-emerald-200';
+    if (status === 'pending') return 'bg-amber-100 text-amber-800 border-amber-200';
+    if (status === 'rejected') return 'bg-rose-100 text-rose-700 border-rose-200';
+    return 'bg-slate-100 text-slate-700 border-slate-200';
+  };
 
-  if (reviews.length === 0) {
-    return (
-      <div className="text-center py-8 bg-gray-50 rounded-xl">
-        <div className="text-4xl mb-4">📝</div>
-        <h3 className="text-xl font-semibold text-gray-700 mb-2">No Reviews Yet</h3>
-        <p className="text-gray-500">Be the first to review this shop!</p>
-      </div>
-    );
-  }
+  const hasFilters = Boolean(filters.rating || filters.search || (isAdminView && filters.status !== 'all'));
 
   return (
-    <div className="space-y-6">
-      {/* Filters */}
-      <div className="flex flex-wrap gap-4 mb-6">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Sort by</label>
+    <div className="space-y-5">
+      <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
           <select
             value={filters.sort}
-            onChange={(e) => setFilters(prev => ({ ...prev, sort: e.target.value, page: 1 }))}
-            className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            onChange={(event) => {
+              setPagination((prev) => ({ ...prev, page: 1 }));
+              setFilters((prev) => ({ ...prev, sort: event.target.value }));
+            }}
+            className="h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100"
           >
             <option value="recent">Most Recent</option>
             <option value="oldest">Oldest First</option>
             <option value="highest">Highest Rated</option>
             <option value="lowest">Lowest Rated</option>
-            <option value="helpful">Most Helpful</option>
           </select>
-        </div>
-        
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Filter by rating</label>
+
           <select
             value={filters.rating}
-            onChange={(e) => setFilters(prev => ({ ...prev, rating: e.target.value, page: 1 }))}
-            className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            onChange={(event) => {
+              setPagination((prev) => ({ ...prev, page: 1 }));
+              setFilters((prev) => ({ ...prev, rating: event.target.value }));
+            }}
+            className="h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100"
           >
             <option value="">All Ratings</option>
             <option value="5">5 Stars</option>
@@ -137,117 +132,145 @@ const ReviewList = ({ shopId }) => {
             <option value="2">2 Stars</option>
             <option value="1">1 Star</option>
           </select>
+
+          {isAdminView ? (
+            <select
+              value={filters.status}
+              onChange={(event) => {
+                setPagination((prev) => ({ ...prev, page: 1 }));
+                setFilters((prev) => ({ ...prev, status: event.target.value }));
+              }}
+              className="h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100"
+            >
+              <option value="all">All Status</option>
+              <option value="approved">Approved</option>
+              <option value="pending">Pending</option>
+              <option value="rejected">Rejected</option>
+            </select>
+          ) : (
+            <div className="hidden md:block" />
+          )}
+
+          <input
+            type="text"
+            value={filters.search}
+            onChange={(event) => {
+              setPagination((prev) => ({ ...prev, page: 1 }));
+              setFilters((prev) => ({ ...prev, search: event.target.value }));
+            }}
+            placeholder="Search by name, email, or comment..."
+            className="h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100"
+          />
+        </div>
+
+        <div className="mt-3 flex items-center justify-between text-sm text-slate-600">
+          <p>{headerText}</p>
+          {hasFilters ? (
+            <button
+              type="button"
+              onClick={() => {
+                setPagination((prev) => ({ ...prev, page: 1 }));
+                setFilters({
+                  sort: 'recent',
+                  rating: '',
+                  status: isAdminView ? 'all' : 'approved',
+                  search: ''
+                });
+              }}
+              className="text-cyan-700 hover:text-cyan-800 font-semibold"
+            >
+              Clear Filters
+            </button>
+          ) : null}
         </div>
       </div>
 
-      {/* Reviews List */}
-      <div className="space-y-6">
-        {reviews.map((review) => (
-          <div key={review._id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            {/* Review Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4">
-              <div className="flex items-center gap-3 mb-3 sm:mb-0">
-                <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">
-                  {review.userPhoto ? (
-                    <img 
-                      src={review.userPhoto} 
-                      alt={review.userName}
-                      className="w-full h-full rounded-full object-cover"
-                    />
-                  ) : (
-                    <FaUserCircle className="text-3xl text-gray-400" />
-                  )}
-                </div>
-                <div>
-                  <h4 className="font-semibold text-gray-800">{review.userName}</h4>
-                  <div className="flex items-center gap-2 text-sm text-gray-500">
-                    <span>{formatDate(review.createdAt)}</span>
-                    {review.isVerifiedPurchase && (
-                      <span className="flex items-center gap-1 text-green-600">
-                        <FaCheckCircle className="text-xs" />
-                        Verified Purchase
-                      </span>
-                    )}
+      {loading && reviews.length === 0 ? (
+        <div className="text-center py-10">
+          <div className="mx-auto h-10 w-10 rounded-full border-2 border-cyan-600 border-t-transparent animate-spin" />
+          <p className="text-sm text-slate-600 mt-3">Loading reviews...</p>
+        </div>
+      ) : error ? (
+        <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-rose-800 text-sm">
+          {error}
+        </div>
+      ) : reviews.length === 0 ? (
+        <div className="rounded-xl border border-slate-200 bg-slate-50 p-8 text-center">
+          <div className="text-3xl mb-2">📝</div>
+          <h3 className="text-lg font-semibold text-slate-700">No Reviews Found</h3>
+          <p className="text-sm text-slate-500 mt-1">
+            {hasFilters ? 'Try changing your filters.' : 'Be the first to review this shop.'}
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {reviews.map((review) => (
+            <article key={review._id} className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                <div className="flex items-start gap-3">
+                  <div className="h-10 w-10 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center">
+                    <FaUserCircle className="text-2xl" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-slate-800">{review.userName || 'Anonymous User'}</p>
+                    <p className="text-xs text-slate-500">{review.userEmail || '-'}</p>
+                    <div className="mt-1 flex items-center gap-2 text-xs text-slate-500">
+                      <span>{formatDate(review.createdAt)}</span>
+                      {review.appointmentId ? (
+                        <span className="inline-flex items-center gap-1 text-emerald-700">
+                          <FaCheckCircle className="text-[10px]" />
+                          Verified Appointment
+                        </span>
+                      ) : null}
+                    </div>
                   </div>
                 </div>
+
+                <div className="flex items-center gap-3">
+                  <StarRating rating={Number(review.rating || 0)} />
+                  {isAdminView ? (
+                    <span
+                      className={`inline-flex rounded-full border px-2 py-1 text-[11px] font-semibold ${getStatusBadgeClass(
+                        review.status
+                      )}`}
+                    >
+                      {review.status || 'pending'}
+                    </span>
+                  ) : null}
+                </div>
               </div>
-              
-              <div className="flex items-center gap-4">
-                <StarRating rating={review.rating} />
-              </div>
-            </div>
 
-            {/* Review Title */}
-            {review.title && (
-              <h3 className="text-lg font-semibold text-gray-800 mb-2">{review.title}</h3>
-            )}
+              <p className="mt-3 text-sm leading-relaxed text-slate-700 whitespace-pre-wrap">
+                {review.comment || 'No written comment.'}
+              </p>
+            </article>
+          ))}
+        </div>
+      )}
 
-            {/* Review Content */}
-            <p className="text-gray-600 mb-4 whitespace-pre-line">{review.comment}</p>
-
-            {/* Review Photos */}
-            {review.photos && review.photos.length > 0 && (
-              <div className="flex flex-wrap gap-3 mb-4">
-                {review.photos.map((photo, index) => (
-                  <img
-                    key={index}
-                    src={photo}
-                    alt={`Review photo ${index + 1}`}
-                    className="w-24 h-24 object-cover rounded-lg border border-gray-300 cursor-pointer hover:opacity-90"
-                    onClick={() => window.open(photo, '_blank')}
-                  />
-                ))}
-              </div>
-            )}
-
-            {/* Review Actions */}
-            <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-              <div className="flex items-center gap-4">
-                <button
-                  onClick={() => handleHelpful(review._id)}
-                  className="flex items-center gap-2 text-gray-600 hover:text-blue-600 transition-colors"
-                >
-                  <FaThumbsUp />
-                  <span>Helpful ({review.helpfulCount})</span>
-                </button>
-                
-                <button
-                  onClick={() => handleReport(review._id)}
-                  className="flex items-center gap-2 text-gray-600 hover:text-red-600 transition-colors"
-                >
-                  <FaFlag />
-                  <span>Report</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Pagination */}
-      {pagination.pages > 1 && (
-        <div className="flex justify-center items-center gap-2 mt-8">
+      {pagination.pages > 1 ? (
+        <div className="flex items-center justify-center gap-3 pt-2">
           <button
-            onClick={() => setFilters(prev => ({ ...prev, page: prev.page - 1 }))}
-            disabled={filters.page === 1}
-            className="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+            type="button"
+            onClick={() => setPagination((prev) => ({ ...prev, page: prev.page - 1 }))}
+            disabled={pagination.page <= 1}
+            className="rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Previous
           </button>
-          
-          <span className="text-gray-600">
-            Page {filters.page} of {pagination.pages}
+          <span className="text-sm text-slate-600">
+            Page {pagination.page} of {pagination.pages}
           </span>
-          
           <button
-            onClick={() => setFilters(prev => ({ ...prev, page: prev.page + 1 }))}
-            disabled={filters.page === pagination.pages}
-            className="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+            type="button"
+            onClick={() => setPagination((prev) => ({ ...prev, page: prev.page + 1 }))}
+            disabled={pagination.page >= pagination.pages}
+            className="rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Next
           </button>
         </div>
-      )}
+      ) : null}
     </div>
   );
 };

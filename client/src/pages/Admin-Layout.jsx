@@ -1,288 +1,221 @@
 import React, { useState, useRef, useEffect } from "react";
 import { NavLink, Outlet, Navigate } from "react-router-dom";
-import { FaUser, FaStore, FaBell, FaMoneyBillWave, FaHome, FaStar, FaRegListAlt, FaBars, FaTimes, FaEnvelope } from "react-icons/fa";
+import {
+  FaUser,
+  FaStore,
+  FaBell,
+  FaMoneyBillWave,
+  FaHome,
+  FaStar,
+  FaRegListAlt,
+  FaBars,
+  FaTimes,
+  FaEnvelope,
+} from "react-icons/fa";
 import { useLogin } from "../components/LoginContext";
 import { api } from "../utils/api";
 
 export const AdminLayout = () => {
-    const { user } = useLogin();
-    const [menuOpen, setMenuOpen] = useState(false);
-    const [requestCount, setRequestCount] = useState(0);
-    const menuRef = useRef(null);
+  const { user } = useLogin();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [requestCount, setRequestCount] = useState(0);
+  const menuRef = useRef(null);
 
-    // Close sidebar on outside click
-    useEffect(() => {
-        const handleOutsideClick = (event) => {
-            if (menuRef.current && !menuRef.current.contains(event.target)) {
-                setMenuOpen(false);
-            }
-        };
+  const navItems = [
+    { to: "/admin", label: "Home", icon: FaHome, end: true },
+    { to: "/admin/users", label: "Users", icon: FaUser },
+    { to: "/admin/contacts", label: "Contacts", icon: FaEnvelope },
+    { to: "/admin/services", label: "Services", icon: FaRegListAlt },
+    { to: "/admin/donations", label: "Donations", icon: FaMoneyBillWave },
+    { to: "/admin/shops", label: "Shops", icon: FaStore },
+    { to: "/admin/requests", label: "Requests", icon: FaBell },
+    { to: "/admin/reviews", label: "Reviews", icon: FaStar },
+  ];
 
-        if (menuOpen) {
-            document.addEventListener("mousedown", handleOutsideClick);
-        } else {
-            document.removeEventListener("mousedown", handleOutsideClick);
-        }
+  const fetchRequestCount = async () => {
+    try {
+      const res = await api.get("/admin/pending");
+      setRequestCount(Array.isArray(res.data) ? res.data.length : 0);
+    } catch (err) {
+      console.error("Failed to fetch request count", err);
+    }
+  };
 
-        return () => {
-            document.removeEventListener("mousedown", handleOutsideClick);
-        };
-    }, [menuOpen]);
+  useEffect(() => {
+    const handleOutsideClick = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setMenuOpen(false);
+      }
+    };
 
-    useEffect(() => {
-        // 🔄 Fetch pending requests count
-        const fetchRequestCount = async () => {
-            try {
-                const res = await api.get("/admin/pending");
-                // console.log("Pending Requests Response", res.data);
-                setRequestCount(res.data.length || 0);
-            } catch (err) {
-                console.error("Failed to fetch request count", err);
-            }
-        };
+    if (menuOpen) {
+      document.addEventListener("mousedown", handleOutsideClick);
+      document.body.style.overflow = "hidden";
+    } else {
+      document.removeEventListener("mousedown", handleOutsideClick);
+      document.body.style.overflow = "";
+    }
 
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+      document.body.style.overflow = "";
+    };
+  }, [menuOpen]);
+
+  useEffect(() => {
+    const handlePendingUpdated = (event) => {
+      const countFromEvent = event?.detail?.count;
+      if (typeof countFromEvent === "number") {
+        setRequestCount(countFromEvent);
+      } else {
         fetchRequestCount();
-        const interval = setInterval(fetchRequestCount, 30000); // ⏱ Refresh every 30 sec
-        return () => clearInterval(interval);
-    }, []);
+      }
+    };
 
-    // Check if user is authenticated and is admin
-    if (!user) {
-        return <Navigate to="/login" replace />;
-    }
+    fetchRequestCount();
+    const interval = setInterval(fetchRequestCount, 30000);
+    window.addEventListener("admin:pending-updated", handlePendingUpdated);
 
-    if (user?.usertype !== "admin") {
-        return <Navigate to="/" replace />;
-    }
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("admin:pending-updated", handlePendingUpdated);
+    };
+  }, []);
 
-    const renderRequestsMenu = () => (
-        <div className="flex items-center space-x-2">
-            <FaBell />
-            <span>Requests</span>
-            {requestCount > 0 && (
-                <span className="bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-full">
-                    {requestCount}
-                </span>
-            )}
-        </div>
-    );
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
 
-    // Active link style function
-    const getNavLinkClass = ({ isActive }) =>
-        `flex items-center space-x-2 p-4 md:p-2 transition ${isActive
-            ? "bg-blue-600 text-white"
-            : "text-white hover:bg-gray-700"
-        }`;
+  if (user?.usertype !== "admin") {
+    return <Navigate to="/" replace />;
+  }
 
-    return (
-        <div className="min-h-screen bg-gray-100">
-            {/* Header */}
-            <header className="bg-gray-800 text-white shadow-lg">
-                <div className="container mx-auto px-4">
-                    <nav className="flex items-center justify-between py-4">
-                        <h2 className="mt-12 text-xl md:text-md font-bold">Admin Dashboard</h2>
+  const getDesktopNavLinkClass = ({ isActive }) =>
+    `inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-all duration-200 ${
+      isActive
+        ? "bg-white text-slate-900 shadow"
+        : "text-slate-100 hover:bg-white/15 hover:text-white"
+    }`;
 
-                        {/* Hamburger Button - Only for mobile navigation */}
-                        <button
-                            className="mt-12 md:hidden text-white text-2xl focus:outline-none"
-                            onClick={() => setMenuOpen(true)}
-                            aria-label="Open menu"
-                        >
-                            <FaBars />
-                        </button>
-                    </nav>
-                </div>
+  const getMobileNavLinkClass = ({ isActive }) =>
+    `flex items-center justify-between gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-200 ${
+      isActive
+        ? "bg-blue-600 text-white shadow"
+        : "text-slate-200 hover:bg-slate-700 hover:text-white"
+    }`;
 
-                {/* Desktop Navigation - Now inside header */}
-                <div className="hidden md:block bg-gray-900">
-                    <div className="container mx-auto px-4">
-                        <nav>
-                            <ul className="flex space-x-1">
-                                <li>
-                                    <NavLink
-                                        to="/admin"
-                                        className={getNavLinkClass}
-                                        end
-                                    >
-                                        <FaHome /> <span>Home</span>
-                                    </NavLink>
-                                </li>
-                                <li>
-                                    <NavLink
-                                        to="/admin/users"
-                                        className={getNavLinkClass}
-                                    >
-                                        <FaUser /> <span>Users</span>
-                                    </NavLink>
-                                </li>
-                                <li>
-                                    <NavLink
-                                        to="/admin/contacts"
-                                        className={getNavLinkClass}
-                                    >
-                                        <FaEnvelope /> <span>Contacts</span>
-                                    </NavLink>
-                                </li>
-                                <li>
-                                    <NavLink
-                                        to="/admin/services"
-                                        className={getNavLinkClass}
-                                    >
-                                        <FaRegListAlt /> <span>Services</span>
-                                    </NavLink>
-                                </li>
-                                <li>
-                                    <NavLink
-                                        to="/admin/donations"
-                                        className={getNavLinkClass}
-                                    >
-                                        <FaMoneyBillWave /> <span>Donations</span>
-                                    </NavLink>
-                                </li>
-                                <li>
-                                    <NavLink
-                                        to="/admin/shops"
-                                        className={getNavLinkClass}
-                                    >
-                                        <FaStore /> <span>Shops</span>
-                                    </NavLink>
-                                </li>
-                                <li>
-                                    <NavLink
-                                        to="/admin/requests"
-                                        className={getNavLinkClass}
-                                    >
-                                        {renderRequestsMenu()}
-                                    </NavLink>
-                                </li>
-                                <li>
-                                    <NavLink
-                                        to="/admin/reviews"
-                                        className={getNavLinkClass}
-                                    >
-                                        <FaStar />
-                                        Reviews
-                                    </NavLink>
-                                </li>
-                            </ul>
-                        </nav>
-                    </div>
-                </div>
-            </header>
+  const renderRequestBadge = (extraClasses = "") =>
+    requestCount > 0 ? (
+      <span
+        className={`inline-flex min-w-[1.5rem] items-center justify-center rounded-full bg-red-500 px-2 py-0.5 text-xs font-bold text-white ${extraClasses}`}
+      >
+        {requestCount}
+      </span>
+    ) : null;
 
-            {/* Mobile Sidebar Overlay */}
-            {menuOpen && (
-                <div
-                    className="fixed inset-0 bg-black bg-opacity-50 z-[60] md:hidden"
-                    onClick={() => setMenuOpen(false)} // tap outside to close
-                />
-            )}
-
-            {/* Sidebar for Mobile */}
-            <div
-                ref={menuRef}
-                className={`fixed top-0 right-0 h-full w-64 bg-gray-800 text-white shadow-2xl z-[70] transform transition-transform duration-300 ease-in-out ${menuOpen ? "translate-x-0" : "translate-x-full"
-                    } md:hidden`}
-            >
-                <div className="flex justify-between items-center p-4 border-b border-gray-700">
-                    <h3 className="text-xl font-semibold">Menu</h3>
-                    <button
-                        onClick={() => setMenuOpen(false)}
-                        className="text-white text-2xl"
-                        aria-label="Close menu"
-                    >
-                        <FaTimes />
-                    </button>
-                </div>
-                <nav>
-                    <ul className="flex flex-col">
-                        <li>
-                            <NavLink
-                                to="/admin"
-                                onClick={() => setMenuOpen(false)}
-                                className={getNavLinkClass}
-                                end
-                            >
-                                <FaHome /> <span>Home</span>
-                            </NavLink>
-                        </li>
-                        <li>
-                            <NavLink
-                                to="/admin/users"
-                                onClick={() => setMenuOpen(false)}
-                                className={getNavLinkClass}
-                            >
-                                <FaUser /> <span>Users</span>
-                            </NavLink>
-                        </li>
-                        <li>
-                            <NavLink
-                                to="/admin/contacts"
-                                onClick={() => setMenuOpen(false)}
-                                className={getNavLinkClass}
-                            >
-                                <FaEnvelope /> <span>Contacts</span>
-                            </NavLink>
-                        </li>
-                        <li>
-                            <NavLink
-                                to="/admin/services"
-                                onClick={() => setMenuOpen(false)}
-                                className={getNavLinkClass}
-                            >
-                                <FaRegListAlt /> <span>Services</span>
-                            </NavLink>
-                        </li>
-                        <li>
-                            <NavLink
-                                to="/admin/donations"
-                                onClick={() => setMenuOpen(false)}
-                                className={getNavLinkClass}
-                            >
-                                <FaMoneyBillWave /> <span>Donations</span>
-                            </NavLink>
-                        </li>
-                        <li>
-                            <NavLink
-                                to="/admin/shops"
-                                onClick={() => setMenuOpen(false)}
-                                className={getNavLinkClass}
-                            >
-                                <FaStore /> <span>Shops</span>
-                            </NavLink>
-                        </li>
-                        <li>
-                            <NavLink
-                                to="/admin/requests"
-                                onClick={() => setMenuOpen(false)}
-                                className={getNavLinkClass}
-                            >
-                                {renderRequestsMenu()}
-                            </NavLink>
-                        </li>
-                        <li>
-                            <NavLink
-                                to="/admin/reviews"
-                                onClick={() => setMenuOpen(false)}
-                                className={getNavLinkClass}
-                            >
-                                <FaStar />
-                                Reviews
-                            </NavLink>
-                        </li>
-                    </ul>
-                </nav>
+  return (
+    <div className="min-h-screen bg-slate-100">
+      <header className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white shadow-lg">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between gap-3 py-4 sm:py-5">
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-slate-300">
+                Administration
+              </p>
+              <h1 className="mt-1 text-xl font-bold sm:text-2xl">
+                Admin Dashboard
+              </h1>
             </div>
 
-            {/* Main Content */}
-            <main className="container mx-auto px-4 py-6">
-                <Outlet />
-            </main>
+            <div className="hidden sm:flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-3 py-2">
+              <FaBell className="text-sm text-amber-300" />
+              <span className="text-sm font-medium text-slate-100">Pending Requests</span>
+              {renderRequestBadge()}
+            </div>
+
+            <button
+              className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/30 bg-white/10 text-xl text-white transition hover:bg-white/20 md:hidden"
+              onClick={() => setMenuOpen(true)}
+              aria-label="Open admin menu"
+            >
+              <FaBars />
+            </button>
+          </div>
         </div>
-    );
+
+        <div className="hidden border-t border-white/10 md:block">
+          <nav className="mx-auto flex max-w-7xl flex-wrap items-center gap-2 px-4 py-3 sm:px-6 lg:px-8">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  end={item.end}
+                  className={getDesktopNavLinkClass}
+                >
+                  <Icon className="text-sm" />
+                  <span>{item.label}</span>
+                  {item.label === "Requests" ? renderRequestBadge("ml-1") : null}
+                </NavLink>
+              );
+            })}
+          </nav>
+        </div>
+      </header>
+
+      {menuOpen && (
+        <div
+          className="fixed inset-0 z-[60] bg-slate-950/60 backdrop-blur-[2px] md:hidden"
+          onClick={() => setMenuOpen(false)}
+        />
+      )}
+
+      <aside
+        ref={menuRef}
+        className={`fixed right-0 top-0 z-[70] h-full w-[86%] max-w-sm bg-slate-900 p-4 text-white shadow-2xl transition-transform duration-300 ease-out md:hidden ${
+          menuOpen ? "translate-x-0" : "translate-x-full"
+        }`}
+      >
+        <div className="mb-4 flex items-start justify-between border-b border-slate-700 pb-4">
+          <div>
+            <p className="text-xs uppercase tracking-[0.25em] text-slate-400">Menu</p>
+            <h2 className="mt-1 text-lg font-bold text-white">Admin Navigation</h2>
+          </div>
+          <button
+            onClick={() => setMenuOpen(false)}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-600 text-lg text-slate-200 transition hover:bg-slate-800"
+            aria-label="Close admin menu"
+          >
+            <FaTimes />
+          </button>
+        </div>
+
+        <nav className="space-y-2">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                end={item.end}
+                onClick={() => setMenuOpen(false)}
+                className={getMobileNavLinkClass}
+              >
+                <span className="inline-flex items-center gap-3">
+                  <Icon className="text-base" />
+                  <span>{item.label}</span>
+                </span>
+                {item.label === "Requests" ? renderRequestBadge() : null}
+              </NavLink>
+            );
+          })}
+        </nav>
+      </aside>
+
+      <main className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+        <Outlet />
+      </main>
+    </div>
+  );
 };
-
-
-
-
-

@@ -1,173 +1,234 @@
 import React from "react";
 import { motion } from "framer-motion";
+import { FaBullseye, FaLightbulb, FaHandshake, FaHeart, FaLeaf } from "react-icons/fa";
+
+const riseIn = {
+  hidden: { opacity: 0, y: 24 },
+  visible: { opacity: 1, y: 0 },
+};
 
 export const About = () => {
-  // Structured data for About page
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "AboutPage",
-    "name": "About SalonHub - Online Salon Booking Platform",
-    "description": "Learn about SalonHub - India's leading platform for online salon booking. Our mission to make beauty services accessible with easy booking for haircuts, facials, spa & more.",
-    "mainEntity": {
+    name: "About SalonHub - Online Salon Booking Platform",
+    description:
+      "Learn about SalonHub - India's leading platform for online salon booking. Our mission is to make beauty services accessible with easy booking for haircuts, facials, spa and more.",
+    mainEntity: {
       "@type": "Organization",
-      "name": "SalonHub",
-      "description": "Online salon and beauty services booking platform in India",
-      "url": "https://salonhub.co.in",
-      "founder": "SalonHub Team",
-      "foundingDate": "2024",
-      "areaServed": "India",
-      "serviceType": "Salon Booking Platform"
-    }
+      name: "SalonHub",
+      description: "Online salon and beauty services booking platform in India",
+      url: "https://salonhub.co.in",
+      founder: "SalonHub Team",
+      foundingDate: "2024",
+      areaServed: "India",
+      serviceType: "Salon Booking Platform",
+    },
   };
+
+  const values = [
+    {
+      title: "Customer First",
+      desc: "Every booking flow is designed to be fast, transparent, and low-friction.",
+      icon: FaHeart,
+      tone: "from-rose-500 to-orange-500",
+    },
+    {
+      title: "Trust Through Quality",
+      desc: "We partner only with salons that meet strong service and hygiene standards.",
+      icon: FaHandshake,
+      tone: "from-cyan-500 to-blue-500",
+    },
+    {
+      title: "Innovation in Beauty",
+      desc: "Technology helps customers discover better options and book with confidence.",
+      icon: FaLightbulb,
+      tone: "from-amber-500 to-yellow-500",
+    },
+    {
+      title: "Sustainable Growth",
+      desc: "We help local beauty businesses grow through predictable digital bookings.",
+      icon: FaLeaf,
+      tone: "from-emerald-500 to-teal-500",
+    },
+  ];
+
+  const milestones = [
+    {
+      title: "2024: The Idea Took Shape",
+      desc: "SalonHub started with a simple goal: eliminate call-and-wait chaos from salon booking.",
+    },
+    {
+      title: "Platform Rollout",
+      desc: "We launched online discovery, service browsing, and slot confirmation in one seamless flow.",
+    },
+    {
+      title: "Growing Across Cities",
+      desc: "SalonHub now serves customers across major Indian cities with trusted partner salons.",
+    },
+  ];
 
   return (
     <>
-      {/* JSON-LD Structured Data */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
-      
-      <main className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 py-12 px-4 sm:px-6 lg:px-8">
+
+      <main className="relative min-h-screen overflow-hidden bg-gradient-to-b from-slate-50 via-cyan-50 to-amber-50 px-4 py-12 sm:px-6 lg:px-8">
+        <div className="pointer-events-none absolute left-0 top-20 h-64 w-64 rounded-full bg-cyan-200/50 blur-3xl" />
+        <div className="pointer-events-none absolute right-0 top-40 h-72 w-72 rounded-full bg-orange-200/50 blur-3xl" />
+
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="max-w-4xl mx-auto bg-white p-10 rounded-2xl shadow-xl"
+          initial="hidden"
+          animate="visible"
+          variants={riseIn}
+          transition={{ duration: 0.55 }}
+          className="relative w-full"
         >
-          {/* Updated to SalonHub for consistency */}
-          <h4 className="text-4xl font-bold text-center text-purple-800 mb-6">
-            SalonHub - India's Leading Salon Booking Platform
-          </h4>
-          <p className="text-lg text-gray-600 leading-relaxed text-center mb-10">
-            At <strong>SalonHub</strong>, we believe in making <strong>beauty and grooming services accessible</strong> to everyone in India. 
-            Our platform connects you with <strong>top-rated salons and spas</strong> across the country, making <strong>online salon booking</strong> simple, fast, and stress-free.
-          </p>
+          <section className="mb-10 overflow-hidden rounded-3xl border border-white/70 bg-white/90 shadow-[0_24px_70px_-20px_rgba(15,23,42,0.35)] backdrop-blur">
+            <div className="grid gap-8 p-8 md:grid-cols-[1.2fr_0.8fr] md:p-10">
+              <div>
+                <p className="mb-3 inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-cyan-200">
+                  <FaBullseye /> About SalonHub
+                </p>
+                <h1 className="text-3xl font-black leading-tight text-slate-900 md:text-5xl">
+                  India's Trusted Platform for Smart Salon Booking
+                </h1>
+                <p className="mt-5 max-w-2xl text-base leading-relaxed text-slate-600 md:text-lg">
+                  SalonHub was built to make beauty and grooming services more accessible, reliable,
+                  and stress-free. We connect customers with top-rated salons and create a better booking
+                  experience through technology.
+                </p>
+              </div>
 
-          <section className="mb-10">
-            <h2 className="text-2xl font-semibold text-purple-600 mb-4">Our Story - Revolutionizing Salon Booking in India</h2>
-            <p className="text-gray-700 text-lg leading-relaxed mb-4">
-              SalonHub was founded from a simple vision: to <strong>transform how India books salon appointments</strong>. 
-              Tired of endless phone calls, uncertain availability, and last-minute disappointments, we created a 
-              comprehensive digital solution that puts <strong>beauty services at your fingertips</strong>.
-            </p>
-            <p className="text-gray-700 text-lg leading-relaxed">
-              Founded in 2024, we've grown to become one of India's most trusted platforms for 
-              <strong> online beauty service bookings</strong>. From basic haircuts to elaborate bridal packages, 
-              we connect customers with the <strong>best salons and beauty professionals</strong> across the country.
-            </p>
-          </section>
-
-          <section className="mb-10">
-            <h2 className="text-2xl font-semibold text-purple-600 mb-4">What We Offer - Comprehensive Beauty Solutions</h2>
-            <ul className="list-disc pl-6 text-gray-700 text-lg space-y-4">
-              <li>
-                <strong>Wide Range of Beauty Services:</strong> From <strong>haircuts and styling</strong> to 
-                <strong> facials, waxing, manicure, pedicure, bridal makeup, and spa treatments</strong> - 
-                we cover all your beauty and grooming needs.
-              </li>
-              <li>
-                <strong>Verified Salon Partners:</strong> Every salon on our platform is carefully verified 
-                to ensure <strong>quality service and professional standards</strong> for our customers.
-              </li>
-              <li>
-                <strong>Real-Time Availability:</strong> See <strong>available time slots instantly </strong> 
-                and book appointments that fit your schedule perfectly.
-              </li>
-              <li>
-                <strong>Genuine Customer Reviews:</strong> Make informed decisions with <strong>authentic reviews and ratings </strong> 
-                from real customers who've experienced the services.
-              </li>
-              <li>
-                <strong>Secure Online Payments:</strong> Multiple payment options with <strong>complete security and transparency </strong> 
-                for all your transactions.
-              </li>
-              <li>
-                <strong>Pan-India Coverage:</strong> Book salon services in major cities including 
-                <strong> Delhi, Mumbai, Bangalore, Chennai, Kolkata, Hyderabad, Pune, and more</strong>.
-              </li>
-            </ul>
-          </section>
-
-          <section className="mb-10">
-            <h2 className="text-2xl font-semibold text-purple-600 mb-4">Our Mission & Vision</h2>
-            <div className="bg-purple-50 p-6 rounded-lg mb-6">
-              <h3 className="text-xl font-semibold text-purple-700 mb-3">Our Mission</h3>
-              <p className="text-gray-700 leading-relaxed">
-                To make <strong>quality beauty services accessible and affordable</strong> for every Indian by 
-                leveraging technology to create a <strong>seamless salon booking experience</strong>.
-              </p>
-            </div>
-            <div className="bg-pink-50 p-6 rounded-lg">
-              <h3 className="text-xl font-semibold text-purple-700 mb-3">Our Vision</h3>
-              <p className="text-gray-700 leading-relaxed">
-                To become <strong>India's most trusted beauty services platform</strong>, revolutionizing the 
-                way people discover and book salon services while empowering local beauty businesses to grow.
-              </p>
-            </div>
-          </section>
-
-          <section className="mb-10">
-            <h2 className="text-2xl font-semibold text-purple-600 mb-4">Why Choose SalonHub?</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {[
-                ["100% Verified Salons", "Every partner salon is thoroughly verified for quality and hygiene standards"],
-                ["Easy Online Booking", "Book appointments in less than 2 minutes with our user-friendly platform"],
-                ["Best Price Guarantee", "Competitive pricing with no hidden charges for all beauty services"],
-                ["24/7 Customer Support", "Dedicated support team to help with all your booking needs and queries"],
-                ["Wide Service Range", "From basic grooming to premium spa treatments - everything in one place"],
-                ["Instant Confirmation", "Get immediate booking confirmation with all service details"]
-              ].map(([title, desc]) => (
-                <div key={title} className="bg-white border border-purple-100 p-4 rounded-lg shadow-sm">
-                  <h3 className="font-semibold text-purple-600 mb-2">{title}</h3>
-                  <p className="text-gray-600 text-sm">{desc}</p>
+              <div className="rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-700 p-6 text-white">
+                <p className="text-xs uppercase tracking-[0.2em] text-amber-200">At A Glance</p>
+                <div className="mt-5 space-y-4">
+                  {[
+                    ["Founded", "2024"],
+                    ["Coverage", "Pan-India"],
+                    ["Focus", "Salon + Spa Bookings"],
+                  ].map(([label, value]) => (
+                    <div key={label} className="rounded-xl border border-white/15 bg-white/10 px-4 py-3">
+                      <p className="text-xs uppercase tracking-[0.1em] text-slate-300">{label}</p>
+                      <p className="mt-1 text-lg font-bold text-white">{value}</p>
+                    </div>
+                  ))}
                 </div>
+              </div>
+            </div>
+          </section>
+
+          <section className="mb-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              ["Fast Booking", "< 2 minutes"],
+              ["Support", "24/7"],
+              ["Service Discovery", "Live availability"],
+              ["Customer Trust", "Verified reviews"],
+            ].map(([label, value]) => (
+              <div
+                key={label}
+                className="rounded-2xl border border-slate-100 bg-white/90 px-5 py-4 text-center shadow-sm"
+              >
+                <p className="text-xs uppercase tracking-[0.14em] text-slate-500">{label}</p>
+                <p className="mt-2 text-xl font-black text-slate-900">{value}</p>
+              </div>
+            ))}
+          </section>
+
+          <section className="mb-10 rounded-3xl border border-cyan-100 bg-white/95 p-8 shadow-lg md:p-10">
+            <h2 className="text-2xl font-black text-slate-900 md:text-3xl">Our Story</h2>
+            <p className="mt-3 max-w-3xl text-slate-600">
+              SalonHub started by solving a real problem: customers were spending too much time calling,
+              waiting, and guessing availability. We turned that into a smooth digital experience.
+            </p>
+
+            <div className="mt-7 space-y-4">
+              {milestones.map((item, index) => (
+                <motion.div
+                  key={item.title}
+                  initial={{ opacity: 0, x: -16 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true, amount: 0.2 }}
+                  transition={{ duration: 0.35, delay: index * 0.05 }}
+                  className="rounded-2xl border border-slate-100 bg-slate-50 p-5"
+                >
+                  <h3 className="font-bold text-slate-900">{item.title}</h3>
+                  <p className="mt-2 text-sm text-slate-600">{item.desc}</p>
+                </motion.div>
               ))}
             </div>
           </section>
 
-          <section className="mb-10">
-            <h2 className="text-2xl font-semibold text-purple-600 mb-4">Our Commitment to Quality</h2>
-            <p className="text-gray-700 text-lg leading-relaxed mb-4">
-              We are deeply committed to providing a platform that's <strong>trustworthy, reliable, and customer-centric</strong>. 
-              We partner with salons that share our values of <strong>excellence, hygiene, and professional service</strong>.
-            </p>
-            <p className="text-gray-700 text-lg leading-relaxed">
-              Every booking through SalonHub comes with our <strong>quality assurance promise</strong>. We work tirelessly 
-              to ensure that your experience - from booking to service delivery - is <strong>seamless and satisfying</strong>.
-            </p>
-          </section>
-
-          <section className="bg-gradient-to-r from-purple-600 to-pink-600 p-8 rounded-2xl text-white text-center">
-            <h2 className="text-2xl font-bold mb-4">Join the SalonHub Community</h2>
-            <p className="text-lg mb-6 opacity-90">
-              Thousands of satisfied customers across India trust SalonHub for their beauty service needs. 
-              Experience the difference today!
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a href="/" className="px-6 py-3 bg-white text-purple-600 font-semibold rounded-lg hover:shadow-lg transition-all">
-                Book Your Appointment
-              </a>
-              <a href="/contact" className="px-6 py-3 border-2 border-white text-white font-semibold rounded-lg hover:bg-white hover:text-purple-600 transition-all">
-                Contact Us
-              </a>
+          <section className="mb-10 rounded-3xl bg-slate-900 p-8 text-white shadow-xl md:p-10">
+            <h2 className="text-2xl font-black md:text-3xl">What We Stand For</h2>
+            <div className="mt-7 grid gap-5 md:grid-cols-2">
+              {values.map((item, index) => {
+                const Icon = item.icon;
+                return (
+                  <motion.article
+                    key={item.title}
+                    initial={{ opacity: 0, y: 12 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, amount: 0.25 }}
+                    transition={{ duration: 0.35, delay: index * 0.05 }}
+                    className="rounded-2xl border border-white/15 bg-white/5 p-5"
+                  >
+                    <div
+                      className={`mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br ${item.tone} text-white`}
+                    >
+                      <Icon />
+                    </div>
+                    <h3 className="font-bold">{item.title}</h3>
+                    <p className="mt-2 text-sm text-slate-200">{item.desc}</p>
+                  </motion.article>
+                );
+              })}
             </div>
           </section>
 
-          <section className="mt-10 text-center text-gray-600">
-            <p className="text-lg">
-              <strong>Thank you for choosing SalonHub.</strong> We look forward to helping you look and feel your best!
+          <section className="mb-10 grid gap-5 md:grid-cols-2">
+            <div className="rounded-3xl border border-orange-100 bg-gradient-to-br from-orange-50 to-rose-50 p-7 shadow-md">
+              <h3 className="text-xl font-black text-slate-900">Our Mission</h3>
+              <p className="mt-3 text-sm leading-relaxed text-slate-700">
+                Make quality beauty services accessible and affordable for every Indian through simple,
+                transparent, and reliable online salon booking.
+              </p>
+            </div>
+
+            <div className="rounded-3xl border border-cyan-100 bg-gradient-to-br from-cyan-50 to-blue-50 p-7 shadow-md">
+              <h3 className="text-xl font-black text-slate-900">Our Vision</h3>
+              <p className="mt-3 text-sm leading-relaxed text-slate-700">
+                Become India's most trusted beauty services platform while empowering local salon owners
+                with stronger digital visibility and growth.
+              </p>
+            </div>
+          </section>
+
+          <section className="rounded-3xl bg-gradient-to-r from-emerald-500 via-cyan-500 to-blue-600 p-8 text-center text-white shadow-xl md:p-10">
+            <h2 className="text-2xl font-black md:text-3xl">Join the SalonHub Community</h2>
+            <p className="mx-auto mt-3 max-w-2xl text-sm text-white/95 md:text-base">
+              Thousands of customers already trust SalonHub for consistent and convenient beauty service
+              bookings across India.
             </p>
-            <p className="text-sm mt-4">
-              SalonHub - Your trusted partner for <strong>online salon booking in India</strong>
-            </p>
+            <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
+              <a
+                href="/"
+                className="inline-flex items-center justify-center rounded-xl bg-white px-7 py-3 text-sm font-bold text-slate-900 transition hover:-translate-y-0.5"
+              >
+                Book Your Appointment
+              </a>
+              <a
+                href="/contact"
+                className="inline-flex items-center justify-center rounded-xl border border-white/70 px-7 py-3 text-sm font-bold text-white transition hover:bg-white/10"
+              >
+                Contact Us
+              </a>
+            </div>
           </section>
         </motion.div>
       </main>
     </>
   );
 };
-
-
-
-

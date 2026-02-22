@@ -1,8 +1,5 @@
 const Appointment = require('../models/appointment-model');
 const Shop = require('../models/registerShop-model');
-const TimeSlot = require('../models/timeSlot-model');
-const User = require('../models/user/user-model');
-const mongoose = require('mongoose');
 
 // Get all appointments for barber's shop
 exports.getBarberAppointments = async (req, res) => {
@@ -279,104 +276,351 @@ exports.updateAppointmentStatus = async (req, res) => {
 };
 
 
+const ANALYTICS_PERIODS = new Set(['day', 'week', 'month', 'year']);
+
+const roundCurrency = (value) => Number((Number(value) || 0).toFixed(2));
+
+const parseDateFromQuery = (rawDate) => {
+  if (typeof rawDate !== 'string') return null;
+  const match = rawDate.trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return null;
+
+  const year = Number(match[1]);
+  const monthIndex = Number(match[2]) - 1;
+  const day = Number(match[3]);
+  const parsedDate = new Date(year, monthIndex, day);
+
+  if (
+    parsedDate.getFullYear() !== year ||
+    parsedDate.getMonth() !== monthIndex ||
+    parsedDate.getDate() !== day
+  ) {
+    return null;
+  }
+
+  return parsedDate;
+};
+
+const parseValidYear = (rawYear, fallbackYear) => {
+  const parsed = Number.parseInt(rawYear, 10);
+  if (!Number.isFinite(parsed)) return fallbackYear;
+  if (parsed < 1970 || parsed > 2100) return fallbackYear;
+  return parsed;
+};
+
+const parseValidMonthIndex = (rawMonth, fallbackMonthIndex) => {
+  const parsed = Number.parseInt(rawMonth, 10);
+  if (!Number.isFinite(parsed)) return fallbackMonthIndex;
+  if (parsed < 1 || parsed > 12) return fallbackMonthIndex;
+  return parsed - 1;
+};
+
+const getAppointmentDate = (appointment) => {
+  const showtimeDate =
+    appointment?.showtimes &&
+    appointment.showtimes.length > 0 &&
+    appointment.showtimes[0]?.date
+      ? new Date(appointment.showtimes[0].date)
+      : null;
+
+  if (showtimeDate && !Number.isNaN(showtimeDate.getTime())) {
+    return showtimeDate;
+  }
+
+  const bookedDate = new Date(appointment?.bookedAt);
+  return Number.isNaN(bookedDate.getTime()) ? null : bookedDate;
+};
+
+const getPeriodRange = (rawPeriod, filters = {}) => {
+  const period = ANALYTICS_PERIODS.has(rawPeriod) ? rawPeriod : 'month';
+  const now = new Date();
+  const referenceDate = parseDateFromQuery(filters.date) || now;
+  const yearFromQuery = parseValidYear(filters.year, now.getFullYear());
+  const monthFromQuery = parseValidMonthIndex(filters.month, now.getMonth());
+  let startDate;
+  let endDate;
+
+  if (period === 'day') {
+    startDate = new Date(referenceDate.getFullYear(), referenceDate.getMonth(), referenceDate.getDate());
+    endDate = new Date(startDate);
+    endDate.setDate(endDate.getDate() + 1);
+    return { period, startDate, endDate };
+  }
+
+  if (period === 'week') {
+    const currentDay = referenceDate.getDay();
+    const diffToMonday = currentDay === 0 ? 6 : currentDay - 1;
+    startDate = new Date(referenceDate.getFullYear(), referenceDate.getMonth(), referenceDate.getDate());
+    startDate.setDate(startDate.getDate() - diffToMonday);
+    endDate = new Date(startDate);
+    endDate.setDate(endDate.getDate() + 7);
+    return { period, startDate, endDate };
+  }
+
+  if (period === 'month') {
+    startDate = new Date(yearFromQuery, monthFromQuery, 1);
+    endDate = new Date(yearFromQuery, monthFromQuery + 1, 1);
+    return { period, startDate, endDate };
+  }
+
+  startDate = new Date(yearFromQuery, 0, 1);
+  endDate = new Date(yearFromQuery + 1, 0, 1);
+  return { period, startDate, endDate };
+};
+
+const getBucketKeyAndLabel = (date, period) => {
+  if (period === 'day') {
+    const hour = date.getHours();
+    const key = `h-${hour.toString().padStart(2, '0')}`;
+    const label = `${hour.toString().padStart(2, '0')}:00`;
+    return { key, label };
+  }
+
+  if (period === 'year') {
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+    const key = `${year}-${month.toString().padStart(2, '0')}`;
+    const label = date.toLocaleString('en-IN', { month: 'short' });
+    return { key, label };
+  }
+
+  const year = date.getFullYear();
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const day = date.getDate().toString().padStart(2, '0');
+  const key = `${year}-${month}-${day}`;
+
+  const label =
+    period === 'week'
+      ? date.toLocaleString('en-IN', { weekday: 'short', day: '2-digit' })
+      : date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
+
+  return { key, label };
+};
+
+const createBuckets = (startDate, endDate, period) => {
+  const buckets = new Map();
+
+  if (period === 'day') {
+    for (let hour = 0; hour < 24; hour += 1) {
+      const key = `h-${hour.toString().padStart(2, '0')}`;
+      buckets.set(key, {
+        key,
+        label: `${hour.toString().padStart(2, '0')}:00`,
+        bookings: 0,
+        completed: 0,
+        cancelled: 0,
+        revenue: 0,
+        grossRevenue: 0,
+      });
+    }
+    return buckets;
+  }
+
+  if (period === 'year') {
+    for (let month = 0; month < 12; month += 1) {
+      const current = new Date(startDate.getFullYear(), month, 1);
+      const { key, label } = getBucketKeyAndLabel(current, 'year');
+      buckets.set(key, {
+        key,
+        label,
+        bookings: 0,
+        completed: 0,
+        cancelled: 0,
+        revenue: 0,
+        grossRevenue: 0,
+      });
+    }
+    return buckets;
+  }
+
+  const cursor = new Date(startDate);
+  while (cursor < endDate) {
+    const { key, label } = getBucketKeyAndLabel(cursor, period);
+    buckets.set(key, {
+      key,
+      label,
+      bookings: 0,
+      completed: 0,
+      cancelled: 0,
+      revenue: 0,
+      grossRevenue: 0,
+    });
+    cursor.setDate(cursor.getDate() + 1);
+  }
+
+  return buckets;
+};
+
 // Get appointment analytics
 exports.getAppointmentAnalytics = async (req, res) => {
   try {
     const { shopId } = req.params;
-    const { period = 'month' } = req.query; // week, month, year
+    const {
+      period: periodQuery = 'month',
+      date: dateQuery,
+      month: monthQuery,
+      year: yearQuery,
+    } = req.query;
 
     if (!shopId) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         success: false,
-        error: 'Shop ID is required' 
+        error: 'Shop ID is required'
       });
     }
 
-    const now = new Date();
-    let startDate;
+    const { period, startDate, endDate } = getPeriodRange(periodQuery, {
+      date: dateQuery,
+      month: monthQuery,
+      year: yearQuery,
+    });
 
-    switch (period) {
-      case 'week':
-        startDate = new Date(now.setDate(now.getDate() - 7));
-        break;
-      case 'month':
-        startDate = new Date(now.setMonth(now.getMonth() - 1));
-        break;
-      case 'year':
-        startDate = new Date(now.setFullYear(now.getFullYear() - 1));
-        break;
-      default:
-        startDate = new Date(now.setMonth(now.getMonth() - 1));
+    const appointments = await Appointment.find({ shopId })
+      .select('status totalAmount showtimes bookedAt')
+      .lean();
+
+    const periodAppointments = [];
+    for (const appointment of appointments) {
+      const appointmentDate = getAppointmentDate(appointment);
+      if (!appointmentDate) continue;
+      if (appointmentDate >= startDate && appointmentDate < endDate) {
+        periodAppointments.push({ ...appointment, appointmentDate });
+      }
     }
 
-    const analytics = await Appointment.aggregate([
-      {
-        $match: {
-          shopId: mongoose.Types.ObjectId(shopId),
-          bookedAt: { $gte: startDate }
-        }
-      },
-      {
-        $group: {
-          _id: {
-            date: { $dateToString: { format: "%Y-%m-%d", date: "$bookedAt" } },
-            status: "$status"
-          },
-          count: { $sum: 1 }
-        }
-      },
-      {
-        $group: {
-          _id: "$_id.date",
-          statuses: {
-            $push: {
-              status: "$_id.status",
-              count: "$count"
-            }
-          },
-          total: { $sum: "$count" }
-        }
-      },
-      { $sort: { _id: 1 } }
-    ]);
+    const summary = {
+      totalAppointments: 0,
+      pending: 0,
+      confirmed: 0,
+      completed: 0,
+      cancelled: 0,
+      grossRevenue: 0,
+      realizedRevenue: 0,
+      expectedRevenue: 0,
+      cancelledRevenueLoss: 0,
+      averageTicketSize: 0,
+      completionRate: 0,
+      cancellationRate: 0,
+    };
 
-    // Calculate summary
-    const totalAppointments = await Appointment.countDocuments({ 
-      shopId: mongoose.Types.ObjectId(shopId),
-      bookedAt: { $gte: startDate }
-    });
+    const serviceMap = new Map();
+    const buckets = createBuckets(startDate, endDate, period);
 
-    const confirmedAppointments = await Appointment.countDocuments({ 
-      shopId: mongoose.Types.ObjectId(shopId),
-      status: 'confirmed',
-      bookedAt: { $gte: startDate }
-    });
+    for (const appointment of periodAppointments) {
+      const amount = Number(appointment.totalAmount) || 0;
+      const status = appointment.status || 'pending';
 
-    const cancelledAppointments = await Appointment.countDocuments({ 
-      shopId: mongoose.Types.ObjectId(shopId),
-      status: 'cancelled',
-      bookedAt: { $gte: startDate }
-    });
+      summary.totalAppointments += 1;
+      summary.grossRevenue += amount;
+
+      if (status === 'pending') summary.pending += 1;
+      if (status === 'confirmed') summary.confirmed += 1;
+      if (status === 'completed') summary.completed += 1;
+      if (status === 'cancelled') summary.cancelled += 1;
+      if (status === 'completed') summary.realizedRevenue += amount;
+      if (status === 'pending' || status === 'confirmed') summary.expectedRevenue += amount;
+      if (status === 'cancelled') summary.cancelledRevenueLoss += amount;
+
+      const bucketMeta = getBucketKeyAndLabel(appointment.appointmentDate, period);
+      if (!buckets.has(bucketMeta.key)) {
+        buckets.set(bucketMeta.key, {
+          key: bucketMeta.key,
+          label: bucketMeta.label,
+          bookings: 0,
+          completed: 0,
+          cancelled: 0,
+          revenue: 0,
+          grossRevenue: 0,
+        });
+      }
+
+      const bucket = buckets.get(bucketMeta.key);
+      bucket.bookings += 1;
+      bucket.grossRevenue += amount;
+      if (status === 'completed') {
+        bucket.completed += 1;
+        bucket.revenue += amount;
+      }
+      if (status === 'cancelled') {
+        bucket.cancelled += 1;
+      }
+
+      if (Array.isArray(appointment.showtimes) && appointment.showtimes.length > 0) {
+        for (const showtime of appointment.showtimes) {
+          const serviceName = showtime?.service?.name?.trim() || 'Unknown Service';
+          const servicePrice = Number(showtime?.service?.price);
+          const serviceRevenue = Number.isFinite(servicePrice) ? servicePrice : amount;
+
+          if (!serviceMap.has(serviceName)) {
+            serviceMap.set(serviceName, { name: serviceName, bookings: 0, revenue: 0 });
+          }
+          const serviceStats = serviceMap.get(serviceName);
+          serviceStats.bookings += 1;
+          if (status === 'completed') {
+            serviceStats.revenue += serviceRevenue;
+          }
+        }
+      } else {
+        const fallbackService = 'Unknown Service';
+        if (!serviceMap.has(fallbackService)) {
+          serviceMap.set(fallbackService, { name: fallbackService, bookings: 0, revenue: 0 });
+        }
+        const serviceStats = serviceMap.get(fallbackService);
+        serviceStats.bookings += 1;
+        if (status === 'completed') {
+          serviceStats.revenue += amount;
+        }
+      }
+    }
+
+    summary.averageTicketSize =
+      summary.totalAppointments > 0 ? summary.grossRevenue / summary.totalAppointments : 0;
+    summary.completionRate =
+      summary.totalAppointments > 0 ? (summary.completed / summary.totalAppointments) * 100 : 0;
+    summary.cancellationRate =
+      summary.totalAppointments > 0 ? (summary.cancelled / summary.totalAppointments) * 100 : 0;
+
+    const analytics = Array.from(buckets.values()).map((bucket) => ({
+      ...bucket,
+      revenue: roundCurrency(bucket.revenue),
+      grossRevenue: roundCurrency(bucket.grossRevenue),
+    }));
+
+    const topServices = Array.from(serviceMap.values())
+      .map((service) => ({
+        ...service,
+        revenue: roundCurrency(service.revenue),
+      }))
+      .sort((a, b) => {
+        if (b.bookings !== a.bookings) return b.bookings - a.bookings;
+        return b.revenue - a.revenue;
+      })
+      .slice(0, 8);
 
     res.status(200).json({
       success: true,
-      analytics,
-      summary: {
-        total: totalAppointments,
-        confirmed: confirmedAppointments,
-        cancelled: cancelledAppointments,
-        completionRate: totalAppointments > 0 ? 
-          ((totalAppointments - cancelledAppointments) / totalAppointments * 100).toFixed(2) : 0
-      },
       period,
-      startDate: startDate.toISOString().split('T')[0]
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+      summary: {
+        ...summary,
+        grossRevenue: roundCurrency(summary.grossRevenue),
+        realizedRevenue: roundCurrency(summary.realizedRevenue),
+        expectedRevenue: roundCurrency(summary.expectedRevenue),
+        cancelledRevenueLoss: roundCurrency(summary.cancelledRevenueLoss),
+        averageTicketSize: roundCurrency(summary.averageTicketSize),
+        completionRate: Number(summary.completionRate.toFixed(2)),
+        cancellationRate: Number(summary.cancellationRate.toFixed(2)),
+      },
+      analytics,
+      topServices,
     });
 
   } catch (error) {
     console.error('Error fetching appointment analytics:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
-      error: 'Failed to fetch appointment analytics' 
+      error: 'Failed to fetch appointment analytics'
     });
   }
 };

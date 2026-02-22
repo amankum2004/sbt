@@ -23,8 +23,13 @@ export const LoginProvider = ({ children }) => {
 
   // Check if shop exists
   const checkShopExists = async (email) => {
+    if (!email) {
+      return { exists: false };
+    }
+
     try {
-      const response = await api.get(`/shop/check-shop/${email}`);
+      const normalizedEmail = encodeURIComponent(email.trim().toLowerCase());
+      const response = await api.get(`/shop/check-shop/${normalizedEmail}`);
       return response.data;
     } catch (error) {
       console.error("Error checking shop existence:", error);

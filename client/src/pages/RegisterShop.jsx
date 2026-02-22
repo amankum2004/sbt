@@ -5,6 +5,66 @@ import { stateDistrictCityData } from "../utils/locationData";
 import Swal from "sweetalert2";
 import { api } from "../utils/api";
 
+const GOOGLE_GEOCODE_API_KEY =
+  import.meta.env.VITE_GOOGLE_GEOCODE_API_KEY ||
+  "AIzaSyBXAXAyD9NlkszrZMv4teqO197bQVpqkXU";
+const GOOGLE_GEOCODE_ENDPOINT =
+  "https://maps.googleapis.com/maps/api/geocode/json";
+const MAX_LOCATION_SAMPLES = 6;
+const TARGET_ACCURACY_METERS = 15;
+
+const GOOGLE_COORDINATE_PATTERNS = [
+  /@(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)/i,
+  /!3d(-?\d+(?:\.\d+)?)!4d(-?\d+(?:\.\d+)?)/i,
+  /(?:[?&](?:q|query|destination|origin|ll|center)=)(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)/i,
+  /(-?\d{1,2}(?:\.\d+)?)[,\s]+(-?\d{1,3}(?:\.\d+)?)/,
+];
+
+const toCoordinateNumber = (value) => {
+  if (value === null || value === undefined || value === "") return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+};
+
+const isCoordinatePairValid = (lat, lng) =>
+  Number.isFinite(lat) &&
+  Number.isFinite(lng) &&
+  lat >= -90 &&
+  lat <= 90 &&
+  lng >= -180 &&
+  lng <= 180;
+
+const formatCoordinateLabel = (value) => {
+  const parsed = toCoordinateNumber(value);
+  if (!Number.isFinite(parsed)) return "-";
+  return parsed.toFixed(14).replace(/\.?0+$/, "");
+};
+
+const extractCoordinatesFromInput = (inputText) => {
+  if (!inputText?.trim()) return null;
+
+  let normalizedInput = inputText.trim();
+  try {
+    normalizedInput = decodeURIComponent(normalizedInput);
+  } catch {
+    // Keep original input if decoding fails.
+  }
+
+  for (const pattern of GOOGLE_COORDINATE_PATTERNS) {
+    const match = normalizedInput.match(pattern);
+    if (!match) continue;
+
+    const latitude = toCoordinateNumber(match[1]);
+    const longitude = toCoordinateNumber(match[2]);
+
+    if (isCoordinatePairValid(latitude, longitude)) {
+      return { lat: latitude, lng: longitude };
+    }
+  }
+
+  return null;
+};
+
 const defaultFormData = {
   name: "",
   email: "",
@@ -19,133 +79,377 @@ const defaultFormData = {
   services: [{ service: "", price: "" }],
   lat: null,
   lng: null,
-  latString: "", // New field for string storage
-  lngString: "", // New field for string storage
+  coordinatesSource: "device_gps",
 };
 
 export const RegisterShop = () => {
-  const { user } = useLogin();
+  const { user, refreshShopData } = useLogin();
   const navigate = useNavigate();
   const [formData, setFormData] = useState(defaultFormData);
   const [districts, setDistricts] = useState([]);
   const [cities, setCities] = useState([]);
   const [token, setToken] = useState(null);
-  const [location, setLocation] = useState({ lat: null, lng: null });
   const [isLocationCaptured, setIsLocationCaptured] = useState(false);
   const [isCapturingLocation, setIsCapturingLocation] = useState(false);
   const [locationAccuracy, setLocationAccuracy] = useState(null);
+  const [coordinateInput, setCoordinateInput] = useState("");
   const [pinError, setPinError] = useState(""); // State for pin validation error
 
-  // Function to store coordinates as strings with full precision
-  const storeHighPrecisionCoordinates = (latitude, longitude) => {
-    // Store as strings to preserve full precision
-    const latString = latitude.toString();
-    const lngString = longitude.toString();
-    
-    // Also store as numbers for backward compatibility
-    const lat = Number(latitude);
-    const lng = Number(longitude);
-    
-    return { lat, lng, latString, lngString };
+  const getShopAddressString = () =>
+    [
+      formData.shopname,
+      formData.street,
+      formData.city,
+      formData.district,
+      formData.state,
+      formData.pin,
+      "India",
+    ]
+      .map((part) => part?.toString().trim())
+      .filter(Boolean)
+      .join(", ");
+
+  const clearCoordinates = () => {
+    setFormData((prev) => ({
+      ...prev,
+      lat: null,
+      lng: null,
+      coordinatesSource: "fallback",
+    }));
+    setCoordinateInput("");
+    setLocationAccuracy(null);
+    setIsLocationCaptured(false);
   };
 
-  const captureLocation = () => {
+  const applyCoordinates = ({ lat, lng, source, accuracy = null }) => {
+    setFormData((prev) => ({
+      ...prev,
+      lat,
+      lng,
+      coordinatesSource: source,
+    }));
+    setLocationAccuracy(Number.isFinite(accuracy) ? accuracy : null);
+    setIsLocationCaptured(true);
+  };
+
+  const getBestDeviceLocation = () =>
+    new Promise((resolve, reject) => {
+      let watchId = null;
+      let timeoutId = null;
+      const samples = [];
+
+      const cleanup = () => {
+        if (watchId !== null) {
+          navigator.geolocation.clearWatch(watchId);
+          watchId = null;
+        }
+        if (timeoutId !== null) {
+          clearTimeout(timeoutId);
+          timeoutId = null;
+        }
+      };
+
+      const finalizeWithBestSample = () => {
+        if (!samples.length) {
+          cleanup();
+          reject(new Error("Unable to capture valid coordinates from device GPS."));
+          return;
+        }
+
+        const bestSample = samples.reduce((best, current) => {
+          if (!best) return current;
+
+          const bestAccuracy = Number.isFinite(best.accuracy) ? best.accuracy : Infinity;
+          const currentAccuracy = Number.isFinite(current.accuracy) ? current.accuracy : Infinity;
+
+          if (currentAccuracy < bestAccuracy) return current;
+          if (currentAccuracy === bestAccuracy && current.timestamp > best.timestamp) return current;
+          return best;
+        }, null);
+
+        cleanup();
+        resolve(bestSample);
+      };
+
+      watchId = navigator.geolocation.watchPosition(
+        (position) => {
+          const latitude = toCoordinateNumber(position.coords?.latitude);
+          const longitude = toCoordinateNumber(position.coords?.longitude);
+          const accuracy = toCoordinateNumber(position.coords?.accuracy);
+
+          if (!isCoordinatePairValid(latitude, longitude)) return;
+
+          samples.push({
+            latitude,
+            longitude,
+            accuracy,
+            timestamp: Number(position.timestamp) || Date.now(),
+          });
+
+          const bestAccuracy = samples.reduce((best, sample) => {
+            const sampleAccuracy = Number.isFinite(sample.accuracy) ? sample.accuracy : Infinity;
+            return Math.min(best, sampleAccuracy);
+          }, Infinity);
+
+          if (samples.length >= MAX_LOCATION_SAMPLES || bestAccuracy <= TARGET_ACCURACY_METERS) {
+            finalizeWithBestSample();
+          }
+        },
+        (error) => {
+          if (samples.length > 0) {
+            finalizeWithBestSample();
+            return;
+          }
+          cleanup();
+          reject(error);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 20000,
+          maximumAge: 0,
+        }
+      );
+
+      timeoutId = setTimeout(() => {
+        if (samples.length > 0) {
+          finalizeWithBestSample();
+          return;
+        }
+
+        cleanup();
+        reject({
+          code: 3,
+          message: "Location capture timed out. Try again in an open area.",
+        });
+      }, 22000);
+    });
+
+  const captureCurrentLocation = async ({ showSuccessMessage = true } = {}) => {
     if (!navigator.geolocation) {
       Swal.fire({
         title: "Geolocation Not Supported",
-        text: "Your browser doesn't support geolocation. Please use a modern browser.",
+        text: "Your browser does not support geolocation.",
         icon: "error",
+        confirmButtonColor: "#EF4444",
       });
-      return;
+      return null;
     }
 
     setIsCapturingLocation(true);
     Swal.fire({
-      title: "Capturing Full Precision Location",
-      text: "Please allow location access for exact shop positioning...",
+      title: "Capturing Current Location",
+      text: "Allow location access to capture your exact shop location.",
       icon: "info",
       showConfirmButton: false,
       allowOutsideClick: false,
       didOpen: () => Swal.showLoading(),
     });
 
-    const geoOptions = {
-      enableHighAccuracy: true,
-      timeout: 30000,
-      maximumAge: 0
-    };
+    try {
+      const bestLocation = await getBestDeviceLocation();
+      const latitude = toCoordinateNumber(bestLocation.latitude);
+      const longitude = toCoordinateNumber(bestLocation.longitude);
+      const accuracy = toCoordinateNumber(bestLocation.accuracy);
 
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude, accuracy } = position.coords;
-        
-        // Store coordinates with full precision as strings
-        const preciseCoords = storeHighPrecisionCoordinates(latitude, longitude);
-        
-        setLocation({ lat: preciseCoords.lat, lng: preciseCoords.lng });
-        setFormData((prev) => ({ 
-          ...prev, 
-          lat: preciseCoords.lat, 
-          lng: preciseCoords.lng,
-          latString: preciseCoords.latString,
-          lngString: preciseCoords.lngString
-        }));
-        setLocationAccuracy(accuracy);
-        setIsLocationCaptured(true);
-        setIsCapturingLocation(false);
+      if (!isCoordinatePairValid(latitude, longitude)) {
+        throw new Error("Unable to capture valid coordinates from device GPS.");
+      }
 
+      applyCoordinates({
+        lat: latitude,
+        lng: longitude,
+        source: "device_gps",
+        accuracy,
+      });
+
+      Swal.close();
+      if (showSuccessMessage) {
         Swal.fire({
-          title: "Full Precision Location Captured!",
+          title: "Location Captured",
           html: `
             <div class="text-left">
+              <p class="text-sm text-slate-600 mb-2">Coordinates captured from current device location.</p>
               <div class="bg-gray-100 p-2 rounded mt-2 space-y-1">
-                <p class="font-mono text-xs break-all"><strong>Lat:</strong> ${preciseCoords.latString}</p>
-                <p class="font-mono text-xs break-all"><strong>Lng:</strong> ${preciseCoords.lngString}</p>
+                <p class="font-mono text-xs break-all"><strong>Lat:</strong> ${formatCoordinateLabel(latitude)}</p>
+                <p class="font-mono text-xs break-all"><strong>Lng:</strong> ${formatCoordinateLabel(longitude)}</p>
+                ${
+                  Number.isFinite(accuracy)
+                    ? `<p class="font-mono text-xs break-all"><strong>Accuracy:</strong> ${Math.round(accuracy)}m</p>`
+                    : ""
+                }
+              </div>
+            </div>
+          `,
+          icon: "success",
+          confirmButtonColor: "#10B981",
+        });
+      }
+
+      return { lat: latitude, lng: longitude, source: "device_gps", accuracy };
+    } catch (error) {
+      Swal.close();
+
+      let errorMessage = "Unable to capture device location.";
+      if (error?.code === 1) {
+        errorMessage = "Location permission denied. Enable location access and try again.";
+      } else if (error?.code === 2) {
+        errorMessage = "Location unavailable. Please move to an open area and retry.";
+      } else if (error?.code === 3) {
+        errorMessage = "Location request timed out. Please retry.";
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+
+      Swal.fire({
+        title: "Location Capture Failed",
+        text: errorMessage,
+        icon: "error",
+        confirmButtonColor: "#EF4444",
+      });
+      return null;
+    } finally {
+      setIsCapturingLocation(false);
+    }
+  };
+
+  const resolveCoordinatesWithGoogle = async ({ showSuccessMessage = true } = {}) => {
+    const missingAddressFields = [];
+    if (!formData.street?.trim()) missingAddressFields.push("Street");
+    if (!formData.city?.trim()) missingAddressFields.push("City");
+    if (!formData.district?.trim()) missingAddressFields.push("District");
+    if (!formData.state?.trim()) missingAddressFields.push("State");
+    if (!formData.pin?.trim()) missingAddressFields.push("Pincode");
+
+    if (missingAddressFields.length > 0) {
+      Swal.fire({
+        title: "Address Incomplete",
+        text: `Fill ${missingAddressFields.join(", ")} before fetching coordinates.`,
+        icon: "warning",
+        confirmButtonColor: "#3B82F6",
+      });
+      return null;
+    }
+
+    if (!GOOGLE_GEOCODE_API_KEY) {
+      Swal.fire({
+        title: "API Key Missing",
+        text: "Google Geocoding API key is not configured.",
+        icon: "error",
+        confirmButtonColor: "#EF4444",
+      });
+      return null;
+    }
+
+    setIsCapturingLocation(true);
+    Swal.fire({
+      title: "Fetching Exact Coordinates",
+      text: "Matching your shop address with Google Maps...",
+      icon: "info",
+      showConfirmButton: false,
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading(),
+    });
+
+    try {
+      const address = encodeURIComponent(getShopAddressString());
+      const response = await fetch(
+        `${GOOGLE_GEOCODE_ENDPOINT}?address=${address}&key=${GOOGLE_GEOCODE_API_KEY}`
+      );
+      const geocodeData = await response.json();
+
+      if (geocodeData.status !== "OK" || !geocodeData.results?.length) {
+        throw new Error(
+          geocodeData.error_message ||
+            geocodeData.status ||
+            "Unable to resolve coordinates for this address"
+        );
+      }
+
+      const bestResult = geocodeData.results[0];
+      const latitude = toCoordinateNumber(bestResult.geometry?.location?.lat);
+      const longitude = toCoordinateNumber(bestResult.geometry?.location?.lng);
+      const locationType = bestResult.geometry?.location_type || "UNKNOWN";
+
+      if (!isCoordinatePairValid(latitude, longitude)) {
+        throw new Error("Invalid coordinates returned by Google Geocoding API");
+      }
+
+      applyCoordinates({
+        lat: latitude,
+        lng: longitude,
+        source: "google_geocode",
+      });
+
+      Swal.close();
+      if (showSuccessMessage) {
+        Swal.fire({
+          title: "Coordinates Updated",
+          html: `
+            <div class="text-left">
+              <p class="text-sm text-slate-600 mb-2">Address matched from Google Maps.</p>
+              <div class="bg-gray-100 p-2 rounded mt-2 space-y-1">
+                <p class="font-mono text-xs break-all"><strong>Lat:</strong> ${formatCoordinateLabel(latitude)}</p>
+                <p class="font-mono text-xs break-all"><strong>Lng:</strong> ${formatCoordinateLabel(longitude)}</p>
+                <p class="font-mono text-xs break-all"><strong>Geocode:</strong> ${locationType}</p>
               </div>
             </div>
           `,
           icon: "success",
           confirmButtonText: "Continue",
           confirmButtonColor: "#10B981",
-          width: "550px"
+          width: "550px",
         });
-      },
-      (error) => {
-        setIsCapturingLocation(false);
-        let errorMessage = "Failed to capture location. Please try again.";
-        switch (error.code) {
-          case error.PERMISSION_DENIED:
-            errorMessage =
-              "Location access denied. Please allow location access in your browser settings.";
-            break;
-          case error.POSITION_UNAVAILABLE:
-            errorMessage =
-              "Location information is unavailable. Please check your GPS and internet connection.";
-            break;
-          case error.TIMEOUT:
-            errorMessage =
-              "Location request timed out. Please try again in an open area with better network connectivity.";
-            break;
-        }
-        Swal.fire({
-          title: "Location Capture Failed",
-          text: errorMessage,
-          icon: "error",
-          showCancelButton: true,
-          confirmButtonText: "Try Again",
-          cancelButtonText: "Continue Without Location",
-          confirmButtonColor: "#3B82F6",
-        }).then((result) => {
-          if (result.isConfirmed) captureLocation();
-        });
-      },
-      geoOptions
-    );
+      }
+
+      return { lat: latitude, lng: longitude, source: "google_geocode" };
+    } catch (error) {
+      Swal.close();
+      Swal.fire({
+        title: "Unable To Get Coordinates",
+        text: error.message || "Please verify address details and try again.",
+        icon: "error",
+        confirmButtonColor: "#EF4444",
+      });
+      return null;
+    } finally {
+      setIsCapturingLocation(false);
+    }
   };
 
-  useEffect(() => {
-    captureLocation();
-  }, []);
+  const applyCoordinatesFromInput = () => {
+    const extractedCoordinates = extractCoordinatesFromInput(coordinateInput);
+
+    if (!extractedCoordinates) {
+      Swal.fire({
+        title: "Invalid Coordinates",
+        text: "Paste a valid Google Maps URL or coordinates like 28.49813148390656, 77.30870661381914",
+        icon: "error",
+        confirmButtonColor: "#EF4444",
+      });
+      return;
+    }
+
+    applyCoordinates({
+      lat: extractedCoordinates.lat,
+      lng: extractedCoordinates.lng,
+      source: "manual_update",
+    });
+
+    Swal.fire({
+      title: "Coordinates Applied",
+      html: `
+        <div class="text-left">
+          <p class="text-sm text-slate-600 mb-2">Using manually provided precise coordinates.</p>
+          <div class="bg-gray-100 p-2 rounded mt-2 space-y-1">
+            <p class="font-mono text-xs break-all"><strong>Lat:</strong> ${formatCoordinateLabel(extractedCoordinates.lat)}</p>
+            <p class="font-mono text-xs break-all"><strong>Lng:</strong> ${formatCoordinateLabel(extractedCoordinates.lng)}</p>
+          </div>
+        </div>
+      `,
+      icon: "success",
+      confirmButtonColor: "#10B981",
+    });
+  };
 
   useEffect(() => {
     const tokenString = localStorage.getItem("jwt_token");
@@ -153,6 +457,11 @@ export const RegisterShop = () => {
   }, []);
 
   const isAdmin = user?.usertype === "admin";
+
+  useEffect(() => {
+    if (!user || isAdmin) return;
+    captureCurrentLocation({ showSuccessMessage: false });
+  }, [user, isAdmin]);
 
   useEffect(() => {
     if (!isAdmin && user) {
@@ -196,6 +505,7 @@ export const RegisterShop = () => {
 
   const handleInput = (e) => {
     const { name, value } = e.target;
+    const shouldInvalidateCoords = ["shopname", "street", "pin"].includes(name);
     
     // Special handling for pincode input
     if (name === "pin") {
@@ -209,12 +519,13 @@ export const RegisterShop = () => {
       const validation = validatePincode(limitedValue);
       setPinError(validation.message);
       
-      setFormData({ 
-        ...formData, 
-        [name]: limitedValue 
-      });
+      setFormData((prev) => ({ ...prev, [name]: limitedValue }));
     } else {
-      setFormData({ ...formData, [name]: value });
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
+
+    if (shouldInvalidateCoords) {
+      clearCoordinates();
     }
   };
 
@@ -239,19 +550,50 @@ export const RegisterShop = () => {
 
   const handleStateChange = (e) => {
     const state = e.target.value;
-    setFormData({ ...formData, state, district: "", city: "" });
+    setFormData((prev) => ({
+      ...prev,
+      state,
+      district: "",
+      city: "",
+      lat: null,
+      lng: null,
+      coordinatesSource: "fallback",
+    }));
     setDistricts(Object.keys(stateDistrictCityData[state] || {}));
     setCities([]);
+    setCoordinateInput("");
+    setLocationAccuracy(null);
+    setIsLocationCaptured(false);
   };
 
   const handleDistrictChange = (e) => {
     const district = e.target.value;
-    setFormData({ ...formData, district, city: "" });
+    setFormData((prev) => ({
+      ...prev,
+      district,
+      city: "",
+      lat: null,
+      lng: null,
+      coordinatesSource: "fallback",
+    }));
     setCities(stateDistrictCityData[formData.state][district] || []);
+    setCoordinateInput("");
+    setLocationAccuracy(null);
+    setIsLocationCaptured(false);
   };
 
-  const handleCityChange = (e) =>
-    setFormData({ ...formData, city: e.target.value });
+  const handleCityChange = (e) => {
+    setFormData((prev) => ({
+      ...prev,
+      city: e.target.value,
+      lat: null,
+      lng: null,
+      coordinatesSource: "fallback",
+    }));
+    setCoordinateInput("");
+    setLocationAccuracy(null);
+    setIsLocationCaptured(false);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -344,24 +686,44 @@ export const RegisterShop = () => {
       return;
     }
 
-    if (!formData.latString || !formData.lngString) {
-      const result = await Swal.fire({
-        title: "Location Not Captured",
-        text: "Location is required for accurate positioning. Capture location again?",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonText: "Yes, Capture Location",
-        cancelButtonText: "Continue Anyway",
-        confirmButtonColor: "#3B82F6",
-      });
-      if (result.isConfirmed) {
-        captureLocation();
-        return;
+    let submissionLat = toCoordinateNumber(formData.lat);
+    let submissionLng = toCoordinateNumber(formData.lng);
+    let submissionCoordinateSource = formData.coordinatesSource || "device_gps";
+    const hasCoordinates = isCoordinatePairValid(submissionLat, submissionLng);
+
+    if (!hasCoordinates) {
+      const gpsCaptured = await captureCurrentLocation({ showSuccessMessage: false });
+
+      if (gpsCaptured) {
+        submissionLat = gpsCaptured.lat;
+        submissionLng = gpsCaptured.lng;
+        submissionCoordinateSource = gpsCaptured.source;
+      } else {
+        const fallbackChoice = await Swal.fire({
+          title: "Use Address-Based Coordinates?",
+          text: "Current location could not be captured. Use Google address geocoding instead?",
+          icon: "question",
+          showCancelButton: true,
+          confirmButtonText: "Use Address Coordinates",
+          cancelButtonText: "Cancel",
+          confirmButtonColor: "#2563EB",
+        });
+
+        if (!fallbackChoice.isConfirmed) return;
+
+        const resolvedCoordinates = await resolveCoordinatesWithGoogle({
+          showSuccessMessage: false,
+        });
+        if (!resolvedCoordinates) return;
+
+        submissionLat = resolvedCoordinates.lat;
+        submissionLng = resolvedCoordinates.lng;
+        submissionCoordinateSource = resolvedCoordinates.source;
       }
     }
 
-    // Show loading state
-    const result = await Swal.fire({
+    // Show loading state (do not await this modal; it has no confirm button)
+    Swal.fire({
       title: "Registering Shop",
       text: "Please wait while we register your shop...",
       icon: "info",
@@ -371,14 +733,26 @@ export const RegisterShop = () => {
     });
 
     try {
-      const response = await api.post(`/shop/registershop`, formData, {
+      const payload = {
+        ...formData,
+        lat: submissionLat,
+        lng: submissionLng,
+        coordinatesSource: submissionCoordinateSource,
+      };
+
+      const response = await api.post(`/shop/registershop`, payload, {
         headers: { 
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
       });
+
+      Swal.close();
       
       if (response.status === 201) {
+        // Sync freshly created shop into LoginContext so profile reflects pending/approved state immediately.
+        await refreshShopData();
+
         Swal.fire({ 
           title: "Success!", 
           html: `
@@ -397,6 +771,7 @@ export const RegisterShop = () => {
         }, 2000);
       }
     } catch (err) {
+      Swal.close();
       console.error("Registration error:", err);
       
       let errorMessage = "Registration failed. Please try again.";
@@ -436,28 +811,67 @@ export const RegisterShop = () => {
           {/* Location Capture */}
           <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-5 sm:p-6">
             <h3 className="text-lg font-semibold text-blue-800 mb-3">Shop Location</h3>
-            <button
-              type="button"
-              onClick={captureLocation}
-              disabled={isCapturingLocation}
-              className={`w-full sm:w-auto px-6 py-3 mb-3 rounded-lg font-medium text-white ${
-                isCapturingLocation
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-blue-600 hover:bg-blue-700"
-              }`}
-            >
-              {isCapturingLocation
-                ? "Capturing Location..."
-                : isLocationCaptured
-                ? "Recapture Location"
-                : "Capture Location"}
-            </button>
+            <div className="flex flex-col sm:flex-row gap-2 mb-3">
+              <button
+                type="button"
+                onClick={() => captureCurrentLocation()}
+                disabled={isCapturingLocation}
+                className={`w-full sm:w-auto px-6 py-3 rounded-lg font-medium text-white ${
+                  isCapturingLocation
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-blue-600 hover:bg-blue-700"
+                }`}
+              >
+                {isCapturingLocation
+                  ? "Capturing Location..."
+                  : isLocationCaptured
+                  ? "Recapture Current Location"
+                  : "Capture Current Location"}
+              </button>
+              <button
+                type="button"
+                onClick={() => resolveCoordinatesWithGoogle()}
+                disabled={isCapturingLocation}
+                className="w-full sm:w-auto px-6 py-3 rounded-lg font-medium text-blue-700 border border-blue-300 bg-white hover:bg-blue-50"
+              >
+                Use Address Coordinates
+              </button>
+            </div>
+            <div className="mb-3 rounded-lg border border-blue-200 bg-white p-3">
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-blue-700">
+                Precise Coordinate Input
+              </p>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <input
+                  type="text"
+                  value={coordinateInput}
+                  onChange={(event) => setCoordinateInput(event.target.value)}
+                  placeholder="Paste Google Maps URL or lat,lng"
+                  className="w-full rounded-lg border border-blue-200 px-3 py-2 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-200"
+                />
+                <button
+                  type="button"
+                  onClick={applyCoordinatesFromInput}
+                  disabled={isCapturingLocation || !coordinateInput.trim()}
+                  className="w-full rounded-lg border border-blue-300 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+                >
+                  Apply Coordinates
+                </button>
+              </div>
+              <p className="mt-2 text-xs text-slate-600">
+                Example: <span className="font-mono">28.49813148390656, 77.30870661381914</span>
+              </p>
+            </div>
             {isLocationCaptured && (
               <div className="bg-white border border-blue-100 rounded-lg p-4 text-sm text-gray-700 space-y-3">
                 <div>
                   <div className="font-mono text-xs bg-gray-100 p-2 rounded mt-1 break-all space-y-1">
-                    <div><strong>Lat:</strong> {formData.latString}</div>
-                    <div><strong>Lng:</strong> {formData.lngString}</div>
+                    <div><strong>Lat:</strong> {formatCoordinateLabel(formData.lat)}</div>
+                    <div><strong>Lng:</strong> {formatCoordinateLabel(formData.lng)}</div>
+                    {locationAccuracy !== null && (
+                      <div><strong>Accuracy:</strong> {Math.round(locationAccuracy)}m</div>
+                    )}
+                    <div><strong>Source:</strong> {formData.coordinatesSource}</div>
                   </div>
                 </div>
               </div>

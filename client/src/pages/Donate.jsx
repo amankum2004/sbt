@@ -272,17 +272,23 @@ const Donate = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-100 via-white to-green-200 flex items-center justify-center px-4 py-16">
-      <div className="w-full max-w-2xl bg-white shadow-2xl rounded-3xl p-10 border border-green-200">
-        <div className="text-center mb-8">
-          <h2 className="text-4xl font-extrabold text-green-700">Donate for the Environment 🌱</h2>
-          <p className="mt-4 text-gray-600 text-lg">
+    <main className="relative min-h-screen overflow-hidden bg-gradient-to-b from-slate-50 via-cyan-50 to-amber-50 px-4 py-12 sm:px-6 lg:px-8">
+      <div className="pointer-events-none absolute -left-20 top-24 h-64 w-64 rounded-full bg-emerald-200/60 blur-3xl" />
+      <div className="pointer-events-none absolute -right-20 top-36 h-64 w-64 rounded-full bg-cyan-200/60 blur-3xl" />
+
+      <div className="relative mx-auto mt-6 w-full max-w-2xl rounded-3xl border border-white/70 bg-white/90 p-8 shadow-[0_24px_70px_-20px_rgba(15,23,42,0.35)] backdrop-blur sm:p-10">
+        <div className="mb-8 text-center">
+          <p className="inline-flex rounded-full bg-slate-900 px-4 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-emerald-200">
+            Green Mission
+          </p>
+          <h2 className="mt-3 text-4xl font-black text-slate-900">Donate For The Environment</h2>
+          <p className="mt-4 text-base text-slate-600">
             Help us plant trees, reduce pollution, and build a sustainable future.
           </p>
           {!razorpayLoaded && (
-            <div className="mt-4 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
-              <p className="text-yellow-700 text-sm">
-                ⚠️ Loading payment gateway...
+            <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-3">
+              <p className="text-sm text-amber-700">
+                Loading payment gateway...
               </p>
             </div>
           )}
@@ -296,7 +302,7 @@ const Donate = () => {
             onChange={handleChange}
             required
             placeholder="Your Name"
-            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400"
+            className="h-11 w-full rounded-xl border border-slate-300 bg-white px-4 text-sm text-slate-800 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-200"
           />
           <input
             type="email"
@@ -305,7 +311,7 @@ const Donate = () => {
             onChange={handleChange}
             required
             placeholder="Your Email"
-            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400"
+            className="h-11 w-full rounded-xl border border-slate-300 bg-white px-4 text-sm text-slate-800 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-200"
           />
           <div className="relative">
             <input
@@ -316,9 +322,9 @@ const Donate = () => {
               required
               min="1"
               placeholder="Amount (₹)"
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400"
+              className="h-11 w-full rounded-xl border border-slate-300 bg-white px-4 text-sm text-slate-800 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-200"
             />
-            <div className="absolute right-3 top-3 text-gray-500">₹</div>
+            <div className="absolute right-3 top-3 text-slate-500">₹</div>
           </div>
           <textarea
             name="message"
@@ -326,13 +332,13 @@ const Donate = () => {
             onChange={handleChange}
             rows="4"
             placeholder="Your Message (Optional)"
-            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400"
+            className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-800 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-200"
           />
 
           <button
             type="submit"
             disabled={isLoading || !razorpayLoaded}
-            className={`w-full bg-green-600 hover:bg-green-700 text-white text-lg font-semibold py-3 rounded-xl transition duration-300 shadow-md hover:shadow-lg ${
+            className={`w-full rounded-xl bg-gradient-to-r from-cyan-500 via-teal-500 to-emerald-400 py-3 text-sm font-black text-slate-950 transition hover:brightness-110 ${
               isLoading || !razorpayLoaded ? 'opacity-50 cursor-not-allowed' : ''
             }`}
           >
@@ -350,9 +356,9 @@ const Donate = () => {
           </button>
         </form>
 
-        <div className="mt-6 p-4 bg-green-50 rounded-lg border border-green-200">
-          <h3 className="font-semibold text-green-800 mb-2">Where your donation goes:</h3>
-          <ul className="text-sm text-green-700 space-y-1">
+        <div className="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+          <h3 className="mb-2 font-bold text-emerald-800">Where your donation goes:</h3>
+          <ul className="space-y-1 text-sm text-emerald-700">
             <li>• 🌳 Tree plantation drives</li>
             <li>• ♻️ Waste management initiatives</li>
             <li>• 💧 Clean water projects</li>
@@ -361,11 +367,11 @@ const Donate = () => {
           </ul>
         </div>
 
-        <p className="mt-6 text-sm text-center text-gray-400">
+        <p className="mt-6 text-center text-xs text-slate-500 sm:text-sm">
           100% of your donation will go towards environmental initiatives. All transactions are secure.
         </p>
       </div>
-    </div>
+    </main>
   );
 };
 

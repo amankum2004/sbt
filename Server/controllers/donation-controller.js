@@ -1,27 +1,35 @@
-// const Donation = require("../models/donation-model");
+const Donation = require("../models/donation-model");
 
-// const createDonation = async (req, res) => {
-//   try {
-//     const { name, email, amount, message } = req.body;
+const getAllDonations = async (req, res) => {
+  try {
+    const donations = await Donation.find({})
+      .sort({ createdAt: -1 })
+      .lean();
 
-//     const donation = new Donation({ name, email, amount, message });
-//     await donation.save();
+    // Normalize field names for frontend compatibility.
+    const normalizedDonations = donations.map((donation) => ({
+      _id: donation._id,
+      name: donation.donorName,
+      email: donation.donorEmail,
+      amount: donation.amount,
+      message: donation.message,
+      createdAt: donation.createdAt,
+      updatedAt: donation.updatedAt,
+      donatedAt: donation.donatedAt,
+      status: donation.status,
+      payment_id: donation.payment_id,
+      order_id: donation.order_id,
+    }));
 
-//     res.status(201).json({ success: true, message: "Donation received!" });
-//   } catch (error) {
-//     console.error("Donation error:", error);
-//     res.status(500).json({ success: false, message: "Failed to process donation" });
-//   }
-// };
+    return res.status(200).json(normalizedDonations);
+  } catch (error) {
+    console.error("Error fetching donations:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch donations",
+      error: error.message,
+    });
+  }
+};
 
-// const getAllDonations = async (req, res) => {
-//   try {
-//     const donations = await Donation.find().sort({ createdAt: -1 });
-//     res.status(200).json(donations);
-//   } catch (error) {
-//     console.error("Error fetching donations:", error);
-//     res.status(500).json({ success: false, message: "Failed to fetch donations" });
-//   }
-// };
-
-// module.exports = { createDonation, getAllDonations };
+module.exports = { getAllDonations };
