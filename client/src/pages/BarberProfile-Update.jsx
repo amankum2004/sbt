@@ -8,8 +8,7 @@ import Swal from "sweetalert2";
 import { FaMapMarkerAlt, FaPlus, FaTrash, FaUser, FaEnvelope, FaPhone, FaStore, FaMapPin, FaRupeeSign, FaSpinner } from 'react-icons/fa';
 
 const GOOGLE_GEOCODE_API_KEY =
-  import.meta.env.VITE_GOOGLE_GEOCODE_API_KEY ||
-  "AIzaSyBXAXAyD9NlkszrZMv4teqO197bQVpqkXU";
+  import.meta.env.VITE_GOOGLE_GEOCODE_API_KEY;
 const GOOGLE_GEOCODE_ENDPOINT =
   "https://maps.googleapis.com/maps/api/geocode/json";
 

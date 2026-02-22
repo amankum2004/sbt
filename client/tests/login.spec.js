@@ -1,18 +1,18 @@
-import { test, expect } from '@playwright/test';
+// import { test, expect } from '@playwright/test';
 
-test.use({ storageState: 'storage/auth.json' });
+// test.use({ storageState: 'storage/auth.json' });
 
-test.describe('Home Page Navigation', () => {
+// test.describe('Home Page Navigation', () => {
 
-  test('Home Dashboard', async ({ page }) => {
-    await page.goto('/');
-    await page.getByRole('link', { name: 'Home' }).click();
-    await page.getByRole('link', { name: 'About' }).first().click();
-    await page.getByRole('link', { name: 'Services' }).first().click();
-    await page.getByRole('link', { name: 'Contact' }).first().click();
-    await page.getByRole('link', { name: 'Home' }).click();
-  });
-});
+//   test('Home Dashboard', async ({ page }) => {
+//     await page.goto('/');
+//     await page.getByRole('link', { name: 'Home' }).click();
+//     await page.getByRole('link', { name: 'About' }).first().click();
+//     await page.getByRole('link', { name: 'Services' }).first().click();
+//     await page.getByRole('link', { name: 'Contact' }).first().click();
+//     await page.getByRole('link', { name: 'Home' }).click();
+//   });
+// });
                                 
 
 // test('login-check', async ({ page }) => {

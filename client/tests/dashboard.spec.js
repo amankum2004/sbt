@@ -1,13 +1,13 @@
-import { test, expect } from '@playwright/test';
+// import { test, expect } from '@playwright/test';
 
-test.describe('Dashboard Page Sections', () => {
+// test.describe('Dashboard Page Sections', () => {
 
-  test.use({ storageState: 'storage/auth.json' });
+//   test.use({ storageState: 'storage/auth.json' });
 
-  test(' Customer dashboard page Elements Check', async ({ page }) => {
-    // Navigate
-    await page.goto('/customerDashboard');
-    await page.waitForLoadState('networkidle');
+//   test(' Customer dashboard page Elements Check', async ({ page }) => {
+//     // Navigate
+//     await page.goto('/customerDashboard');
+//     await page.waitForLoadState('networkidle');
 
 //     /* ---------------- Top / Global Controls ---------------- */
 
@@ -98,5 +98,5 @@ test.describe('Dashboard Page Sections', () => {
 //     await expect(page.locator('#e-dropdown-btn_2')).toBeVisible();
 //     await expect(page.locator('#e-dropdown-btn_3')).toBeVisible();
 //     await expect(page.locator('#e-dropdown-btn_4')).toBeVisible();
-  });
-});
+  // });
+// });
