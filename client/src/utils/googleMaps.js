@@ -1,7 +1,6 @@
 const GOOGLE_MAPS_EMBED_API_KEY =
   import.meta.env.VITE_GOOGLE_MAPS_EMBED_API_KEY ||
-  import.meta.env.VITE_GOOGLE_GEOCODE_API_KEY ||
-  "AIzaSyBXAXAyD9NlkszrZMv4teqO197bQVpqkXU";
+  import.meta.env.VITE_GOOGLE_GEOCODE_API_KEY;
 
 const GOOGLE_EMBED_DIRECTIONS_ENDPOINT =
   "https://www.google.com/maps/embed/v1/directions";

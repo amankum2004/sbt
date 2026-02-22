@@ -83,20 +83,20 @@ jobs:
   # ========================
   # CD: BACKEND → AWS EC2
   # ========================
-  deploy-backend:
-    needs: test
-    runs-on: ubuntu-latest
-    environment: production
+  # deploy-backend:
+  #   needs: test
+  #   runs-on: ubuntu-latest
+  #   environment: production
 
-    steps:
-      - name: Deploy backend to EC2
-        uses: appleboy/ssh-action@v1.0.0
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            cd sbt/Server
-            git pull origin main
-            npm ci
-            pm2 restart salonhub-backend
+  #   steps:
+  #     - name: Deploy backend to EC2
+  #       uses: appleboy/ssh-action@v1.0.0
+  #       with:
+  #         host: ${{ secrets.EC2_HOST }}
+  #         username: ${{ secrets.EC2_USER }}
+  #         key: ${{ secrets.EC2_SSH_KEY }}
+  #         script: |
+  #           cd sbt/Server
+  #           git pull origin main
+  #           npm ci
+  #           pm2 restart salonhub-backend
