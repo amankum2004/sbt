@@ -173,7 +173,7 @@ export const Service = () => {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
 
-      <main className="relative min-h-screen overflow-hidden bg-gradient-to-b from-slate-50 via-cyan-50 to-amber-50 px-4 py-12 sm:px-6 lg:px-8">
+      <main className="relative min-h-screen overflow-hidden bg-gradient-to-b from-slate-50 via-cyan-50 to-amber-50 px-3 py-3 sm:px-6 lg:px-8">
         <div className="pointer-events-none absolute -left-16 top-28 h-72 w-72 rounded-full bg-emerald-200/50 blur-3xl" />
         <div className="pointer-events-none absolute -right-20 top-36 h-72 w-72 rounded-full bg-amber-200/55 blur-3xl" />
 
@@ -187,12 +187,12 @@ export const Service = () => {
           <section className="mb-10 overflow-hidden rounded-3xl border border-white/70 bg-white/90 shadow-[0_24px_70px_-20px_rgba(15,23,42,0.35)] backdrop-blur">
             <div className="grid gap-8 p-8 md:grid-cols-[1.2fr_0.8fr] md:p-10">
               <div>
-                <p className="mb-3 inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-emerald-200">
+                <p className="mb-2 inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-emerald-200">
                   <FaSpa /> Premium Beauty Catalog
                 </p>
-                <h1 className="text-3xl font-black leading-tight text-slate-900 md:text-5xl">
+                <h3 className="text-3xl font-black leading-tight text-slate-900 md:text-5xl">
                   Professional Salon Services for Every Style
-                </h1>
+                </h3>
                 <p className="mt-5 max-w-3xl text-base leading-relaxed text-slate-600 md:text-lg">
                   From precision haircuts to advanced skin and hair treatments, explore verified salon
                   services with transparent pricing and quick booking.

@@ -369,10 +369,10 @@ const BarberAnalyticsDashboard = () => {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-slate-50 via-cyan-50 to-amber-50 px-4 py-8 sm:px-6 lg:px-8">
-      <div className="mx-auto mt-6 w-full max-w-7xl">
-        <section className="mb-6 rounded-3xl border border-white/80 bg-white/90 p-5 shadow-[0_18px_45px_-24px_rgba(15,23,42,0.45)] sm:p-6">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+    <main className="min-h-screen bg-gradient-to-b from-slate-50 via-cyan-50 to-amber-50 px-4 py-3 sm:px-6 lg:px-8">
+      <div className="mx-auto w-full max-w-7xl">
+        <section className="mb-4 rounded-3xl border border-white/80 bg-white/90 p-5 shadow-[0_18px_45px_-24px_rgba(15,23,42,0.45)] sm:p-6">
+          <div className="flex flex-col gap-1 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <p className="inline-flex items-center rounded-full bg-slate-900 px-4 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-cyan-200">
                 Barber Analytics

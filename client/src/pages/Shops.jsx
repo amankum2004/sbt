@@ -195,17 +195,17 @@ export const Shops = () => {
   <div className="pointer-events-none absolute -right-20 top-36 h-64 w-64 rounded-full bg-amber-200/60 blur-3xl" />
   <div className="max-w-7xl mx-auto">
     {/* Header */}
-    <div className="text-center mb-5 mt-12">
+    <div className="text-center mb-2">
       <p className="inline-flex rounded-full bg-slate-900 px-4 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-cyan-200">
         Nearby Salons
       </p>
-      <h1 className="mt-3 text-2xl font-black text-slate-900 sm:text-3xl">Best Salons In Your Area</h1>
-      <p className="mt-1 text-sm text-slate-600">Filter by location and book your preferred salon in a few clicks.</p>
+      <h1 className="mt-1 text-2xl font-black text-slate-900 sm:text-3xl">Best Salons In Your Area</h1>
+      <p className="mt-1 text-sm text-slate-600">Filter by location and book your preferred salon.</p>
     </div>
 
     {/* Location Filter */}
     <div className="rounded-2xl border border-white/80 bg-white/90 shadow-[0_16px_35px_-20px_rgba(15,23,42,0.45)] p-4 mb-4">
-      <div className="space-y-4">
+      <div className="space-y-2">
         {[
           { label: "State", value: selectedState, onChange: handleStateChange, options: Object.keys(stateDistrictCityData), disabled: false },
           { label: "District", value: selectedDistrict, onChange: handleDistrictChange, options: districts, disabled: !selectedState },

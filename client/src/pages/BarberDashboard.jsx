@@ -530,7 +530,7 @@ const BarberDashboard = () => {
       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
         {/* Header */}
         <div className="mb-4 px-1">
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mt-12 sm:mt-12">Customer Appointments</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 sm:mt-12">Customer Appointments</h1>
         </div>
 
         {/* Tabs */}

@@ -8,10 +8,13 @@ import {
   Calendar,
   ClipboardList,
   HeartHandshake,
+  House,
   Image,
+  Info,
   LayoutDashboard,
   LogIn,
   LogOut,
+  PhoneCall,
   Scissors,
   UserCircle,
 } from "lucide-react";
@@ -237,22 +240,31 @@ export const Header = () => {
         </div>
 
         <div className="space-y-1 p-4">
-          <NavLink to="/" label="Home" onClick={closeAll} className="w-full text-slate-200 hover:text-white" />
+          <NavLink
+            to="/"
+            label="Home"
+            icon={House}
+            onClick={closeAll}
+            className="w-full text-slate-200 hover:text-white"
+          />
           <NavLink
             to="/about"
             label="About"
+            icon={Info}
             onClick={closeAll}
             className="w-full text-slate-200 hover:text-white"
           />
           <NavLink
             to="/services"
             label="Services"
+            icon={Scissors}
             onClick={closeAll}
             className="w-full text-slate-200 hover:text-white"
           />
           <NavLink
             to="/contact"
             label="Contact"
+            icon={PhoneCall}
             onClick={closeAll}
             className="w-full text-slate-200 hover:text-white"
           />

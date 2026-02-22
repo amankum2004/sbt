@@ -5,6 +5,55 @@ const BREVO_API_KEY = process.env.BREVO_API;
 const BREVO_SENDER_EMAIL = process.env.BREVO_EMAIL;
 const BREVO_SENDER_NAME = 'SalonHub';
 const Email = 'salonhub.business@gmail.com';
+const FRONTEND_BASE_URL = (process.env.FRONTEND_URL || 'https://www.salonhub.co.in').replace(/\/+$/, '');
+const SALONHUB_LOGO_URL = process.env.SALONHUB_LOGO_URL || `${FRONTEND_BASE_URL}/salonHub-logo.svg`;
+
+const CURRENT_YEAR = new Date().getFullYear();
+
+const withSalonHubLogo = (htmlContent = '', options = {}) => {
+  const {
+    accent = '#0ea5e9',
+    background = 'linear-gradient(180deg, #eff6ff 0%, #f8fafc 65%, #fff7ed 100%)',
+    footerText = `Need help? Contact us at ${Email} • © ${CURRENT_YEAR} SalonHub`,
+  } = options;
+
+  return `
+    <div style="margin: 0; padding: 28px 12px; background: ${background};">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse: collapse;">
+        <tr>
+          <td align="center">
+            <div style="max-width: 680px; margin: 0 auto;">
+              <div style="text-align: center; margin-bottom: 14px;">
+                <div style="display: inline-block; background: #ffffff; border: 1px solid #dbeafe; border-radius: 16px; padding: 12px 18px; box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);">
+                  <img
+                    src="${SALONHUB_LOGO_URL}"
+                    alt="SalonHub Logo"
+                    style="width: 148px; max-width: 76%; height: auto; display: inline-block;"
+                  />
+                  <div style="margin-top: 8px; color: #0f172a; font-size: 12px; font-weight: 700; letter-spacing: 1.4px;">
+                    SALONHUB
+                  </div>
+                  <div style="margin-top: 2px; color: #64748b; font-size: 11px;">
+                    Premium Salon Booking Experience
+                  </div>
+                </div>
+              </div>
+              <div style="background: #ffffff; border-radius: 24px; border: 1px solid #dbeafe; overflow: hidden; box-shadow: 0 20px 45px rgba(15, 23, 42, 0.14);">
+                <div style="height: 5px; background: ${accent};"></div>
+                <div style="padding: 12px;">
+                  ${htmlContent}
+                </div>
+              </div>
+              <div style="margin-top: 14px; text-align: center; color: #64748b; font-family: 'Segoe UI', Tahoma, Arial, sans-serif; font-size: 12px; line-height: 1.65;">
+                ${footerText}
+              </div>
+            </div>
+          </td>
+        </tr>
+      </table>
+    </div>
+  `;
+};
 
 // ==========================================
 // OTP Email Function (Brevo API)
@@ -24,8 +73,8 @@ const mailOtp = async (otp, email, subject = 'OTP Verification') => {
       }
     ],
     subject: subject,
-    htmlContent: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;">
+    htmlContent: withSalonHubLogo(`
+      <div style="font-family: 'Segoe UI', Tahoma, Arial, sans-serif; max-width: 620px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 18px; background: #ffffff;">
         <div style="text-align: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 10px 10px 0 0; color: white;">
           <h1 style="margin: 0;">SalonHub</h1>
           <p style="margin: 5px 0 0 0;">Your Beauty & Wellness Partner</p>
@@ -50,7 +99,11 @@ const mailOtp = async (otp, email, subject = 'OTP Verification') => {
           </p>
         </div>
       </div>
-    `,
+    `, {
+      accent: '#7c3aed',
+      background: 'linear-gradient(180deg, #f5f3ff 0%, #eff6ff 70%, #ffffff 100%)',
+      footerText: `Secure verification email from SalonHub • © ${CURRENT_YEAR} SalonHub`,
+    }),
     textContent: `Your OTP is: ${otp}. This OTP is valid for 10 minutes. Do not share it with anyone.`
   };
 
@@ -167,8 +220,8 @@ const sendConfirmationEmail = async (customerEmail, customerName, shopName, loca
       }
     ],
     subject: 'Appointment Booking Confirmation - SalonHub',
-    htmlContent: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;">
+    htmlContent: withSalonHubLogo(`
+      <div style="font-family: 'Segoe UI', Tahoma, Arial, sans-serif; max-width: 620px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 18px; background: #ffffff;">
         <div style="text-align: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 10px 10px 0 0; color: white;">
           <h1 style="margin: 0;">SalonHub</h1>
           <p style="margin: 5px 0 0 0;">Booking Confirmation</p>
@@ -207,7 +260,11 @@ const sendConfirmationEmail = async (customerEmail, customerName, shopName, loca
           </p>
         </div>
       </div>
-    `
+    `, {
+      accent: '#0284c7',
+      background: 'linear-gradient(180deg, #ecfeff 0%, #eff6ff 70%, #ffffff 100%)',
+      footerText: `Manage your booking anytime from SalonHub dashboard • © ${CURRENT_YEAR} SalonHub`,
+    })
   };
 
   try {
@@ -249,8 +306,8 @@ const sendPaymentSuccessEmail = async (customerEmail, customerName, shopName, lo
       }
     ],
     subject: 'Payment Successful - Salon Booking Confirmation',
-    htmlContent: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;">
+    htmlContent: withSalonHubLogo(`
+      <div style="font-family: 'Segoe UI', Tahoma, Arial, sans-serif; max-width: 620px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 18px; background: #ffffff;">
         <div style="text-align: center; background: linear-gradient(135deg, #10B981 0%, #059669 100%); padding: 20px; border-radius: 10px 10px 0 0; color: white;">
           <h1 style="margin: 0;">✅ Payment Successful</h1>
           <p style="margin: 5px 0 0 0;">SalonHub Booking Confirmed</p>
@@ -287,7 +344,11 @@ const sendPaymentSuccessEmail = async (customerEmail, customerName, shopName, lo
           </p>
         </div>
       </div>
-    `
+    `, {
+      accent: '#059669',
+      background: 'linear-gradient(180deg, #ecfdf5 0%, #f0f9ff 75%, #ffffff 100%)',
+      footerText: `Payment receipt generated by SalonHub • © ${CURRENT_YEAR} SalonHub`,
+    })
   };
 
   try {
@@ -329,8 +390,8 @@ const sendDonationConfirmationEmail = async (name, email, amount, message) => {
       }
     ],
     subject: 'Thank You for Your Environmental Donation 🌱',
-    htmlContent: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+    htmlContent: withSalonHubLogo(`
+      <div style="font-family: 'Segoe UI', Tahoma, Arial, sans-serif; max-width: 620px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 18px; overflow: hidden; background: #ffffff;">
         <div style="background: linear-gradient(135deg, #10B981, #059669); padding: 30px; text-align: center; color: white;">
           <h1 style="margin: 0; font-size: 28px;">Thank You for Your Donation!</h1>
           <p style="margin: 10px 0 0 0; font-size: 16px;">Together we're building a greener future</p>
@@ -380,7 +441,11 @@ const sendDonationConfirmationEmail = async (name, email, amount, message) => {
           </p>
         </div>
       </div>
-    `
+    `, {
+      accent: '#16a34a',
+      background: 'linear-gradient(180deg, #f0fdf4 0%, #ecfeff 75%, #ffffff 100%)',
+      footerText: `Together for a greener tomorrow • © ${CURRENT_YEAR} SalonHub`,
+    })
   };
 
   try {
@@ -490,8 +555,8 @@ const sendShopStatusNotification = async (customerEmail, customerName, shopName,
       }
     ],
     subject: `${config.icon} Shop Status Update - ${shopName}`,
-    htmlContent: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;">
+    htmlContent: withSalonHubLogo(`
+      <div style="font-family: 'Segoe UI', Tahoma, Arial, sans-serif; max-width: 620px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 18px; background: #ffffff;">
         <div style="text-align: center; background: linear-gradient(135deg, ${config.color} 0%, ${config.color}99 100%); padding: 20px; border-radius: 10px 10px 0 0; color: white;">
           <h1 style="margin: 0;">${config.icon} ${config.title}</h1>
           <p style="margin: 5px 0 0 0;">SalonHub Status Update</p>
@@ -532,7 +597,11 @@ const sendShopStatusNotification = async (customerEmail, customerName, shopName,
           </p>
         </div>
       </div>
-    `
+    `, {
+      accent: config.color,
+      background: 'linear-gradient(180deg, #f8fafc 0%, #eff6ff 75%, #ffffff 100%)',
+      footerText: `Real-time status update from SalonHub • © ${CURRENT_YEAR} SalonHub`,
+    })
   };
 
   try {
@@ -630,8 +699,8 @@ const sendCancellationEmail = async (customerEmail, customerName, shopName, loca
       }
     ],
     subject: 'Appointment Cancellation Confirmation - SalonHub',
-    htmlContent: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;">
+    htmlContent: withSalonHubLogo(`
+      <div style="font-family: 'Segoe UI', Tahoma, Arial, sans-serif; max-width: 620px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 18px; background: #ffffff;">
         <div style="text-align: center; background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%); padding: 20px; border-radius: 10px 10px 0 0; color: white;">
           <h1 style="margin: 0;">❌ Appointment Cancelled</h1>
           <p style="margin: 5px 0 0 0;">SalonHub Cancellation Confirmation</p>
@@ -684,7 +753,11 @@ const sendCancellationEmail = async (customerEmail, customerName, shopName, loca
           </p>
         </div>
       </div>
-    `,
+    `, {
+      accent: '#dc2626',
+      background: 'linear-gradient(180deg, #fef2f2 0%, #f8fafc 75%, #ffffff 100%)',
+      footerText: `Cancellation update from SalonHub • © ${CURRENT_YEAR} SalonHub`,
+    }),
     textContent: `
       Appointment Cancellation Confirmation
       
@@ -790,8 +863,8 @@ const sendShopOwnerCancellationNotification = async (shopOwnerEmail, shopName, c
       }
     ],
     subject: `❌ Appointment Cancelled - ${customerName}`,
-    htmlContent: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+    htmlContent: withSalonHubLogo(`
+      <div style="font-family: 'Segoe UI', Tahoma, Arial, sans-serif; max-width: 620px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 18px; overflow: hidden; background: #ffffff;">
         <div style="background: #EF4444; padding: 20px; text-align: center; color: white;">
           <h1 style="margin: 0;">Appointment Cancellation</h1>
           <p style="margin: 5px 0 0 0;">Customer: ${customerName}</p>
@@ -825,7 +898,11 @@ const sendShopOwnerCancellationNotification = async (shopOwnerEmail, shopName, c
           </p>
         </div>
       </div>
-    `
+    `, {
+      accent: '#ea580c',
+      background: 'linear-gradient(180deg, #fff7ed 0%, #f8fafc 75%, #ffffff 100%)',
+      footerText: `Shop owner alert from SalonHub • © ${CURRENT_YEAR} SalonHub`,
+    })
   };
 
   try {

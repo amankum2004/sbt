@@ -93,6 +93,7 @@
 const Appointment = require('../models/appointment-model');
 const TimeSlot = require('../models/timeSlot-model');
 const mongoose = require('mongoose');
+const { emitShopSlotsUpdated } = require('../utils/socket');
 
 exports.bookAppointment = async (shopId, timeSlotId, showtimeId, date, customerEmail, userId, serviceInfo, totalAmount) => {
   const session = await mongoose.startSession();
@@ -206,10 +207,13 @@ exports.bookAppointment = async (shopId, timeSlotId, showtimeId, date, customerE
     session.endSession();
 
     console.log('Appointment created successfully:', appointment._id);
-    console.log('TimeSlot updated successfully. Showtimes status:');
-    const updatedTimeSlot = await TimeSlot.findById(timeSlotId);
-    updatedTimeSlot.showtimes.forEach((st, index) => {
-      console.log(`  [${index}] ID: ${st._id}, Booked: ${st.is_booked}`);
+    console.log('TimeSlot updated successfully.');
+
+    emitShopSlotsUpdated(shopId, {
+      action: 'booked',
+      timeSlotId: String(timeSlotId),
+      showtimeId: String(showtime._id),
+      appointmentId: String(appointment._id),
     });
     
     return appointment;

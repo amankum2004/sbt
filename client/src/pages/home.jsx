@@ -173,7 +173,7 @@ export const Home = () => {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
 
-      <main className="relative min-h-screen overflow-hidden bg-gradient-to-b from-slate-50 via-cyan-50 to-amber-50 px-4 py-12 sm:px-6 lg:px-8">
+      <main className="relative min-h-screen overflow-hidden bg-gradient-to-b from-slate-50 via-cyan-50 to-amber-50 px-3 py-3 sm:px-6 lg:px-8">
         <div className="pointer-events-none absolute -left-28 top-24 h-72 w-72 rounded-full bg-cyan-200/50 blur-3xl" />
         <div className="pointer-events-none absolute -right-16 top-48 h-64 w-64 rounded-full bg-orange-200/60 blur-3xl" />
 
@@ -184,13 +184,13 @@ export const Home = () => {
           variants={riseIn}
           className="relative w-full"
         >
-          <section className="mb-10 overflow-hidden rounded-3xl border border-white/70 bg-white/85 shadow-[0_24px_70px_-20px_rgba(15,23,42,0.35)] backdrop-blur">
-            <div className="grid gap-8 p-7 md:grid-cols-[1.2fr_0.8fr] md:p-10">
+          <section className="mb-6 overflow-hidden rounded-3xl border border-white/70 bg-white/85 shadow-[0_24px_70px_-20px_rgba(15,23,42,0.35)] backdrop-blur">
+            <div className="grid gap-6 p-7 md:grid-cols-[1.2fr_0.8fr] md:p-10">
               <div>
-                <p className="mb-3 inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-amber-200">
+                <p className="mb-1 inline-flex items-center gap-2 rounded-full bg-slate-900 px-2 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-amber-200">
                   Salon Booking Made Elegant
                 </p>
-                <h1 className="text-3xl font-black leading-tight text-slate-900 md:text-5xl">
+                <h3 className="text-3xl font-black leading-tight text-slate-900 md:text-5xl">
                   Welcome
                   {user ? (
                     <span className="mx-2 bg-gradient-to-r from-orange-500 to-rose-500 bg-clip-text italic text-transparent">
@@ -200,7 +200,7 @@ export const Home = () => {
                     <span className="mx-2">to</span>
                   )}
                   to SalonHub
-                </h1>
+                </h3>
                 <p className="mt-5 max-w-2xl text-base leading-relaxed text-slate-600 md:text-lg">
                   Find highly rated salons, compare services, and lock your preferred slot in seconds.
                   SalonHub simplifies your entire beauty booking journey from discovery to confirmation.

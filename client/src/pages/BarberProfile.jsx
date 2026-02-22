@@ -99,9 +99,9 @@ export const BarberProfile = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 via-cyan-50 to-amber-50">
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
         {/* Header */}
-        <div className="text-center mb-6 pt-4 mt-6">
+        <div className="text-center mb-3 pt-2">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">My Profile</h1>
           <p className="text-gray-600 max-w-md mx-auto">
             Manage your shop and personal information
@@ -157,7 +157,7 @@ export const BarberProfile = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                     <div className="bg-white rounded-lg p-3 border border-gray-300">
                       <p className="text-gray-500 text-xs font-medium mb-1">Shop Name</p>
-                      <p className="text-gray-900 font-semibold truncate text-sm">{shop.shopname}</p>
+                      <p className="text-gray-900 font-semibold text-sm leading-snug break-words whitespace-normal">{shop.shopname}</p>
                     </div>
                     <div className="bg-white rounded-lg p-3 border border-gray-300">
                       <p className="text-gray-500 text-xs font-medium mb-1">Status</p>
@@ -167,7 +167,7 @@ export const BarberProfile = () => {
                     </div>
                     <div className="bg-white rounded-lg p-3 border border-gray-300">
                       <p className="text-gray-500 text-xs font-medium mb-1">Location</p>
-                      <p className="text-gray-900 font-semibold truncate text-sm">{shop.street}, {shop.city}, {shop.state}</p>
+                      <p className="text-gray-900 font-semibold text-sm leading-snug break-words whitespace-normal">{shop.street}, {shop.city}, {shop.state}</p>
                     </div>
                     <div className="bg-white rounded-lg p-3 border border-gray-300">
                       <p className="text-gray-500 text-xs font-medium mb-1">Services</p>
@@ -297,7 +297,7 @@ export const BarberProfile = () => {
                       placeholder="Enter your name"
                     />
                   ) : (
-                    <p className="text-gray-900 font-semibold truncate text-sm" title={user.name}>
+                    <p className="text-gray-900 font-semibold text-sm leading-snug break-words whitespace-normal" title={user.name}>
                       {user.name || 'Not provided'}
                     </p>
                   )}
@@ -308,7 +308,7 @@ export const BarberProfile = () => {
                     <FaEnvelope className="text-gray-400 text-sm" />
                     <p className="text-gray-500 text-xs font-medium uppercase tracking-wide">Email</p>
                   </div>
-                  <p className="text-gray-900 font-semibold truncate text-sm" title={user.email}>
+                  <p className="text-gray-900 font-semibold text-sm leading-snug break-all whitespace-normal" title={user.email}>
                     {user.email}
                   </p>
                 </div>
@@ -328,7 +328,7 @@ export const BarberProfile = () => {
                       placeholder="Enter phone number"
                     />
                   ) : (
-                    <p className="text-gray-900 font-semibold truncate text-sm" title={user.phone || 'Not provided'}>
+                    <p className="text-gray-900 font-semibold text-sm leading-snug break-words whitespace-normal" title={user.phone || 'Not provided'}>
                       {user.phone || 'Not provided'}
                     </p>
                   )}

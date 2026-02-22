@@ -129,7 +129,7 @@ export const Contact = () => {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
 
-      <main className="relative min-h-screen overflow-hidden bg-gradient-to-b from-slate-50 via-cyan-50 to-amber-50 px-4 py-12 sm:px-6 lg:px-8">
+      <main className="relative min-h-screen overflow-hidden bg-gradient-to-b from-slate-50 via-cyan-50 to-amber-50 px-3 py-3 sm:px-6 lg:px-8">
         <div className="pointer-events-none absolute -left-20 top-24 h-72 w-72 rounded-full bg-amber-200/50 blur-3xl" />
         <div className="pointer-events-none absolute -right-20 top-44 h-72 w-72 rounded-full bg-cyan-200/50 blur-3xl" />
 
@@ -140,15 +140,15 @@ export const Contact = () => {
           transition={{ duration: 0.55 }}
           className="relative w-full"
         >
-          <section className="mb-10 overflow-hidden rounded-3xl border border-white/70 bg-white/90 shadow-[0_24px_70px_-20px_rgba(15,23,42,0.35)] backdrop-blur">
-            <div className="grid gap-8 p-8 md:grid-cols-[1.1fr_0.9fr] md:p-10">
+          <section className="mb-6 overflow-hidden rounded-3xl border border-white/70 bg-white/90 shadow-[0_24px_70px_-20px_rgba(15,23,42,0.35)] backdrop-blur">
+            <div className="grid gap-6 p-8 md:grid-cols-[1.1fr_0.9fr] md:p-10">
               <div>
-                <p className="mb-3 inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-amber-200">
+                <p className="mb-2 inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-amber-200">
                   <FaHeadset /> Customer Support
                 </p>
-                <h1 className="text-3xl font-black leading-tight text-slate-900 md:text-5xl">
+                <h3 className="text-3xl font-black leading-tight text-slate-900 md:text-5xl">
                   Contact SalonHub for Booking Help
-                </h1>
+                </h3>
                 <p className="mt-5 max-w-2xl text-base leading-relaxed text-slate-600 md:text-lg">
                   Need help with salon bookings, account issues, or service questions? Our support team is
                   available to assist quickly and clearly.

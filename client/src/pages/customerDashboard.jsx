@@ -752,11 +752,11 @@ const CustomerDashboard = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-cyan-50 to-amber-50 py-4 sm:py-8">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-cyan-50 to-amber-50 py-3 sm:py-6">
       <div className="max-w-6xl mx-auto px-3 sm:px-4 lg:px-8">
         {/* Header */}
         <div className="mb-4 sm:mb-6">
-          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mt-12 sm:mt-12">My Appointments</h1>
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 sm:mt-12">My Appointments</h1>
           {/* <div className="flex flex-col sm:flex-row sm:items-center justify-between mt-2 gap-2">
             <p className="text-gray-600 text-sm">
               Welcome back, {user?.name || 'Customer'}

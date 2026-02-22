@@ -2,11 +2,11 @@ const Poster = () => {
   const posterUrl = "/salonHub-Poster.png";
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-gradient-to-b from-slate-50 via-cyan-50 to-amber-50 px-4 py-12 sm:px-6 lg:px-8">
+    <main className="relative min-h-screen overflow-hidden bg-gradient-to-b from-slate-50 via-cyan-50 to-amber-50 px-4 py-3 sm:px-6 lg:px-8">
       <div className="pointer-events-none absolute -left-20 top-24 h-64 w-64 rounded-full bg-cyan-200/60 blur-3xl" />
       <div className="pointer-events-none absolute -right-20 top-36 h-64 w-64 rounded-full bg-amber-200/60 blur-3xl" />
 
-      <section className="relative mx-auto mt-6 w-full max-w-3xl rounded-3xl border border-white/70 bg-white/90 p-6 text-center shadow-[0_24px_70px_-20px_rgba(15,23,42,0.35)] backdrop-blur sm:p-8">
+      <section className="relative mx-auto w-full max-w-3xl rounded-3xl border border-white/70 bg-white/90 p-6 text-center shadow-[0_24px_70px_-20px_rgba(15,23,42,0.35)] backdrop-blur sm:p-8">
         <p className="inline-flex rounded-full bg-slate-900 px-4 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-cyan-200">
           Media Kit
         </p>

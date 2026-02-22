@@ -75,7 +75,7 @@ export const About = () => {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
 
-      <main className="relative min-h-screen overflow-hidden bg-gradient-to-b from-slate-50 via-cyan-50 to-amber-50 px-4 py-12 sm:px-6 lg:px-8">
+      <main className="relative min-h-screen overflow-hidden bg-gradient-to-b from-slate-50 via-cyan-50 to-amber-50 px-3 py-3 sm:px-6 lg:px-8">
         <div className="pointer-events-none absolute left-0 top-20 h-64 w-64 rounded-full bg-cyan-200/50 blur-3xl" />
         <div className="pointer-events-none absolute right-0 top-40 h-72 w-72 rounded-full bg-orange-200/50 blur-3xl" />
 
@@ -87,14 +87,14 @@ export const About = () => {
           className="relative w-full"
         >
           <section className="mb-10 overflow-hidden rounded-3xl border border-white/70 bg-white/90 shadow-[0_24px_70px_-20px_rgba(15,23,42,0.35)] backdrop-blur">
-            <div className="grid gap-8 p-8 md:grid-cols-[1.2fr_0.8fr] md:p-10">
+            <div className="grid gap-8 p-7 md:grid-cols-[1.2fr_0.8fr] md:p-10">
               <div>
-                <p className="mb-3 inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-cyan-200">
+                <p className="mb-2 inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-cyan-200">
                   <FaBullseye /> About SalonHub
                 </p>
-                <h1 className="text-3xl font-black leading-tight text-slate-900 md:text-5xl">
+                <h3 className="text-3xl font-black leading-tight text-slate-900 md:text-5xl">
                   India's Trusted Platform for Smart Salon Booking
-                </h1>
+                </h3>
                 <p className="mt-5 max-w-2xl text-base leading-relaxed text-slate-600 md:text-lg">
                   SalonHub was built to make beauty and grooming services more accessible, reliable,
                   and stress-free. We connect customers with top-rated salons and create a better booking

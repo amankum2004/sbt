@@ -1,8 +1,19 @@
-import React, { useState, useEffect } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from 'react-router-dom';
+import { io } from 'socket.io-client';
 import { useLogin } from '../components/LoginContext';
 import { api } from '../utils/api';
 import { useLoading } from "../components/Loading";
+
+const getSocketServerUrl = () => {
+  const apiBaseUrl =
+    api.defaults.baseURL ||
+    import.meta.env.VITE_DEV_BASE_URL ||
+    import.meta.env.VITE_PROD_BASE_URL ||
+    'http://localhost:5000/api';
+
+  return String(apiBaseUrl).replace(/\/api\/?$/, '');
+};
 
 const DateTimeSelection = () => {
   const { showLoading, hideLoading } = useLoading();
@@ -18,98 +29,225 @@ const DateTimeSelection = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [showCalendar, setShowCalendar] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [liveUpdateNotice, setLiveUpdateNotice] = useState('');
+  const socketRef = useRef(null);
+  const liveUpdateTimerRef = useRef(null);
   const navigate = useNavigate();
   const { user } = useLogin();
 
+  const showRealtimeNotice = useCallback((message) => {
+    setLiveUpdateNotice(message);
+    if (liveUpdateTimerRef.current) {
+      clearTimeout(liveUpdateTimerRef.current);
+    }
+    liveUpdateTimerRef.current = setTimeout(() => {
+      setLiveUpdateNotice('');
+    }, 4000);
+  }, []);
+
+  const reconcileSelectionsWithLatestSlots = useCallback(
+    (latestSlots) => {
+      const availableShowtimeIds = new Set();
+      const bookedShowtimeIds = new Set();
+
+      latestSlots.forEach((slot) => {
+        (slot.showtimes || []).forEach((showtime) => {
+          const showtimeId = String(showtime._id);
+          if (showtime.is_booked) {
+            bookedShowtimeIds.add(showtimeId);
+          } else {
+            availableShowtimeIds.add(showtimeId);
+          }
+        });
+      });
+
+      setSelectedShowtimes((previousSelected) => {
+        if (!previousSelected.length) return previousSelected;
+
+        const updatedSelected = previousSelected.filter((slot) =>
+          availableShowtimeIds.has(String(slot.showtimeId))
+        );
+
+        if (updatedSelected.length !== previousSelected.length) {
+          const removedDueToBooking = previousSelected.some((slot) =>
+            bookedShowtimeIds.has(String(slot.showtimeId))
+          );
+          if (removedDueToBooking) {
+            showRealtimeNotice('A selected slot was just booked by another user.');
+          }
+        }
+
+        return updatedSelected;
+      });
+
+      setShowtimeServices((previousServices) => {
+        const nextServices = {};
+        Object.entries(previousServices).forEach(([showtimeId, service]) => {
+          if (availableShowtimeIds.has(String(showtimeId))) {
+            nextServices[showtimeId] = service;
+          }
+        });
+
+        const nextTotal = Object.values(nextServices).reduce(
+          (sum, service) => sum + parseInt(service?.price || 0, 10),
+          0
+        );
+        setTotalAmount(nextTotal);
+        return nextServices;
+      });
+    },
+    [showRealtimeNotice]
+  );
+
+  const fetchTimeSlots = useCallback(
+    async (showLoader = true) => {
+      if (showLoader) {
+        showLoading('Fetching details...');
+      }
+
+      try {
+        const response = await api.get(`/time/shops/${shopId}/available`);
+        const slots = Array.isArray(response.data) ? response.data : [];
+
+        const sortedSlots = slots
+          .slice()
+          .sort((a, b) => new Date(a.date) - new Date(b.date))
+          .map((slot) => ({
+            ...slot,
+            showtimes: (slot.showtimes || [])
+              .slice()
+              .sort((a, b) => new Date(a.date) - new Date(b.date)),
+          }));
+
+        setTimeSlots(sortedSlots);
+        reconcileSelectionsWithLatestSlots(sortedSlots);
+
+        setSelectedDate((previousDate) => {
+          if (previousDate) {
+            const previousDateString = new Date(previousDate).toDateString();
+            const stillAvailable = sortedSlots.some(
+              (slot) => new Date(slot.date).toDateString() === previousDateString
+            );
+            if (stillAvailable) {
+              return previousDate;
+            }
+          }
+
+          const todayTimeSlot = sortedSlots.find(
+            (slot) => new Date(slot.date).toDateString() === new Date().toDateString()
+          );
+
+          return todayTimeSlot?.date || sortedSlots[0]?.date || null;
+        });
+      } catch (error) {
+        console.error('Failed to fetch time slots:', error);
+        setTimeSlots([]);
+      } finally {
+        if (showLoader) {
+          hideLoading();
+        }
+      }
+    },
+    [hideLoading, reconcileSelectionsWithLatestSlots, shopId, showLoading]
+  );
+
+  const fetchShopDetails = useCallback(
+    async (showLoader = true) => {
+      if (showLoader) {
+        showLoading('Fetching details...');
+      }
+
+      try {
+        const response = await api.get(`/shop/shoplists/${shopId}`);
+        setShopDetails(response.data || {});
+      } catch (error) {
+        console.error('Failed to fetch shop details:', error.response ? error.response.data : error.message);
+        setShopDetails({});
+      } finally {
+        if (showLoader) {
+          hideLoading();
+        }
+      }
+    },
+    [hideLoading, shopId, showLoading]
+  );
+
+  const fetchCustomerEmail = useCallback(() => {
+    setCustomerEmail(user?.email || '');
+    setCustomerName(user?.name || '');
+  }, [user?.email, user?.name]);
+
   useEffect(() => {
     fetchTimeSlots();
-    fetchShopDetails();
-    fetchCustomerEmail();
-    
-    // Update current time every minute
+    fetchShopDetails(false);
+
     const timer = setInterval(() => {
       setCurrentTime(new Date());
-    }, 60000); // Update every minute
+    }, 60000);
 
-    // Poll for time slot updates every 30 seconds
     const slotTimer = setInterval(() => {
-    fetchTimeSlots(true);
-  }, 300000); // Refresh every 30 seconds
+      fetchTimeSlots(false);
+    }, 30000);
 
-    return () => clearInterval(timer);
-  }, [shopId]);
+    return () => {
+      clearInterval(timer);
+      clearInterval(slotTimer);
+    };
+  }, [fetchShopDetails, fetchTimeSlots]);
 
-  const fetchTimeSlots = async () => {
-    showLoading('Fetching details...');
-    try {
-      const response = await api.get(`/time/shops/${shopId}/available`);
-      const slots = response.data || [];
+  useEffect(() => {
+    fetchCustomerEmail();
+  }, [fetchCustomerEmail]);
 
-      // DEBUG: Log what we got
-      console.log('=== FETCHED TIME SLOTS ===');
-      slots.forEach((slot, index) => {
-        console.log(`Slot ${index}: ID=${slot._id}, Date=${slot.date}`);
-        console.log(`  Showtimes count: ${slot.showtimes?.length}`);
-        if (slot.showtimes?.[0]) {
-          console.log(`  First showtime ID: ${slot.showtimes[0]._id}`);
-        }
-      });
+  useEffect(() => {
+    if (!shopId) return undefined;
 
-      // Sort timeSlots by date (ascending)
-      slots.sort((a, b) => new Date(a.date) - new Date(b.date));
+    const socket = io(getSocketServerUrl(), {
+      transports: ['websocket', 'polling'],
+      withCredentials: true,
+    });
+    socketRef.current = socket;
 
-      // Then, for each timeSlot, sort its showtimes by time
-      const sortedSlots = slots.map(slot => ({
-        ...slot,
-        showtimes: slot.showtimes.sort(
-          (a, b) => new Date(a.date) - new Date(b.date)
-        ),
-      }));
+    const joinRoom = () => {
+      socket.emit('join_shop_room', { shopId });
+    };
 
-      setTimeSlots(sortedSlots);
-      
-      // Set today's date as default selected date
-      const today = new Date().toISOString().split('T')[0];
-      const todayTimeSlot = sortedSlots.find(slot => 
-        new Date(slot.date).toDateString() === new Date().toDateString()
-      );
-
-      // In your fetchTimeSlots function, add:
-      console.log('Showtimes data:', selectedTimeSlot?.showtimes);
-      selectedTimeSlot?.showtimes?.forEach((st, i) => {
-        console.log(`Showtime ${i}: ID=${st._id}, Time=${st.date}, Booked=${st.is_booked}`);
-      });
-      
-      if (todayTimeSlot) {
-        setSelectedDate(todayTimeSlot.date);
-      } else if (sortedSlots.length > 0) {
-        // If today is not available, select the first available date
-        setSelectedDate(sortedSlots[0].date);
+    const onSlotUpdated = (eventData = {}) => {
+      if (eventData.shopId && String(eventData.shopId) !== String(shopId)) {
+        return;
       }
-    } catch (error) {
-      setTimeSlots([]);
-    } finally {
-      hideLoading();
-    }
-  };
+      fetchTimeSlots(false);
+      showRealtimeNotice('Time slots updated in real time.');
+    };
 
-  const fetchShopDetails = async () => {
-    showLoading('Fetching details...');
-    try {
-      const response = await api.get(`/shop/shoplists/${shopId}`);
-      setShopDetails(response.data || {});
-    } catch (error) {
-      console.error('Failed to fetch shop details:', error.response ? error.response.data : error.message);
-      setShopDetails({});
-    } finally {
-      hideLoading();
-    }
-  };
+    const onConnectError = (error) => {
+      console.error('Socket connection error:', error?.message || error);
+    };
 
-  const fetchCustomerEmail = async () => {
-    setCustomerEmail(user.email);
-    setCustomerName(user.name);
-  };
+    socket.on('connect', joinRoom);
+    socket.on('shop_slots_updated', onSlotUpdated);
+    socket.on('shop_slot_booked', onSlotUpdated);
+    socket.on('connect_error', onConnectError);
+
+    return () => {
+      socket.emit('leave_shop_room', { shopId });
+      socket.off('connect', joinRoom);
+      socket.off('shop_slots_updated', onSlotUpdated);
+      socket.off('shop_slot_booked', onSlotUpdated);
+      socket.off('connect_error', onConnectError);
+      socket.disconnect();
+      socketRef.current = null;
+    };
+  }, [fetchTimeSlots, shopId, showRealtimeNotice]);
+
+  useEffect(
+    () => () => {
+      if (liveUpdateTimerRef.current) {
+        clearTimeout(liveUpdateTimerRef.current);
+      }
+    },
+    []
+  );
 
   // Check if a time slot is in the past (for today's date only)
   const isTimeSlotInPast = (showtimeDate) => {
@@ -260,19 +398,18 @@ const DateTimeSelection = () => {
   // };
 
   useEffect(() => {
-  const handleVisibilityChange = () => {
-    if (document.visibilityState === 'visible') {
-      // User returned to the page, refresh slots
-      fetchTimeSlots();
-    }
-  };
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        fetchTimeSlots(false);
+      }
+    };
 
-  document.addEventListener('visibilitychange', handleVisibilityChange);
-  
-  return () => {
-    document.removeEventListener('visibilitychange', handleVisibilityChange);
-  };
-}, []);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [fetchTimeSlots]);
 
   // Calendar functions
   const getDaysInMonth = (date) => {
@@ -414,6 +551,11 @@ const DateTimeSelection = () => {
           </p>
           <h2 className="mt-3 text-3xl font-black text-slate-900">Book Your Time Slot</h2>
         </div>
+        {liveUpdateNotice ? (
+          <div className="mb-3 rounded-xl border border-cyan-200 bg-cyan-50 px-4 py-2 text-center text-sm font-semibold text-cyan-800">
+            {liveUpdateNotice}
+          </div>
+        ) : null}
       
       {/* Current Time Display */}
       {/* <div className="text-center mb-4">
