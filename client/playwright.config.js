@@ -36,7 +36,7 @@ export default defineConfig({
     ignoreHTTPSErrors: true,
   },
 
-  globalSetup: './tests/auth.setup.ts',
+  globalSetup: './tests/auth-setup.js',
 
   /* Configure projects for major browsers */
   projects: [
