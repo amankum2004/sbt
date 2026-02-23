@@ -272,16 +272,16 @@ const Donate = () => {
   };
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-gradient-to-b from-slate-50 via-cyan-50 to-amber-50 px-4 py-12 sm:px-6 lg:px-8">
+    <main className="relative min-h-screen overflow-hidden bg-gradient-to-b from-slate-50 via-cyan-50 to-amber-50 px-3 py-3 sm:px-6 lg:px-8">
       <div className="pointer-events-none absolute -left-20 top-24 h-64 w-64 rounded-full bg-emerald-200/60 blur-3xl" />
       <div className="pointer-events-none absolute -right-20 top-36 h-64 w-64 rounded-full bg-cyan-200/60 blur-3xl" />
 
-      <div className="relative mx-auto mt-6 w-full max-w-2xl rounded-3xl border border-white/70 bg-white/90 p-8 shadow-[0_24px_70px_-20px_rgba(15,23,42,0.35)] backdrop-blur sm:p-10">
-        <div className="mb-8 text-center">
+      <div className="relative mx-auto mt-1 w-full max-w-2xl rounded-3xl border border-white/70 bg-white/90 p-8 shadow-[0_24px_70px_-20px_rgba(15,23,42,0.35)] backdrop-blur sm:p-10">
+        <div className="mb-3 text-center">
           <p className="inline-flex rounded-full bg-slate-900 px-4 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-emerald-200">
             Green Mission
           </p>
-          <h2 className="mt-3 text-4xl font-black text-slate-900">Donate For The Environment</h2>
+          <h1 className="mt-3 text-4xl font-black text-green-600">Donate For The Environment</h1>
           <p className="mt-4 text-base text-slate-600">
             Help us plant trees, reduce pollution, and build a sustainable future.
           </p>

@@ -103,7 +103,7 @@ export const Header = () => {
           { to: "/barberDashboard", label: "Dashboard", icon: LayoutDashboard },
           { to: "/analytics-dashboard", label: "Analytics", icon: BarChart3 },
           { to: "/timeSlot-create", label: "Create Slots", icon: Calendar },
-          { to: "/poster", label: "Poster", icon: Image },
+          // { to: "/poster", label: "Poster", icon: Image },
           { to: "/nearbyShops", label: "Book Appointment", icon: Calendar },
           { to: "/customerDashboard", label: "My Bookings", icon: ClipboardList },
         ]
@@ -112,7 +112,7 @@ export const Header = () => {
             { to: "/customerprofile", label: "Profile", icon: UserCircle },
             { to: "/admin", label: "Admin Dashboard", icon: LayoutDashboard },
             { to: "/registershop", label: "Register Salon", icon: Scissors },
-            { to: "/poster", label: "Poster", icon: Image },
+            // { to: "/poster", label: "Poster", icon: Image },
             { to: "/customerDashboard", label: "My Bookings", icon: ClipboardList },
             { to: "/nearbyShops", label: "Book Appointment", icon: Calendar },
           ]
@@ -143,7 +143,7 @@ export const Header = () => {
 
           <Link
             to="/"
-            className="absolute left-1/2 -translate-x-1/2 bg-gradient-to-r from-cyan-300 via-amber-300 to-orange-300 bg-clip-text text-2xl font-black text-transparent md:hidden"
+            className="absolute left-1/2 -translate-x-1/2 bg-gradient-to-r from-sky-400 via-blue-500 to-blue-700 bg-clip-text text-2xl font-black text-transparent md:hidden"
           >
             SalonHub
           </Link>
@@ -154,7 +154,7 @@ export const Header = () => {
               alt="SalonHub Logo"
               className="h-10 w-10 rounded-full border border-white/30 bg-white/90 p-1"
             />
-            <span className="bg-gradient-to-r from-cyan-300 via-amber-300 to-orange-300 bg-clip-text text-3xl font-black text-transparent">
+            <span className="bg-gradient-to-r from-sky-400 via-blue-500 to-blue-700 bg-clip-text text-2xl font-black text-transparent">
               SalonHub
             </span>
           </Link>
@@ -225,8 +225,8 @@ export const Header = () => {
       >
         <div className="flex items-center justify-between border-b border-white/10 p-4">
           <Link to="/" className="flex items-center gap-2" onClick={closeAll}>
-            <img src="/images/salonHub-logo.svg" alt="SalonHub" className="h-8 w-8 rounded-full bg-white" />
-            <span className="bg-gradient-to-r from-cyan-300 via-amber-300 to-orange-300 bg-clip-text text-lg font-black text-transparent">
+            <img src="/images/salonHub-logo.svg" alt="SalonHub" className="h-9 w-9 rounded-full bg-white" />
+            <span className="bg-gradient-to-r from-sky-400 via-blue-500 to-blue-700 bg-clip-text text-2xl font-black text-transparent">
               SalonHub
             </span>
           </Link>
@@ -283,7 +283,7 @@ export const Header = () => {
               <img alt="User Avatar" src="/images/dp_logo.png" className="h-10 w-10 rounded-full" />
               <div>
                 <p className="text-xs uppercase tracking-[0.16em] text-cyan-300">Signed In</p>
-                <p className="text-sm font-bold text-white">{user?.name || "SalonHub User"}</p>
+                <p className="text-md font-bold text-white">{user?.name || "SalonHub User"}</p>
               </div>
             </div>
           ) : (
@@ -314,8 +314,15 @@ export const Header = () => {
               ))}
 
               <NavLink
+                to="/poster"
+                label="Poster/Media"
+                icon={Image}
+                onClick={closeAll}
+                className="w-full text-slate-200 hover:text-white"
+              />
+              <NavLink
                 to="/learning"
-                label="Booking Guide / Help"
+                label="Booking Guide/Helper"
                 icon={BookOpen}
                 onClick={closeAll}
                 className="w-full text-slate-200 hover:text-white"

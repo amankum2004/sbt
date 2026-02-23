@@ -73,7 +73,7 @@ export const Home = () => {
       tone: "from-cyan-500 to-blue-500",
     },
     {
-      title: "Zero Waiting Drama",
+      title: "Zero Waiting",
       desc: "Book your slot and skip long waiting queues.",
       icon: FaClock,
       tone: "from-amber-500 to-orange-500",

@@ -128,21 +128,27 @@ const CustomerDashboard = () => {
     console.log('📊 Reviews API response:', response.data);
     
     if (response.data.success) {
+      const reviews = Array.isArray(response.data.reviews) ? response.data.reviews : [];
+
       // Debug: Log the first review's appointmentId structure
-      if (response.data.reviews.length > 0) {
-        const firstReview = response.data.reviews[0];
+      if (reviews.length > 0) {
+        const firstReview = reviews[0];
+        const appointmentIdValue = firstReview?.appointmentId;
+        const isNonNullObject =
+          typeof appointmentIdValue === 'object' && appointmentIdValue !== null;
+
         console.log('🔍 First review appointmentId analysis:', {
-          raw: firstReview.appointmentId,
-          type: typeof firstReview.appointmentId,
-          isObject: typeof firstReview.appointmentId === 'object',
-          keys: typeof firstReview.appointmentId === 'object' ? Object.keys(firstReview.appointmentId) : 'N/A',
-          stringValue: firstReview.appointmentId?.toString(),
-          _id: firstReview.appointmentId?._id
+          raw: appointmentIdValue,
+          type: typeof appointmentIdValue,
+          isObject: isNonNullObject,
+          keys: isNonNullObject ? Object.keys(appointmentIdValue) : 'N/A',
+          stringValue: appointmentIdValue?.toString?.(),
+          _id: appointmentIdValue?._id
         });
       }
       
       const reviewsMap = {};
-      response.data.reviews.forEach((review, index) => {
+      reviews.forEach((review, index) => {
         // Get appointmentId safely
         let appointmentId;
         
@@ -163,7 +169,7 @@ const CustomerDashboard = () => {
         // If it's an ObjectId or similar object
         else if (review.appointmentId && typeof review.appointmentId === 'object') {
           // Try toString() method
-          appointmentId = review.appointmentId.toString();
+          appointmentId = review.appointmentId.toString?.();
         }
         // Fallback - convert to string
         else {
@@ -176,7 +182,7 @@ const CustomerDashboard = () => {
           type: typeof appointmentId
         });
         
-        if (appointmentId) {
+        if (appointmentId && appointmentId !== '[object Object]') {
           reviewsMap[appointmentId] = {
             hasReviewed: true,
             reviewId: review._id,
@@ -752,11 +758,11 @@ const CustomerDashboard = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-cyan-50 to-amber-50 py-3 sm:py-6">
-      <div className="max-w-6xl mx-auto px-3 sm:px-4 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-cyan-50 to-amber-50 py-3 sm:py-4">
+      <div className="max-w-6xl mx-auto px-3 sm:px-4 lg:px-6">
         {/* Header */}
-        <div className="mb-4 sm:mb-6">
-          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 sm:mt-12">My Appointments</h1>
+        <div className="mb-3 sm:mb-3">
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">My Appointments</h1>
           {/* <div className="flex flex-col sm:flex-row sm:items-center justify-between mt-2 gap-2">
             <p className="text-gray-600 text-sm">
               Welcome back, {user?.name || 'Customer'}

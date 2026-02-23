@@ -2,7 +2,10 @@ const Shops = require("../models/registerShop-model")
 const User = require("../models/user/user-model")
 const bcrypt = require("bcrypt")
 const Appointment = require("../models/appointment-model")
-const { sendShopStatusNotification } = require("../utils/mail");
+const {
+  sendShopStatusNotification,
+  sendAdminPendingShopNotification,
+} = require("../utils/mail");
 
 const VALID_COORDINATE_SOURCES = new Set([
   "device_gps",
@@ -140,6 +143,19 @@ exports.registershop = async (req, res, next) => {
       coordinatesSource: finalCoordinateSource,
       isApproved: !password // Auto-approve if created by admin (no password)
     });
+
+    if (!newShop.isApproved) {
+      sendAdminPendingShopNotification(newShop.toObject())
+        .then(() => {
+          console.log(`✅ Admin notified for pending shop: ${newShop._id}`);
+        })
+        .catch((emailError) => {
+          console.warn(
+            "⚠️ Failed to send pending shop notification to admin:",
+            emailError?.message || emailError
+          );
+        });
+    }
 
     return res.status(201).json({
       success: true,

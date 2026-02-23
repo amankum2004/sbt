@@ -2,10 +2,13 @@ const express = require('express');
 const Razorpay = require('razorpay');
 const crypto = require('crypto');
 const Donation = require('../../models/donation-model');
-const nodemailer = require('nodemailer');
 const TimeSlot = require('../../models/timeSlot-model');
 const { bookAppointment } = require('../../controllers/appointment-controller');
-const { sendConfirmationEmail, sendDonationConfirmationEmail } = require('../../utils/mail');
+const {
+  sendConfirmationEmail,
+  sendDonationConfirmationEmail,
+  sendAdminDonationNotification,
+} = require('../../utils/mail');
 
 const router = express.Router();
 
@@ -130,13 +133,21 @@ router.post('/donation/validate', async (req, res) => {
         console.log('Donation saved to database:', savedDonation._id);
         
         // Send donation confirmation email
-        try {
-            await sendDonationConfirmationEmail(name, email, amount, message);
-            console.log('Donation confirmation email sent');
-        } catch (emailError) {
-            console.warn('Email sending failed:', emailError.message);
-            // Don't fail the entire process if email fails
-        }
+        sendDonationConfirmationEmail(name, email, amount, message)
+            .then(() => {
+                console.log('Donation confirmation email sent');
+            })
+            .catch((emailError) => {
+                console.warn('Email sending failed:', emailError.message);
+            });
+
+        sendAdminDonationNotification(savedDonation.toObject())
+            .then(() => {
+                console.log('Admin donation alert email sent');
+            })
+            .catch((adminEmailError) => {
+                console.warn('Admin donation alert failed:', adminEmailError.message);
+            });
         
         res.status(200).json({ 
             success: true,

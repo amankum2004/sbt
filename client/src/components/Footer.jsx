@@ -102,7 +102,7 @@ export const Footer = () => {
                   className="h-14 w-14 rounded-full border border-white/20 bg-white p-1"
                 />
                 <div>
-                  <p className="bg-gradient-to-r from-cyan-300 via-amber-300 to-orange-300 bg-clip-text text-2xl font-black text-transparent">
+                  <p className="bg-gradient-to-r from-sky-400 via-blue-500 to-blue-700 bg-clip-text text-2xl font-black text-transparent">
                     SalonHub
                   </p>
                   <p className="text-xs text-slate-300">India's trusted booking platform</p>

@@ -5,8 +5,19 @@ const BREVO_API_KEY = process.env.BREVO_API;
 const BREVO_SENDER_EMAIL = process.env.BREVO_EMAIL;
 const BREVO_SENDER_NAME = 'SalonHub';
 const Email = 'salonhub.business@gmail.com';
-const FRONTEND_BASE_URL = (process.env.FRONTEND_URL || 'https://www.salonhub.co.in').replace(/\/+$/, '');
-const SALONHUB_LOGO_URL = process.env.SALONHUB_LOGO_URL || `${FRONTEND_BASE_URL}/salonHub-logo.svg`;
+const ADMIN_NOTIFICATION_EMAIL = (
+  process.env.ADMIN_NOTIFICATION_EMAIL ||
+  'salonhub.business@gmail.com'
+).trim().toLowerCase();
+const DEFAULT_PUBLIC_FRONTEND_URL = 'https://www.salonhub.co.in';
+const configuredFrontendUrl = (process.env.FRONTEND_URL || DEFAULT_PUBLIC_FRONTEND_URL).trim();
+const normalizedConfiguredFrontendUrl = configuredFrontendUrl.replace(/\/+$/, '');
+const isLocalOrPrivateFrontendUrl =
+  /^https?:\/\/(localhost|127\.0\.0\.1|0\.0\.0\.0|192\.168\.)/i.test(normalizedConfiguredFrontendUrl);
+
+const FRONTEND_BASE_URL = isLocalOrPrivateFrontendUrl
+  ? DEFAULT_PUBLIC_FRONTEND_URL
+  : normalizedConfiguredFrontendUrl;
 
 const CURRENT_YEAR = new Date().getFullYear();
 
@@ -18,32 +29,13 @@ const withSalonHubLogo = (htmlContent = '', options = {}) => {
   } = options;
 
   return `
-    <div style="margin: 0; padding: 28px 12px; background: ${background};">
+    <div style="margin: 0; padding: 30px 12px; background: ${background};">
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse: collapse;">
         <tr>
           <td align="center">
-            <div style="max-width: 680px; margin: 0 auto;">
-              <div style="text-align: center; margin-bottom: 14px;">
-                <div style="display: inline-block; background: #ffffff; border: 1px solid #dbeafe; border-radius: 16px; padding: 12px 18px; box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);">
-                  <img
-                    src="${SALONHUB_LOGO_URL}"
-                    alt="SalonHub Logo"
-                    style="width: 148px; max-width: 76%; height: auto; display: inline-block;"
-                  />
-                  <div style="margin-top: 8px; color: #0f172a; font-size: 12px; font-weight: 700; letter-spacing: 1.4px;">
-                    SALONHUB
-                  </div>
-                  <div style="margin-top: 2px; color: #64748b; font-size: 11px;">
-                    Premium Salon Booking Experience
-                  </div>
-                </div>
-              </div>
-              <div style="background: #ffffff; border-radius: 24px; border: 1px solid #dbeafe; overflow: hidden; box-shadow: 0 20px 45px rgba(15, 23, 42, 0.14);">
-                <div style="height: 5px; background: ${accent};"></div>
-                <div style="padding: 12px;">
-                  ${htmlContent}
-                </div>
-              </div>
+            <div style="max-width: 700px; margin: 0 auto;">
+              <div style="height: 4px; width: 140px; margin: 0 auto 14px auto; border-radius: 999px; background: ${accent};"></div>
+              ${htmlContent}
               <div style="margin-top: 14px; text-align: center; color: #64748b; font-family: 'Segoe UI', Tahoma, Arial, sans-serif; font-size: 12px; line-height: 1.65;">
                 ${footerText}
               </div>
@@ -53,6 +45,234 @@ const withSalonHubLogo = (htmlContent = '', options = {}) => {
       </table>
     </div>
   `;
+};
+
+const escapeHtml = (value = '') =>
+  String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+
+const formatIndianDateTime = (dateValue) => {
+  const parsedDate = new Date(dateValue || Date.now());
+  if (Number.isNaN(parsedDate.getTime())) {
+    return '-';
+  }
+
+  return parsedDate.toLocaleString('en-IN', {
+    timeZone: 'Asia/Kolkata',
+    year: 'numeric',
+    month: 'short',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true,
+  });
+};
+
+const buildDashboardLink = (path = '/admin') => {
+  if (!path.startsWith('/')) {
+    return `${FRONTEND_BASE_URL}/${path}`;
+  }
+  return `${FRONTEND_BASE_URL}${path}`;
+};
+
+const sendAdminAlertEmail = async ({
+  subject,
+  title,
+  intro,
+  details = [],
+  accent = '#0ea5e9',
+  dashboardPath = '/admin',
+  footerText = `Admin alert from SalonHub • © ${CURRENT_YEAR} SalonHub`,
+}) => {
+  const sanitizedDetails = Array.isArray(details)
+    ? details.filter((detail) => detail && detail.label)
+    : [];
+
+  const detailRowsHtml = sanitizedDetails
+    .map((detail) => {
+      const label = escapeHtml(detail.label);
+      const value = escapeHtml(detail.value ?? '-');
+      return `
+        <tr>
+          <td style="padding: 10px 12px; border-bottom: 1px solid #e2e8f0; width: 38%; color: #334155; font-weight: 700; vertical-align: top;">
+            ${label}
+          </td>
+          <td style="padding: 10px 12px; border-bottom: 1px solid #e2e8f0; color: #0f172a; line-height: 1.55; word-break: break-word;">
+            ${value}
+          </td>
+        </tr>
+      `;
+    })
+    .join('');
+
+  const detailText = sanitizedDetails
+    .map((detail) => `${detail.label}: ${detail.value ?? '-'}`)
+    .join('\n');
+
+  const dashboardUrl = buildDashboardLink(dashboardPath);
+
+  const emailData = {
+    sender: {
+      name: BREVO_SENDER_NAME,
+      email: BREVO_SENDER_EMAIL,
+    },
+    to: [
+      {
+        email: ADMIN_NOTIFICATION_EMAIL,
+        name: 'SalonHub Admin',
+      },
+    ],
+    subject,
+    htmlContent: withSalonHubLogo(
+      `
+      <div style="font-family: 'Segoe UI', Tahoma, Arial, sans-serif; max-width: 640px; margin: 0 auto; border: 1px solid #dbeafe; border-radius: 18px; overflow: hidden; background: #ffffff;">
+        <div style="padding: 22px; background: linear-gradient(135deg, ${accent} 0%, #0f172a 100%); color: #ffffff;">
+          <p style="margin: 0; font-size: 12px; letter-spacing: 1.2px; text-transform: uppercase; opacity: 0.9;">Admin Notification</p>
+          <h2 style="margin: 8px 0 0 0; font-size: 24px; line-height: 1.35;">${escapeHtml(title)}</h2>
+        </div>
+        <div style="padding: 22px;">
+          <p style="margin: 0 0 16px 0; color: #475569; line-height: 1.65;">
+            ${escapeHtml(intro)}
+          </p>
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
+            <tbody>
+              ${detailRowsHtml || `
+                <tr>
+                  <td style="padding: 12px; color: #334155;">No additional details available.</td>
+                </tr>
+              `}
+            </tbody>
+          </table>
+          <div style="margin-top: 18px;">
+            <a href="${dashboardUrl}" style="display: inline-block; background: #0f172a; color: #ffffff; text-decoration: none; padding: 10px 18px; border-radius: 10px; font-weight: 700;">
+              Open Admin Dashboard
+            </a>
+          </div>
+        </div>
+      </div>
+      `,
+      {
+        accent,
+        background: 'linear-gradient(180deg, #eff6ff 0%, #f8fafc 72%, #ffffff 100%)',
+        footerText,
+      }
+    ),
+    textContent: `${title}\n\n${intro}\n\n${detailText}\n\nAdmin dashboard: ${dashboardUrl}`,
+  };
+
+  try {
+    const response = await axios.post('https://api.brevo.com/v3/smtp/email', emailData, {
+      headers: {
+        'api-key': BREVO_API_KEY,
+        'Content-Type': 'application/json',
+      },
+      timeout: 10000,
+    });
+    console.log(`✅ Admin alert email sent: ${subject}`);
+    return response.data;
+  } catch (error) {
+    console.error('❌ Failed to send admin alert email:', error.response?.data || error.message);
+    return null;
+  }
+};
+
+const sendAdminContactNotification = async (contact = {}) => {
+  const contactName = (contact.name || '').trim() || '-';
+  const contactEmail = (contact.email || '').trim() || '-';
+  const contactMessage = (contact.message || '').trim() || '-';
+
+  return sendAdminAlertEmail({
+    subject: 'New Contact Message Received - SalonHub',
+    title: 'New Contact Form Submission',
+    intro: 'A new contact message was submitted by a user on the Contact page.',
+    accent: '#0284c7',
+    dashboardPath: '/admin/contacts',
+    details: [
+      { label: 'Name', value: contactName },
+      { label: 'Email', value: contactEmail },
+      { label: 'Message', value: contactMessage },
+      { label: 'Submitted At (IST)', value: formatIndianDateTime(contact.createdAt || new Date()) },
+    ],
+    footerText: `Contact inbox update for SalonHub admin • © ${CURRENT_YEAR} SalonHub`,
+  });
+};
+
+const sendAdminDonationNotification = async (donation = {}) => {
+  const donorName = (donation.donorName || donation.name || '').trim() || '-';
+  const donorEmail = (donation.donorEmail || donation.email || '').trim() || '-';
+  const donationAmount = Number(donation.amount);
+  const amountLabel = Number.isFinite(donationAmount) ? `₹${donationAmount.toFixed(2)}` : '-';
+  const donationMessage = (donation.message || '').trim() || '-';
+  const paymentId = donation.payment_id || '-';
+  const orderId = donation.order_id || '-';
+
+  return sendAdminAlertEmail({
+    subject: 'New Donation Received - SalonHub',
+    title: 'Donation Payment Completed',
+    intro: 'A successful donation has been recorded in SalonHub.',
+    accent: '#16a34a',
+    dashboardPath: '/admin/donations',
+    details: [
+      { label: 'Donor Name', value: donorName },
+      { label: 'Donor Email', value: donorEmail },
+      { label: 'Amount', value: amountLabel },
+      { label: 'Message', value: donationMessage },
+      { label: 'Payment ID', value: paymentId },
+      { label: 'Order ID', value: orderId },
+      { label: 'Donated At (IST)', value: formatIndianDateTime(donation.donatedAt || donation.createdAt || new Date()) },
+    ],
+    footerText: `Donation alert for SalonHub admin • © ${CURRENT_YEAR} SalonHub`,
+  });
+};
+
+const sendAdminPendingShopNotification = async (shop = {}) => {
+  const shopName = (shop.shopname || '').trim() || '-';
+  const ownerName = (shop.name || '').trim() || '-';
+  const ownerEmail = (shop.email || '').trim() || '-';
+  const ownerPhone = (shop.phone || '').trim() || '-';
+  const locationText =
+    [
+      shop.street,
+      shop.city,
+      shop.district,
+      shop.state,
+      shop.pin,
+    ]
+      .map((value) => (value || '').toString().trim())
+      .filter(Boolean)
+      .join(', ') || '-';
+
+  const latitude = Number(shop.lat);
+  const longitude = Number(shop.lng);
+  const coordinateText =
+    Number.isFinite(latitude) && Number.isFinite(longitude)
+      ? `${latitude}, ${longitude}`
+      : '-';
+
+  return sendAdminAlertEmail({
+    subject: 'New Shop Registration Pending Approval - SalonHub',
+    title: 'New Shop Approval Request',
+    intro: 'A new shop owner registration requires admin review and approval.',
+    accent: '#f59e0b',
+    dashboardPath: '/admin/requests',
+    details: [
+      { label: 'Shop Name', value: shopName },
+      { label: 'Owner Name', value: ownerName },
+      { label: 'Owner Email', value: ownerEmail },
+      { label: 'Owner Phone', value: ownerPhone },
+      { label: 'Address', value: locationText },
+      { label: 'Coordinates', value: coordinateText },
+      { label: 'Coordinate Source', value: shop.coordinatesSource || '-' },
+      { label: 'Pending Since (IST)', value: formatIndianDateTime(shop.createdAt || new Date()) },
+      { label: 'Shop ID', value: shop._id ? String(shop._id) : '-' },
+    ],
+    footerText: `Pending approval queue alert • © ${CURRENT_YEAR} SalonHub`,
+  });
 };
 
 // ==========================================
@@ -935,6 +1155,9 @@ module.exports = {
   mailOtp,
   sendConfirmationEmail,
   sendDonationConfirmationEmail,
+  sendAdminContactNotification,
+  sendAdminDonationNotification,
+  sendAdminPendingShopNotification,
   sendShopStatusNotification, // Add this
   sendCancellationEmail, // Add this
   sendShopOwnerCancellationNotification, // Add this
