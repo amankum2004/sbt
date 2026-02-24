@@ -7,6 +7,19 @@ import {ToastContainer} from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
 import { LoadingProvider } from './components/Loading.jsx'
 
+// Suppress service worker preload warning
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then((registrations) => {
+    registrations.forEach((registration) => {
+      if (registration.navigationPreload) {
+        registration.navigationPreload.disable();
+      }
+    });
+  }).catch(() => {
+    // Silent catch - service worker not available
+  });
+}
+
 if (import.meta.env.MODE !== 'development') {
   console.log = () => {};
   console.error = () => {};

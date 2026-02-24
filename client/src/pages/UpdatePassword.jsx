@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import Swal from "sweetalert2";
 import { api } from "../utils/api";
 import { FaEye, FaEyeSlash, FaEnvelope, FaKey, FaLock } from "react-icons/fa";
+import BackgroundIcons from "../components/BackgroundIcons";
 
 export const UpdatePassword = () => {
   const navigate = useNavigate();
@@ -134,6 +135,7 @@ export const UpdatePassword = () => {
     <main className="relative min-h-screen overflow-hidden bg-gradient-to-b from-slate-950 via-slate-900 to-cyan-950 px-4 py-10">
       <div className="pointer-events-none absolute -left-24 top-16 h-72 w-72 rounded-full bg-cyan-500/20 blur-3xl" />
       <div className="pointer-events-none absolute -right-20 top-36 h-72 w-72 rounded-full bg-amber-400/20 blur-3xl" />
+      <BackgroundIcons count={7} />
 
       <div className="relative mx-auto flex min-h-[calc(100vh-8rem)] w-full max-w-md items-center">
         <div className="w-full rounded-3xl border border-white/15 bg-slate-900/75 p-7 shadow-[0_20px_60px_-24px_rgba(8,47,73,0.9)] backdrop-blur md:p-8">

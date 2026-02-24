@@ -33,19 +33,25 @@ export const Shops = () => {
       userLocation,
     });
 
+    // If we have an embed URL, open the modal with both embed and web URL
     if (embedUrl) {
       setDirectionsModal({
         isOpen: true,
         embedUrl,
-        webUrl,
+        webUrl: webUrl || "#", // Ensure webUrl is set (fallback to "#" if invalid)
         shopName: shopData?.shopname || "Shop",
       });
       return;
     }
 
+    // If no embed URL but we have a valid web URL, open it directly
     if (webUrl && webUrl !== "#") {
       window.open(webUrl, "_blank", "noopener,noreferrer");
+      return;
     }
+
+    // No valid directions available
+    alert("Unable to get directions. Please try again.");
   };
 
   const closeDirectionsModal = () => {
@@ -72,14 +78,26 @@ export const Shops = () => {
   };
 
   const getDistance = (lat1, lon1, lat2, lon2) => {
+    // Normalize all coordinates to ensure they are finite numbers
+    const normalizedLat1 = toCoordinateNumber(lat1);
+    const normalizedLon1 = toCoordinateNumber(lon1);
+    const normalizedLat2 = toCoordinateNumber(lat2);
+    const normalizedLon2 = toCoordinateNumber(lon2);
+
+    // Return Infinity if any coordinate is invalid
+    if (!Number.isFinite(normalizedLat1) || !Number.isFinite(normalizedLon1) || 
+        !Number.isFinite(normalizedLat2) || !Number.isFinite(normalizedLon2)) {
+      return Infinity;
+    }
+
     const toRad = (value) => (value * Math.PI) / 180;
     const R = 6371; // km
-    const dLat = toRad(lat2 - lat1);
-    const dLon = toRad(lon2 - lon1);
+    const dLat = toRad(normalizedLat2 - normalizedLat1);
+    const dLon = toRad(normalizedLon2 - normalizedLon1);
     const a =
       Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(toRad(lat1)) *
-        Math.cos(toRad(lat2)) *
+      Math.cos(toRad(normalizedLat1)) *
+        Math.cos(toRad(normalizedLat2)) *
         Math.sin(dLon / 2) *
         Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
@@ -121,6 +139,13 @@ export const Shops = () => {
           lng: normalizedLng,
         };
       });
+
+      // Debug: Log shops with their coordinates
+      console.log("🏪 Shops Loaded:", shops.map(s => ({
+        name: s.shopname,
+        lat: s.lat,
+        lng: s.lng,
+      })));
 
       // Log coordinates for debugging
       // console.log("Shops with high-precision coordinates:", shops.map(s => ({
@@ -171,9 +196,17 @@ export const Shops = () => {
             lat: latitude,
             lng: longitude,
           });
+
+          // Debug: Log your device's current location
+          console.log("🟢 Your Device Location:", {
+            lat: latitude,
+            lng: longitude,
+            accuracy: position.coords.accuracy + " meters",
+            timestamp: new Date(position.timestamp).toLocaleString(),
+          });
         },
         (error) => {
-          console.warn("Location permission denied.", error);
+          console.warn("❌ Location permission denied.", error);
           setUserLocation(null);
         },
         {
@@ -428,14 +461,20 @@ export const Shops = () => {
           />
         </div>
         <div className="border-t border-slate-200 px-4 py-3">
-          <a
-            href={directionsModal.webUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center rounded-lg border border-cyan-300 bg-cyan-50 px-3 py-2 text-sm font-semibold text-cyan-700 hover:bg-cyan-100"
-          >
-            Open In Google Maps
-          </a>
+          {directionsModal.webUrl && directionsModal.webUrl !== "#" ? (
+            <a
+              href={directionsModal.webUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center rounded-lg border border-cyan-300 bg-cyan-50 px-3 py-2 text-sm font-semibold text-cyan-700 hover:bg-cyan-100"
+            >
+              Get Directions
+            </a>
+          ) : (
+            <span className="text-sm text-gray-500">
+              Directions not available for this location
+            </span>
+          )}
         </div>
       </div>
     </div>

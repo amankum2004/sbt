@@ -5,6 +5,7 @@ import { FaEye, FaEyeSlash, FaEnvelope, FaLock, FaPhoneAlt } from "react-icons/f
 import { api } from "../utils/api";
 import { useLogin } from "../components/LoginContext";
 import { useLoading } from "../components/Loading";
+import BackgroundIcons from "../components/BackgroundIcons";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -167,6 +168,7 @@ const Login = () => {
     <main className="relative min-h-screen overflow-hidden bg-gradient-to-b from-slate-950 via-slate-900 to-cyan-950 px-4 py-10">
       <div className="pointer-events-none absolute -left-24 top-16 h-72 w-72 rounded-full bg-cyan-500/20 blur-3xl" />
       <div className="pointer-events-none absolute -right-20 top-36 h-72 w-72 rounded-full bg-amber-400/20 blur-3xl" />
+      <BackgroundIcons count={10} />
 
       <div className="relative mx-auto flex min-h-[calc(100vh-8rem)] w-full max-w-md items-center">
         <div className="w-full rounded-3xl border border-white/15 bg-slate-900/75 p-7 shadow-[0_20px_60px_-24px_rgba(8,47,73,0.9)] backdrop-blur md:p-8">

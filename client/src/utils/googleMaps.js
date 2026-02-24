@@ -1,3 +1,6 @@
+import Ola, { buildOlaEmbedDirectionsUrl, buildOlaWebDirectionsUrl } from './olaMaps';
+
+const OLA_KEY = import.meta.env.VITE_OLA_API_KEY;
 const GOOGLE_MAPS_EMBED_API_KEY =
   import.meta.env.VITE_GOOGLE_MAPS_EMBED_API_KEY ||
   import.meta.env.VITE_GOOGLE_GEOCODE_API_KEY;
@@ -83,6 +86,7 @@ export const buildGoogleWebDirectionsUrl = ({
   const hasOrigin = hasValidCoordinates(originLat, originLng);
   const hasDestination = hasValidCoordinates(destinationLat, destinationLng);
 
+  // If we have destination coordinates, use them
   if (hasDestination) {
     const params = new URLSearchParams({
       api: "1",
@@ -98,6 +102,7 @@ export const buildGoogleWebDirectionsUrl = ({
     return `${GOOGLE_WEB_DIRECTIONS_ENDPOINT}?${params.toString()}`;
   }
 
+  // If no destination coordinates, try fallback address
   if (fallbackAddress) {
     const params = new URLSearchParams({
       api: "1",
@@ -113,6 +118,7 @@ export const buildGoogleWebDirectionsUrl = ({
     return `${GOOGLE_WEB_DIRECTIONS_ENDPOINT}?${params.toString()}`;
   }
 
+  // No valid destination (coordinates or address)
   return "#";
 };
 
@@ -122,6 +128,8 @@ export const buildDirectionsLinksFromShop = ({ shop, userLocation }) => {
   }
 
   const hasDestinationCoordinates = hasValidCoordinates(shop.lat, shop.lng);
+  
+  // Always use Google embed (Ola doesn't support iframe embedding)
   const embedUrl = buildGoogleEmbedDirectionsUrl({
     originLat: userLocation?.lat,
     originLng: userLocation?.lng,
@@ -129,6 +137,7 @@ export const buildDirectionsLinksFromShop = ({ shop, userLocation }) => {
     destinationLng: shop.lng,
   });
 
+  // Always use Google Web Directions (Ola doesn't have a public web directions interface)
   const webUrl = buildGoogleWebDirectionsUrl({
     originLat: userLocation?.lat,
     originLng: userLocation?.lng,
