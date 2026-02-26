@@ -5,19 +5,8 @@ import { stateDistrictCityData } from "../utils/locationData";
 import Swal from "sweetalert2";
 import { api } from "../utils/api";
 
-const GOOGLE_GEOCODE_API_KEY =
-  import.meta.env.VITE_GOOGLE_GEOCODE_API_KEY;
-const GOOGLE_GEOCODE_ENDPOINT =
-  "https://maps.googleapis.com/maps/api/geocode/json";
 const MAX_LOCATION_SAMPLES = 6;
 const TARGET_ACCURACY_METERS = 15;
-
-const GOOGLE_COORDINATE_PATTERNS = [
-  /@(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)/i,
-  /!3d(-?\d+(?:\.\d+)?)!4d(-?\d+(?:\.\d+)?)/i,
-  /(?:[?&](?:q|query|destination|origin|ll|center)=)(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)/i,
-  /(-?\d{1,2}(?:\.\d+)?)[,\s]+(-?\d{1,3}(?:\.\d+)?)/,
-];
 
 const toCoordinateNumber = (value) => {
   if (value === null || value === undefined || value === "") return null;
@@ -37,31 +26,6 @@ const formatCoordinateLabel = (value) => {
   const parsed = toCoordinateNumber(value);
   if (!Number.isFinite(parsed)) return "-";
   return parsed.toFixed(14).replace(/\.?0+$/, "");
-};
-
-const extractCoordinatesFromInput = (inputText) => {
-  if (!inputText?.trim()) return null;
-
-  let normalizedInput = inputText.trim();
-  try {
-    normalizedInput = decodeURIComponent(normalizedInput);
-  } catch {
-    // Keep original input if decoding fails.
-  }
-
-  for (const pattern of GOOGLE_COORDINATE_PATTERNS) {
-    const match = normalizedInput.match(pattern);
-    if (!match) continue;
-
-    const latitude = toCoordinateNumber(match[1]);
-    const longitude = toCoordinateNumber(match[2]);
-
-    if (isCoordinatePairValid(latitude, longitude)) {
-      return { lat: latitude, lng: longitude };
-    }
-  }
-
-  return null;
 };
 
 const defaultFormData = {
@@ -91,22 +55,7 @@ export const RegisterShop = () => {
   const [isLocationCaptured, setIsLocationCaptured] = useState(false);
   const [isCapturingLocation, setIsCapturingLocation] = useState(false);
   const [locationAccuracy, setLocationAccuracy] = useState(null);
-  const [coordinateInput, setCoordinateInput] = useState("");
   const [pinError, setPinError] = useState(""); // State for pin validation error
-
-  const getShopAddressString = () =>
-    [
-      formData.shopname,
-      formData.street,
-      formData.city,
-      formData.district,
-      formData.state,
-      formData.pin,
-      "India",
-    ]
-      .map((part) => part?.toString().trim())
-      .filter(Boolean)
-      .join(", ");
 
   const clearCoordinates = () => {
     setFormData((prev) => ({
@@ -115,7 +64,6 @@ export const RegisterShop = () => {
       lng: null,
       coordinatesSource: "fallback",
     }));
-    setCoordinateInput("");
     setLocationAccuracy(null);
     setIsLocationCaptured(false);
   };
@@ -311,145 +259,6 @@ export const RegisterShop = () => {
     }
   };
 
-  const resolveCoordinatesWithGoogle = async ({ showSuccessMessage = true } = {}) => {
-    const missingAddressFields = [];
-    if (!formData.street?.trim()) missingAddressFields.push("Street");
-    if (!formData.city?.trim()) missingAddressFields.push("City");
-    if (!formData.district?.trim()) missingAddressFields.push("District");
-    if (!formData.state?.trim()) missingAddressFields.push("State");
-    if (!formData.pin?.trim()) missingAddressFields.push("Pincode");
-
-    if (missingAddressFields.length > 0) {
-      Swal.fire({
-        title: "Address Incomplete",
-        text: `Fill ${missingAddressFields.join(", ")} before fetching coordinates.`,
-        icon: "warning",
-        confirmButtonColor: "#3B82F6",
-      });
-      return null;
-    }
-
-    if (!GOOGLE_GEOCODE_API_KEY) {
-      Swal.fire({
-        title: "API Key Missing",
-        text: "Google Geocoding API key is not configured.",
-        icon: "error",
-        confirmButtonColor: "#EF4444",
-      });
-      return null;
-    }
-
-    setIsCapturingLocation(true);
-    Swal.fire({
-      title: "Fetching Exact Coordinates",
-      text: "Matching your shop address with Google Maps...",
-      icon: "info",
-      showConfirmButton: false,
-      allowOutsideClick: false,
-      didOpen: () => Swal.showLoading(),
-    });
-
-    try {
-      const address = encodeURIComponent(getShopAddressString());
-      const response = await fetch(
-        `${GOOGLE_GEOCODE_ENDPOINT}?address=${address}&key=${GOOGLE_GEOCODE_API_KEY}`
-      );
-      const geocodeData = await response.json();
-
-      if (geocodeData.status !== "OK" || !geocodeData.results?.length) {
-        throw new Error(
-          geocodeData.error_message ||
-            geocodeData.status ||
-            "Unable to resolve coordinates for this address"
-        );
-      }
-
-      const bestResult = geocodeData.results[0];
-      const latitude = toCoordinateNumber(bestResult.geometry?.location?.lat);
-      const longitude = toCoordinateNumber(bestResult.geometry?.location?.lng);
-      const locationType = bestResult.geometry?.location_type || "UNKNOWN";
-
-      if (!isCoordinatePairValid(latitude, longitude)) {
-        throw new Error("Invalid coordinates returned by Google Geocoding API");
-      }
-
-      applyCoordinates({
-        lat: latitude,
-        lng: longitude,
-        source: "google_geocode",
-      });
-
-      Swal.close();
-      if (showSuccessMessage) {
-        Swal.fire({
-          title: "Coordinates Updated",
-          html: `
-            <div class="text-left">
-              <p class="text-sm text-slate-600 mb-2">Address matched from Google Maps.</p>
-              <div class="bg-gray-100 p-2 rounded mt-2 space-y-1">
-                <p class="font-mono text-xs break-all"><strong>Lat:</strong> ${formatCoordinateLabel(latitude)}</p>
-                <p class="font-mono text-xs break-all"><strong>Lng:</strong> ${formatCoordinateLabel(longitude)}</p>
-                <p class="font-mono text-xs break-all"><strong>Geocode:</strong> ${locationType}</p>
-              </div>
-            </div>
-          `,
-          icon: "success",
-          confirmButtonText: "Continue",
-          confirmButtonColor: "#10B981",
-          width: "550px",
-        });
-      }
-
-      return { lat: latitude, lng: longitude, source: "google_geocode" };
-    } catch (error) {
-      Swal.close();
-      Swal.fire({
-        title: "Unable To Get Coordinates",
-        text: error.message || "Please verify address details and try again.",
-        icon: "error",
-        confirmButtonColor: "#EF4444",
-      });
-      return null;
-    } finally {
-      setIsCapturingLocation(false);
-    }
-  };
-
-  const applyCoordinatesFromInput = () => {
-    const extractedCoordinates = extractCoordinatesFromInput(coordinateInput);
-
-    if (!extractedCoordinates) {
-      Swal.fire({
-        title: "Invalid Coordinates",
-        text: "Paste a valid Google Maps URL or coordinates like 28.49813148390656, 77.30870661381914",
-        icon: "error",
-        confirmButtonColor: "#EF4444",
-      });
-      return;
-    }
-
-    applyCoordinates({
-      lat: extractedCoordinates.lat,
-      lng: extractedCoordinates.lng,
-      source: "manual_update",
-    });
-
-    Swal.fire({
-      title: "Coordinates Applied",
-      html: `
-        <div class="text-left">
-          <p class="text-sm text-slate-600 mb-2">Using manually provided precise coordinates.</p>
-          <div class="bg-gray-100 p-2 rounded mt-2 space-y-1">
-            <p class="font-mono text-xs break-all"><strong>Lat:</strong> ${formatCoordinateLabel(extractedCoordinates.lat)}</p>
-            <p class="font-mono text-xs break-all"><strong>Lng:</strong> ${formatCoordinateLabel(extractedCoordinates.lng)}</p>
-          </div>
-        </div>
-      `,
-      icon: "success",
-      confirmButtonColor: "#10B981",
-    });
-  };
-
   useEffect(() => {
     const tokenString = localStorage.getItem("jwt_token");
     if (tokenString) setToken(tokenString);
@@ -560,7 +369,6 @@ export const RegisterShop = () => {
     }));
     setDistricts(Object.keys(stateDistrictCityData[state] || {}));
     setCities([]);
-    setCoordinateInput("");
     setLocationAccuracy(null);
     setIsLocationCaptured(false);
   };
@@ -576,7 +384,6 @@ export const RegisterShop = () => {
       coordinatesSource: "fallback",
     }));
     setCities(stateDistrictCityData[formData.state][district] || []);
-    setCoordinateInput("");
     setLocationAccuracy(null);
     setIsLocationCaptured(false);
   };
@@ -589,7 +396,6 @@ export const RegisterShop = () => {
       lng: null,
       coordinatesSource: "fallback",
     }));
-    setCoordinateInput("");
     setLocationAccuracy(null);
     setIsLocationCaptured(false);
   };
@@ -698,26 +504,13 @@ export const RegisterShop = () => {
         submissionLng = gpsCaptured.lng;
         submissionCoordinateSource = gpsCaptured.source;
       } else {
-        const fallbackChoice = await Swal.fire({
-          title: "Use Address-Based Coordinates?",
-          text: "Current location could not be captured. Use Google address geocoding instead?",
-          icon: "question",
-          showCancelButton: true,
-          confirmButtonText: "Use Address Coordinates",
-          cancelButtonText: "Cancel",
-          confirmButtonColor: "#2563EB",
+        Swal.fire({
+          title: "Location Required",
+          text: "Please capture your current location before submitting.",
+          icon: "warning",
+          confirmButtonColor: "#F59E0B",
         });
-
-        if (!fallbackChoice.isConfirmed) return;
-
-        const resolvedCoordinates = await resolveCoordinatesWithGoogle({
-          showSuccessMessage: false,
-        });
-        if (!resolvedCoordinates) return;
-
-        submissionLat = resolvedCoordinates.lat;
-        submissionLng = resolvedCoordinates.lng;
-        submissionCoordinateSource = resolvedCoordinates.source;
+        return;
       }
     }
 
@@ -801,24 +594,39 @@ export const RegisterShop = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 py-6 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-5xl mx-auto mt-10">
+    <main className="relative min-h-screen overflow-hidden bg-gradient-to-b from-slate-50 via-cyan-50 to-amber-50 px-4 py-6 sm:px-6 lg:px-8">
+      <div className="pointer-events-none absolute -left-24 top-20 h-72 w-72 rounded-full bg-cyan-200/60 blur-3xl" />
+      <div className="pointer-events-none absolute -right-24 top-32 h-72 w-72 rounded-full bg-amber-200/60 blur-3xl" />
+
+      <div className="relative mx-auto max-w-6xl">
+        <div className="mb-6 text-center">
+          <div className="mx-auto max-w-2xl rounded-3xl border border-white/80 bg-white/90 p-6 shadow-[0_20px_45px_-25px_rgba(15,23,42,0.45)]">
+            <p className="inline-flex rounded-full bg-slate-900 px-4 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-cyan-200">
+              Shop Registration
+            </p>
+            <h1 className="text-3xl font-black text-slate-900 sm:text-3xl">Register Your Shop</h1>
+            <p className="mt-2 text-base text-slate-600">
+              Set up to start accepting bookings.
+            </p>
+          </div>
+        </div>
+
         <form
           onSubmit={handleSubmit}
-          className="space-y-8 bg-white shadow-xl rounded-2xl p-6 sm:p-10"
+          className="space-y-6 rounded-3xl border border-white/80 bg-white/90 p-6 sm:p-8 shadow-[0_24px_50px_-30px_rgba(15,23,42,0.45)]"
         >
           {/* Location Capture */}
-          <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-5 sm:p-6">
-            <h3 className="text-lg font-semibold text-blue-800 mb-3">Shop Location</h3>
+          <div className="rounded-3xl border border-cyan-200/70 bg-white/90 p-5 sm:p-6 shadow-[0_16px_35px_-20px_rgba(15,23,42,0.35)]">
+            <h3 className="text-lg font-bold text-slate-900 mb-3">Shop Location</h3>
             <div className="flex flex-col sm:flex-row gap-2 mb-3">
               <button
                 type="button"
                 onClick={() => captureCurrentLocation()}
                 disabled={isCapturingLocation}
-                className={`w-full sm:w-auto px-6 py-3 rounded-lg font-medium text-white ${
+                className={`w-full sm:w-auto px-6 py-3 rounded-xl font-black text-slate-950 transition ${
                   isCapturingLocation
-                    ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-blue-600 hover:bg-blue-700"
+                    ? "bg-gray-400 cursor-not-allowed text-white"
+                    : "bg-gradient-to-r from-cyan-500 to-amber-400 hover:brightness-110"
                 }`}
               >
                 {isCapturingLocation
@@ -827,42 +635,9 @@ export const RegisterShop = () => {
                   ? "Recapture Current Location"
                   : "Capture Current Location"}
               </button>
-              <button
-                type="button"
-                onClick={() => resolveCoordinatesWithGoogle()}
-                disabled={isCapturingLocation}
-                className="w-full sm:w-auto px-6 py-3 rounded-lg font-medium text-blue-700 border border-blue-300 bg-white hover:bg-blue-50"
-              >
-                Use Address Coordinates
-              </button>
-            </div>
-            <div className="mb-3 rounded-lg border border-blue-200 bg-white p-3">
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-blue-700">
-                Precise Coordinate Input
-              </p>
-              <div className="flex flex-col gap-2 sm:flex-row">
-                <input
-                  type="text"
-                  value={coordinateInput}
-                  onChange={(event) => setCoordinateInput(event.target.value)}
-                  placeholder="Paste Google Maps URL or lat,lng"
-                  className="w-full rounded-lg border border-blue-200 px-3 py-2 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-200"
-                />
-                <button
-                  type="button"
-                  onClick={applyCoordinatesFromInput}
-                  disabled={isCapturingLocation || !coordinateInput.trim()}
-                  className="w-full rounded-lg border border-blue-300 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
-                >
-                  Apply Coordinates
-                </button>
-              </div>
-              <p className="mt-2 text-xs text-slate-600">
-                Example: <span className="font-mono">28.49813148390656, 77.30870661381914</span>
-              </p>
             </div>
             {isLocationCaptured && (
-              <div className="bg-white border border-blue-100 rounded-lg p-4 text-sm text-gray-700 space-y-3">
+              <div className="bg-white/95 border border-slate-200 rounded-2xl p-4 text-sm text-gray-700 space-y-3">
                 <div>
                   <div className="font-mono text-xs bg-gray-100 p-2 rounded mt-1 break-all space-y-1">
                     <div><strong>Lat:</strong> {formatCoordinateLabel(formData.lat)}</div>
@@ -878,8 +653,8 @@ export const RegisterShop = () => {
           </div>
 
           {/* Basic Details */}
-          <div className="bg-gray-50 rounded-xl p-5 sm:p-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Basic Details</h3>
+          <div className="rounded-3xl border border-slate-200/80 bg-white/90 p-5 sm:p-6 shadow-[0_16px_35px_-20px_rgba(15,23,42,0.35)]">
+            <h3 className="text-lg font-bold text-slate-900 mb-4">Basic Details</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <input
                 type="text"
@@ -888,8 +663,8 @@ export const RegisterShop = () => {
                 value={formData.name}
                 onChange={handleInput}
                 readOnly={!isAdmin}
-                className={`w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-purple-200 ${
-                  !isAdmin ? "bg-gray-100 cursor-not-allowed" : ""
+                className={`w-full border border-slate-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 ${
+                  !isAdmin ? "bg-slate-100 cursor-not-allowed" : "bg-white"
                 }`}
               />
               <input
@@ -899,8 +674,8 @@ export const RegisterShop = () => {
                 value={formData.email}
                 onChange={handleInput}
                 readOnly={!isAdmin}
-                className={`w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-purple-200 ${
-                  !isAdmin ? "bg-gray-100 cursor-not-allowed" : ""
+                className={`w-full border border-slate-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 ${
+                  !isAdmin ? "bg-slate-100 cursor-not-allowed" : "bg-white"
                 }`}
               />
               <input
@@ -910,8 +685,8 @@ export const RegisterShop = () => {
                 value={formData.phone}
                 onChange={handleInput}
                 readOnly={!isAdmin}
-                className={`w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-purple-200 ${
-                  !isAdmin ? "bg-gray-100 cursor-not-allowed" : ""
+                className={`w-full border border-slate-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 ${
+                  !isAdmin ? "bg-slate-100 cursor-not-allowed" : "bg-white"
                 }`}
               />
               <input
@@ -920,12 +695,12 @@ export const RegisterShop = () => {
                 placeholder="Salon Name *"
                 value={formData.shopname}
                 onChange={handleInput}
-                className="w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-purple-200"
+                className="w-full border border-slate-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 bg-white"
               />
               <select
                 value={formData.state}
                 onChange={handleStateChange}
-                className="w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-purple-200"
+                className="w-full border border-slate-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 bg-white"
               >
                 <option value="">Select State *</option>
                 {Object.keys(stateDistrictCityData).map((state, i) => (
@@ -938,7 +713,7 @@ export const RegisterShop = () => {
                 value={formData.district}
                 onChange={handleDistrictChange}
                 disabled={!formData.state}
-                className="w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-purple-200"
+                className="w-full border border-slate-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 bg-white"
               >
                 <option value="">Select District *</option>
                 {districts.map((d, i) => (
@@ -951,7 +726,7 @@ export const RegisterShop = () => {
                 value={formData.city}
                 onChange={handleCityChange}
                 disabled={!formData.district}
-                className="w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-purple-200"
+                className="w-full border border-slate-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 bg-white"
               >
                 <option value="">Select City *</option>
                 {cities.map((c, i) => (
@@ -966,7 +741,7 @@ export const RegisterShop = () => {
                 placeholder="Street Address *"
                 value={formData.street}
                 onChange={handleInput}
-                className="w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-purple-200"
+                className="w-full border border-slate-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 bg-white"
               />
               
               {/* Pincode Input with Validation */}
@@ -978,8 +753,8 @@ export const RegisterShop = () => {
                   maxLength={6}
                   value={formData.pin}
                   onChange={handleInput}
-                  className={`w-full border-2 rounded-lg px-4 py-2 focus:ring-2 focus:ring-purple-200 ${
-                    pinError ? "border-red-500" : "border-gray-200"
+                  className={`w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 ${
+                    pinError ? "border-red-500" : "border-slate-300"
                   }`}
                 />
                 {/* Character counter */}
@@ -992,28 +767,28 @@ export const RegisterShop = () => {
                 )}
               </div>
               
-              {!isAdmin && (
-                <input
-                  type="password"
-                  name="password"
-                  placeholder="Login Password *"
-                  required
-                  value={formData.password}
-                  onChange={handleInput}
-                  className="w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-purple-200"
-                />
-              )}
+                {!isAdmin && (
+                  <input
+                    type="password"
+                    name="password"
+                    placeholder="Login Password *"
+                    required
+                    value={formData.password}
+                    onChange={handleInput}
+                    className="w-full border border-slate-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 bg-white"
+                  />
+                )}
             </div>
             <p className="text-xs text-gray-500 mt-3">* Required fields</p>
           </div>
 
           {/* Services */}
-          <div className="bg-green-50 rounded-xl p-5 sm:p-6">
-            <h3 className="text-lg font-semibold text-green-800 mb-4">Services & Pricing *</h3>
+          <div className="rounded-3xl border border-amber-200/70 bg-amber-50/70 p-5 sm:p-6 shadow-[0_16px_35px_-20px_rgba(15,23,42,0.35)]">
+            <h3 className="text-lg font-bold text-slate-900 mb-4">Services & Pricing *</h3>
             {formData.services.map((service, i) => (
               <div
                 key={i}
-                className="bg-white border-2 border-green-100 rounded-lg p-4 mb-3 flex flex-col sm:flex-row gap-4"
+                className="bg-white/95 border border-amber-200 rounded-2xl p-4 mb-3 flex flex-col sm:flex-row gap-4"
               >
                 <input
                   type="text"
@@ -1022,7 +797,7 @@ export const RegisterShop = () => {
                   required
                   value={service.service}
                   onChange={(e) => handleServiceChange(e, i)}
-                  className="flex-1 border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-200"
+                  className="flex-1 border border-slate-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 bg-white"
                 />
                 <input
                   type="tel"
@@ -1031,7 +806,7 @@ export const RegisterShop = () => {
                   required
                   value={service.price}
                   onChange={(e) => handleServiceChange(e, i)}
-                  className="w-32 border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-200"
+                  className="w-32 border border-slate-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 bg-white"
                 />
                 {formData.services.length > 1 && (
                   <button
@@ -1047,7 +822,7 @@ export const RegisterShop = () => {
             <button
               type="button"
               onClick={handleAddService}
-              className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600"
+              className="bg-gradient-to-r from-cyan-500 to-amber-400 text-slate-950 px-4 py-2 rounded-lg font-black hover:brightness-110"
             >
               + Add Service
             </button>
@@ -1058,10 +833,10 @@ export const RegisterShop = () => {
           <button
             type="submit"
             disabled={!isLocationCaptured || pinError}
-            className={`w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white py-3 rounded-lg font-semibold ${
+            className={`w-full bg-gradient-to-r from-cyan-500 to-amber-400 text-slate-950 py-3 rounded-xl font-black ${
               !isLocationCaptured || pinError 
                 ? "opacity-60 cursor-not-allowed" 
-                : "hover:from-purple-700 hover:to-purple-800"
+                : "hover:brightness-110"
             }`}
           >
             {isLocationCaptured
@@ -1072,7 +847,7 @@ export const RegisterShop = () => {
           </button>
         </form>
       </div>
-    </div>
+    </main>
   );
 };
 

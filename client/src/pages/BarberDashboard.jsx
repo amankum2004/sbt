@@ -280,14 +280,14 @@ const BarberDashboard = () => {
             {shopStatus === "none" && (
               <button
                 onClick={() => navigate('/registershop')}
-                className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg transition duration-200 text-sm sm:text-base"
+                className="rounded-lg bg-gradient-to-r from-cyan-500 to-amber-400 px-6 py-2 text-sm font-semibold text-slate-950 transition hover:brightness-110 sm:text-base"
               >
                 Register Your Shop
               </button>
             )}
             <button
               onClick={() => navigate('/')}
-              className="rounded-lg bg-gradient-to-r from-cyan-500 to-amber-400 px-6 py-2 text-sm font-semibold text-slate-950 transition hover:brightness-110 sm:text-base"
+              className="rounded-lg border border-slate-200 bg-white px-6 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 sm:text-base"
             >
               Go to Home
             </button>
@@ -526,23 +526,47 @@ const BarberDashboard = () => {
   const totalEarnings = calculateTotalEarnings();
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-cyan-50 to-amber-50 py-4 sm:py-6">
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
+    <main className="relative min-h-screen overflow-hidden bg-gradient-to-b from-slate-50 via-cyan-50 to-amber-50 py-4 sm:py-6">
+      <div className="pointer-events-none absolute -left-24 top-24 h-64 w-64 rounded-full bg-cyan-200/60 blur-3xl" />
+      <div className="pointer-events-none absolute -right-24 top-32 h-64 w-64 rounded-full bg-amber-200/60 blur-3xl" />
+
+      <div className="relative mx-auto max-w-7xl px-3 sm:px-4 lg:px-8">
         {/* Header */}
-        <div className="mb-4 px-1">
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 sm:mt-12">Customer Appointments</h1>
+        <div className="mb-4 sm:mb-6 rounded-3xl border border-white/80 bg-white/90 p-5 sm:p-6 shadow-[0_20px_45px_-25px_rgba(15,23,42,0.45)]">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-700">SalonHub</p>
+              <h1 className="mt-2 text-2xl sm:text-3xl font-black text-slate-900">Barber Dashboard</h1>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <span className="inline-flex items-center rounded-full bg-cyan-100 px-3 py-1 text-xs font-semibold text-cyan-800">
+                Today: {stats.today || 0}
+              </span>
+              <span className="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">
+                Upcoming: {stats.upcoming || 0}
+              </span>
+              <span className="inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800">
+                Earnings: ₹{totalEarnings}
+              </span>
+              {shop?.status && (
+                <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700 capitalize">
+                  Status: {shop.status}
+                </span>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* Tabs */}
-        <div className="rounded-2xl border border-white/80 bg-white/90 shadow-[0_16px_35px_-20px_rgba(15,23,42,0.45)]">
+        <div className="rounded-3xl border border-white/80 bg-white/90 shadow-[0_18px_40px_-24px_rgba(15,23,42,0.45)] overflow-hidden">
           {/* Scrollable tabs for mobile */}
-          <div className="flex overflow-x-auto border-b border-gray-200 scrollbar-hide">
+          <div className="flex overflow-x-auto border-b border-slate-200 bg-slate-50/70 scrollbar-hide">
             <button
               onClick={() => setActiveTab('today')}
               className={`flex-shrink-0 py-3 px-4 text-center font-medium text-sm sm:text-base ${
                 activeTab === 'today'
-                  ? 'text-cyan-700 border-b-2 border-cyan-500'
-                  : 'text-gray-500 hover:text-gray-700'
+                  ? 'text-cyan-700 border-b-2 border-cyan-500 bg-white/90'
+                  : 'text-slate-500 hover:text-slate-700'
               }`}
             >
               Today ({todaysAppointments.length})
@@ -551,8 +575,8 @@ const BarberDashboard = () => {
               onClick={() => setActiveTab('upcoming')}
               className={`flex-shrink-0 py-3 px-4 text-center font-medium text-sm sm:text-base ${
                 activeTab === 'upcoming'
-                  ? 'text-cyan-700 border-b-2 border-cyan-500'
-                  : 'text-gray-500 hover:text-gray-700'
+                  ? 'text-cyan-700 border-b-2 border-cyan-500 bg-white/90'
+                  : 'text-slate-500 hover:text-slate-700'
               }`}
             >
               Upcoming ({currentAppointments.length})
@@ -561,8 +585,8 @@ const BarberDashboard = () => {
               onClick={() => setActiveTab('history')}
               className={`flex-shrink-0 py-3 px-4 text-center font-medium text-sm sm:text-base ${
                 activeTab === 'history'
-                  ? 'text-cyan-700 border-b-2 border-cyan-500'
-                  : 'text-gray-500 hover:text-gray-700'
+                  ? 'text-cyan-700 border-b-2 border-cyan-500 bg-white/90'
+                  : 'text-slate-500 hover:text-slate-700'
               }`}
             >
               History ({pastAppointments.length})
@@ -637,10 +661,10 @@ const BarberDashboard = () => {
         
         {/* Stats - Responsive Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-4 mb-4 sm:mb-6">
-          <div className="rounded-2xl border border-white/80 bg-white/90 shadow-[0_16px_35px_-20px_rgba(15,23,42,0.45)] p-3 sm:p-4">
+          <div className="rounded-2xl border border-white/80 bg-white/95 shadow-[0_16px_35px_-20px_rgba(15,23,42,0.45)] p-3 sm:p-4">
             <div className="flex items-center">
-              <div className="p-2 bg-purple-100 rounded-lg">
-                <span className="text-purple-600 text-lg sm:text-xl">📌</span>
+              <div className="p-2 bg-cyan-100 rounded-lg">
+                <span className="text-cyan-700 text-lg sm:text-xl">📌</span>
               </div>
               <div className="ml-2 sm:ml-3">
                 <p className="text-xs sm:text-sm font-medium text-gray-600">Today</p>
@@ -648,10 +672,10 @@ const BarberDashboard = () => {
               </div>
             </div>
           </div>
-          <div className="rounded-2xl border border-white/80 bg-white/90 shadow-[0_16px_35px_-20px_rgba(15,23,42,0.45)] p-3 sm:p-4">
+          <div className="rounded-2xl border border-white/80 bg-white/95 shadow-[0_16px_35px_-20px_rgba(15,23,42,0.45)] p-3 sm:p-4">
             <div className="flex items-center">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <span className="text-green-600 text-lg sm:text-xl">⏰</span>
+              <div className="p-2 bg-amber-100 rounded-lg">
+                <span className="text-amber-600 text-lg sm:text-xl">⏰</span>
               </div>
               <div className="ml-2 sm:ml-3">
                 <p className="text-xs sm:text-sm font-medium text-gray-600">Upcoming</p>
@@ -659,10 +683,10 @@ const BarberDashboard = () => {
               </div>
             </div>
           </div>
-          <div className="rounded-2xl border border-white/80 bg-white/90 shadow-[0_16px_35px_-20px_rgba(15,23,42,0.45)] p-3 sm:p-4">
+          <div className="rounded-2xl border border-white/80 bg-white/95 shadow-[0_16px_35px_-20px_rgba(15,23,42,0.45)] p-3 sm:p-4">
             <div className="flex items-center">
-              <div className="p-2 bg-gray-100 rounded-lg">
-                <span className="text-gray-600 text-lg sm:text-xl">✅</span>
+              <div className="p-2 bg-emerald-100 rounded-lg">
+                <span className="text-emerald-600 text-lg sm:text-xl">✅</span>
               </div>
               <div className="ml-2 sm:ml-3">
                 <p className="text-xs sm:text-sm font-medium text-gray-600">Completed</p>
@@ -670,10 +694,10 @@ const BarberDashboard = () => {
               </div>
             </div>
           </div>
-          <div className="rounded-2xl border border-white/80 bg-white/90 shadow-[0_16px_35px_-20px_rgba(15,23,42,0.45)] p-3 sm:p-4">
+          <div className="rounded-2xl border border-white/80 bg-white/95 shadow-[0_16px_35px_-20px_rgba(15,23,42,0.45)] p-3 sm:p-4">
             <div className="flex items-center">
-              <div className="p-2 bg-red-100 rounded-lg">
-                <span className="text-red-600 text-lg sm:text-xl">❌</span>
+              <div className="p-2 bg-rose-100 rounded-lg">
+                <span className="text-rose-600 text-lg sm:text-xl">❌</span>
               </div>
               <div className="ml-2 sm:ml-3">
                 <p className="text-xs sm:text-sm font-medium text-gray-600">Cancelled</p>
@@ -681,7 +705,7 @@ const BarberDashboard = () => {
               </div>
             </div>
           </div>
-          <div className="rounded-2xl border border-white/80 bg-white/90 shadow-[0_16px_35px_-20px_rgba(15,23,42,0.45)] p-3 sm:p-4">
+          <div className="rounded-2xl border border-white/80 bg-white/95 shadow-[0_16px_35px_-20px_rgba(15,23,42,0.45)] p-3 sm:p-4">
             <div className="flex items-center">
               <div className="p-2 bg-cyan-100 rounded-lg">
                 <span className="text-cyan-700 text-lg sm:text-xl">📅</span>
@@ -692,10 +716,10 @@ const BarberDashboard = () => {
               </div>
             </div>
           </div>
-          <div className="rounded-2xl border border-white/80 bg-white/90 shadow-[0_16px_35px_-20px_rgba(15,23,42,0.45)] p-3 sm:p-4">
+          <div className="rounded-2xl border border-white/80 bg-white/95 shadow-[0_16px_35px_-20px_rgba(15,23,42,0.45)] p-3 sm:p-4">
             <div className="flex items-center">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <span className="text-green-600 text-lg sm:text-xl">💰</span>
+              <div className="p-2 bg-emerald-100 rounded-lg">
+                <span className="text-emerald-600 text-lg sm:text-xl">💰</span>
               </div>
               <div className="ml-2 sm:ml-3">
                 <p className="text-xs sm:text-sm font-medium text-gray-600">Earnings</p>
@@ -705,7 +729,7 @@ const BarberDashboard = () => {
           </div>
         </div>
       </div>
-    </div>
+    </main>
   );
 };
 
@@ -1330,7 +1354,6 @@ export default BarberDashboard;
 // };
 
 // export default BarberDashboard;
-
 
 
 

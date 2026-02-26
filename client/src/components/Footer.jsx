@@ -22,7 +22,7 @@ export const Footer = () => {
     description:
       "Book salon appointments online for haircuts, facials, spa, and beauty services across India. Best salon booking platform with verified professionals.",
     url: "https://salonhub.co.in",
-    telephone: "+91-8810269376",
+    telephone: "+91-9217767135",
     email: "salonhub.business@gmail.com",
     address: {
       "@type": "PostalAddress",
@@ -170,9 +170,9 @@ export const Footer = () => {
                   </span>
                 </li>
                 <li>
-                  <a href="tel:+918810269376" className="inline-flex items-center gap-2 transition hover:text-white">
+                  <a href="tel:+919217767135" className="inline-flex items-center gap-2 transition hover:text-white">
                     <FaPhoneAlt className="text-amber-300" />
-                    +91 8810269376
+                    +91 9217767135
                   </a>
                 </li>
                 <li>

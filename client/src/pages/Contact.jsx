@@ -43,7 +43,7 @@ export const Contact = () => {
       "@type": "Organization",
       name: "SalonHub",
       email: "salonhub.business@gmail.com",
-      telephone: "+91-8810269376",
+      telephone: "+91-9217767135",
       address: {
         "@type": "PostalAddress",
         streetAddress: "Indian Institute of Technology Mandi",
@@ -165,10 +165,10 @@ export const Contact = () => {
                     <FaEnvelope className="text-cyan-200" /> salonhub.business@gmail.com
                   </a>
                   <a
-                    href="tel:+918810269376"
+                    href="tel:+919217767135"
                     className="flex items-center gap-3 rounded-xl border border-white/15 bg-white/10 px-4 py-3 text-sm font-medium transition hover:bg-white/15"
                   >
-                    <FaPhone className="text-amber-200" /> +91-8810269376
+                    <FaPhone className="text-amber-200" /> +91-9217767135
                   </a>
                   <div className="flex items-center gap-3 rounded-xl border border-white/15 bg-white/10 px-4 py-3 text-sm font-medium">
                     <FaClock className="text-emerald-200" /> 24/7 Online Support
@@ -196,7 +196,7 @@ export const Contact = () => {
                   {
                     icon: FaPhone,
                     title: "Phone Support",
-                    detail: "+91-8810269376",
+                    detail: "+91-9217767135",
                     tone: "text-amber-300",
                   },
                   {

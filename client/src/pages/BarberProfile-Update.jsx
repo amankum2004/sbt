@@ -7,17 +7,13 @@ import { stateDistrictCityData } from "../utils/locationData";
 import Swal from "sweetalert2";
 import { FaMapMarkerAlt, FaPlus, FaTrash, FaUser, FaEnvelope, FaPhone, FaStore, FaMapPin, FaRupeeSign, FaSpinner } from 'react-icons/fa';
 
-const GOOGLE_GEOCODE_API_KEY =
-  import.meta.env.VITE_GOOGLE_GEOCODE_API_KEY;
-const GOOGLE_GEOCODE_ENDPOINT =
-  "https://maps.googleapis.com/maps/api/geocode/json";
-
 export const BarberProfileUpdate = () => {
   const navigate = useNavigate();
   const { user } = useLogin();
   const [districts, setDistricts] = useState([]);
   const [cities, setCities] = useState([]);
   const [isCapturingLocation, setIsCapturingLocation] = useState(false);
+  const [isSavingLocation, setIsSavingLocation] = useState(false);
   const [isLocationCaptured, setIsLocationCaptured] = useState(false);
   const [locationAccuracy, setLocationAccuracy] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -37,19 +33,51 @@ export const BarberProfileUpdate = () => {
     coordinatesSource: "device_gps",
   });
 
-  const getShopAddressString = () =>
-    [
-      data.shopname,
-      data.street,
-      data.city,
-      data.district,
-      data.state,
-      data.pin,
-      "India",
-    ]
-      .map((part) => part?.toString().trim())
-      .filter(Boolean)
-      .join(", ");
+  const persistCoordinatesToServer = async ({ lat, lng, coordinatesSource }) => {
+    const email = data.email || user?.email;
+
+    if (!email) {
+      Swal.fire({
+        title: "Missing Email",
+        text: "Unable to save coordinates without a valid email.",
+        icon: "error",
+        confirmButtonColor: "#EF4444"
+      });
+      return false;
+    }
+
+    setIsSavingLocation(true);
+    Swal.fire({
+      title: "Saving Location",
+      text: "Updating your shop location in the database...",
+      icon: "info",
+      showConfirmButton: false,
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading()
+    });
+
+    try {
+      await api.patch(`/shop/update`, {
+        email,
+        lat,
+        lng,
+        coordinatesSource
+      });
+      Swal.close();
+      return true;
+    } catch (error) {
+      Swal.close();
+      Swal.fire({
+        title: "Unable To Save Location",
+        text: error?.response?.data?.message || error?.message || "Please try again.",
+        icon: "error",
+        confirmButtonColor: "#EF4444"
+      });
+      return false;
+    } finally {
+      setIsSavingLocation(false);
+    }
+  };
 
   const captureCurrentLocation = async ({ showSuccessMessage = true } = {}) => {
     if (!navigator.geolocation) {
@@ -122,7 +150,12 @@ export const BarberProfileUpdate = () => {
         });
       }
 
-      return true;
+      return {
+        lat: latitude,
+        lng: longitude,
+        accuracy,
+        source: "device_gps",
+      };
     } catch (error) {
       Swal.close();
       let errorMessage = "Unable to capture device location.";
@@ -142,123 +175,46 @@ export const BarberProfileUpdate = () => {
         icon: "error",
         confirmButtonColor: "#EF4444"
       });
-      return false;
+      return null;
     } finally {
       setIsCapturingLocation(false);
     }
   };
 
-  const resolveCoordinatesWithGoogle = async ({ showSuccessMessage = true } = {}) => {
-    const missingAddressFields = [];
-    if (!data.street?.trim()) missingAddressFields.push("Street");
-    if (!data.city?.trim()) missingAddressFields.push("City");
-    if (!data.district?.trim()) missingAddressFields.push("District");
-    if (!data.state?.trim()) missingAddressFields.push("State");
-    if (!data.pin?.trim()) missingAddressFields.push("Pincode");
+  const handleManualLocationCapture = async () => {
+    if (isCapturingLocation || isSavingLocation) return;
 
-    if (missingAddressFields.length > 0) {
-      Swal.fire({
-        title: "Address Incomplete",
-        text: `Fill ${missingAddressFields.join(", ")} before fetching coordinates.`,
-        icon: "warning",
-        confirmButtonColor: "#F59E0B"
-      });
-      return false;
-    }
+    const captured = await captureCurrentLocation({ showSuccessMessage: false });
+    if (!captured) return;
 
-    if (!GOOGLE_GEOCODE_API_KEY) {
-      Swal.fire({
-        title: "API Key Missing",
-        text: "Google Geocoding API key is not configured.",
-        icon: "error",
-        confirmButtonColor: "#EF4444"
-      });
-      return false;
-    }
-
-    setIsCapturingLocation(true);
-
-    Swal.fire({
-      title: "Fetching Exact Coordinates",
-      text: "Matching your shop address with Google Maps...",
-      icon: "info",
-      showConfirmButton: false,
-      allowOutsideClick: false,
-      didOpen: () => {
-        Swal.showLoading();
-      }
+    const saved = await persistCoordinatesToServer({
+      lat: captured.lat,
+      lng: captured.lng,
+      coordinatesSource: "device_gps",
     });
 
-    try {
-      const address = encodeURIComponent(getShopAddressString());
-      const response = await fetch(
-        `${GOOGLE_GEOCODE_ENDPOINT}?address=${address}&key=${GOOGLE_GEOCODE_API_KEY}`
-      );
-      const geocodeData = await response.json();
-
-      if (geocodeData.status !== "OK" || !geocodeData.results?.length) {
-        throw new Error(
-          geocodeData.error_message ||
-            geocodeData.status ||
-            "Unable to resolve coordinates for this address"
-        );
-      }
-
-      const bestResult = geocodeData.results[0];
-      const latitude = Number(bestResult.geometry?.location?.lat);
-      const longitude = Number(bestResult.geometry?.location?.lng);
-
-      if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
-        throw new Error("Invalid coordinates returned by Google Geocoding API");
-      }
-
-      setData((prevData) => ({
-        ...prevData,
-        lat: latitude,
-        lng: longitude,
-        coordinatesSource: "google_geocode",
-      }));
-
-      setIsLocationCaptured(true);
-      setLocationAccuracy(null);
-      Swal.close();
-
-      if (showSuccessMessage) {
-        Swal.fire({
-          title: "Coordinates Updated",
-          html: `
-            <div class="text-left">
-              <p class="text-sm text-slate-600 mb-2">Address matched from Google Maps.</p>
-              <div class="bg-gray-100 p-2 rounded mt-2 space-y-1">
-                <p class="font-mono text-xs break-all"><strong>Lat:</strong> ${latitude}</p>
-                <p class="font-mono text-xs break-all"><strong>Lng:</strong> ${longitude}</p>
-              </div>
-            </div>
-          `,
-          icon: "success",
-          confirmButtonText: "Ok",
-          confirmButtonColor: "#10B981"
-        });
-      }
-
-      return true;
-    } catch (error) {
-      Swal.close();
+    if (saved) {
       Swal.fire({
-        title: "Unable To Get Coordinates",
-        text: error.message || "Please verify address details and try again.",
-        icon: "error",
-        confirmButtonColor: "#EF4444"
+        title: "Location Updated",
+        html: `
+          <div class="text-left">
+            <p class="text-sm text-slate-600 mb-2">Current device location saved to your profile.</p>
+            <div class="bg-gray-100 p-2 rounded mt-2 space-y-1">
+              <p class="font-mono text-xs break-all"><strong>Lat:</strong> ${captured.lat}</p>
+              <p class="font-mono text-xs break-all"><strong>Lng:</strong> ${captured.lng}</p>
+              ${
+                Number.isFinite(captured.accuracy)
+                  ? `<p class="font-mono text-xs break-all"><strong>Accuracy:</strong> ${Math.round(captured.accuracy)}m</p>`
+                  : ""
+              }
+            </div>
+          </div>
+        `,
+        icon: "success",
+        confirmButtonText: "Ok",
+        confirmButtonColor: "#10B981"
       });
-      return false;
-    } finally {
-      setIsCapturingLocation(false);
     }
-  };
-
-  const handleManualLocationCapture = () => {
-    if (isCapturingLocation) return;
-    captureCurrentLocation();
   };
 
   const handleStateChange = (e) => {
@@ -405,33 +361,19 @@ export const BarberProfileUpdate = () => {
       Number.isFinite(Number(data.lat)) && Number.isFinite(Number(data.lng));
 
     if (!hasCoordinates) {
-      const gpsCaptured = await captureCurrentLocation({
+      const capturedLocation = await captureCurrentLocation({
         showSuccessMessage: false,
       });
 
-      if (!gpsCaptured) {
-        const fallbackChoice = await Swal.fire({
-          title: "Use Address-Based Coordinates?",
-          text: "Current location could not be captured. Use Google address geocoding instead?",
-          icon: "question",
-          showCancelButton: true,
-          confirmButtonText: "Use Address Coordinates",
-          cancelButtonText: "Cancel",
-          confirmButtonColor: "#2563EB",
+      if (!capturedLocation) {
+        Swal.fire({
+          title: "Location Required",
+          text: "Please capture your current location before submitting.",
+          icon: "warning",
+          confirmButtonColor: "#F59E0B"
         });
-
-        if (!fallbackChoice.isConfirmed) {
-          setIsSubmitting(false);
-          return;
-        }
-
-        const isResolved = await resolveCoordinatesWithGoogle({
-          showSuccessMessage: false,
-        });
-        if (!isResolved) {
-          setIsSubmitting(false);
-          return;
-        }
+        setIsSubmitting(false);
+        return;
       }
     }
 
@@ -485,10 +427,10 @@ export const BarberProfileUpdate = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-cyan-50 to-amber-50 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto mt-6">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-cyan-50 to-amber-50 py-4 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-2">
           <div className="rounded-3xl border border-white/80 bg-white/90 p-6 mx-auto max-w-2xl shadow-[0_20px_45px_-25px_rgba(15,23,42,0.45)]">
             <h1 className="text-3xl font-bold text-gray-900 mb-3 bg-gradient-to-r from-cyan-600 to-amber-500 bg-clip-text text-transparent">
               Update Shop Details
@@ -517,9 +459,9 @@ export const BarberProfileUpdate = () => {
                 <button 
                   type="button"
                   onClick={handleManualLocationCapture}
-                  disabled={isCapturingLocation}
+                  disabled={isCapturingLocation || isSavingLocation}
                   className={`flex items-center justify-center space-x-2 py-3 px-6 rounded-xl font-medium transition-all duration-200 shadow-md min-w-[180px] ${
-                    isCapturingLocation 
+                    isCapturingLocation || isSavingLocation
                       ? 'bg-gray-400 cursor-not-allowed text-white' 
                       : 'bg-gradient-to-r from-cyan-500 to-amber-400 hover:brightness-110 text-slate-950 font-black transform hover:-translate-y-0.5'
                   }`}
@@ -529,21 +471,17 @@ export const BarberProfileUpdate = () => {
                       <FaSpinner className="animate-spin text-base" />
                       <span>Capturing...</span>
                     </>
+                  ) : isSavingLocation ? (
+                    <>
+                      <FaSpinner className="animate-spin text-base" />
+                      <span>Saving...</span>
+                    </>
                   ) : (
                     <>
                       <FaMapMarkerAlt className="text-base" />
                       <span>{isLocationCaptured ? 'Recapture Current Location' : 'Capture Current Location'}</span>
                     </>
                   )}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => resolveCoordinatesWithGoogle()}
-                  disabled={isCapturingLocation}
-                  className="flex items-center justify-center py-3 px-6 rounded-xl font-medium transition-all duration-200 border border-cyan-300 text-cyan-700 bg-white hover:bg-cyan-50 min-w-[180px]"
-                >
-                  Use Address Coordinates
                 </button>
               </div>
             </div>

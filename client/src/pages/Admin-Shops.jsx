@@ -7,8 +7,19 @@ export const AdminShops = () => {
   const [shops, setShops] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [templatesByShopId, setTemplatesByShopId] = useState({});
+  const [templateLoadingByShopId, setTemplateLoadingByShopId] = useState({});
+  const [templateErrorByShopId, setTemplateErrorByShopId] = useState({});
   const [searchBy, setSearchBy] = useState("all");
   const [searchText, setSearchText] = useState("");
+  const weekDays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+
+  const timeToMinutes = (timeValue) => {
+    if (!timeValue) return null;
+    const [hours, minutes] = timeValue.split(":").map(Number);
+    if (!Number.isFinite(hours) || !Number.isFinite(minutes)) return null;
+    return hours * 60 + minutes;
+  };
 
   const formatDateTime = (dateValue) => {
     if (!dateValue) return "-";
@@ -17,12 +28,185 @@ export const AdminShops = () => {
     return parsedDate.toLocaleString();
   };
 
+  const formatTemplateDays = (days = []) => {
+    if (!Array.isArray(days) || days.length === 0) return "-";
+    return days.join(", ");
+  };
+
+  const formatTemplateTime = (timeValue) => (timeValue ? timeValue : "-");
+
+  const formatSlotInterval = (value) => {
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed) || parsed <= 0) return "-";
+    return `${parsed} min`;
+  };
+
+  const openTemplateEditor = async ({
+    title,
+    confirmText,
+    initialDays = [],
+    initialStartTime = "",
+    initialEndTime = "",
+    initialInterval = 30,
+  }) => {
+    const htmlContent = `
+      <div class="text-left space-y-4">
+        <div>
+          <p class="text-xs font-semibold uppercase text-slate-500">Working Days</p>
+          <div class="mt-2 grid grid-cols-2 gap-2">
+            ${weekDays
+              .map(
+                (day) => `
+                <label class="flex items-center gap-2 text-sm">
+                  <input type="checkbox" id="template-day-${day}" ${initialDays.includes(day) ? "checked" : ""} />
+                  <span>${day}</span>
+                </label>
+              `
+              )
+              .join("")}
+          </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <label class="text-sm font-medium text-slate-700">
+            Start Time
+            <input id="template-start-time" type="time" value="${initialStartTime}" class="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm" />
+          </label>
+          <label class="text-sm font-medium text-slate-700">
+            Close Time
+            <input id="template-end-time" type="time" value="${initialEndTime}" class="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm" />
+          </label>
+        </div>
+        <label class="text-sm font-medium text-slate-700">
+          Slot Interval (minutes)
+          <input id="template-interval" type="number" min="5" step="5" value="${initialInterval}" class="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm" />
+        </label>
+      </div>
+    `;
+
+    const result = await Swal.fire({
+      title,
+      html: htmlContent,
+      showCancelButton: true,
+      confirmButtonText: confirmText,
+      confirmButtonColor: "#2563EB",
+      width: 600,
+      preConfirm: () => {
+        const updatedDays = weekDays.filter(
+          (day) => document.getElementById(`template-day-${day}`)?.checked
+        );
+        const updatedStart = document.getElementById("template-start-time")?.value;
+        const updatedEnd = document.getElementById("template-end-time")?.value;
+        const updatedInterval = Number(document.getElementById("template-interval")?.value);
+
+        if (!updatedDays.length) {
+          Swal.showValidationMessage("Select at least one working day.");
+          return null;
+        }
+
+        if (!updatedStart || !updatedEnd) {
+          Swal.showValidationMessage("Start and close time are required.");
+          return null;
+        }
+
+        const startMinutes = timeToMinutes(updatedStart);
+        const endMinutes = timeToMinutes(updatedEnd);
+        if (startMinutes === null || endMinutes === null || startMinutes >= endMinutes) {
+          Swal.showValidationMessage("Start time must be before close time.");
+          return null;
+        }
+
+        if (!Number.isFinite(updatedInterval) || updatedInterval <= 0) {
+          Swal.showValidationMessage("Slot interval must be a positive number.");
+          return null;
+        }
+
+        return {
+          workingDays: updatedDays,
+          startTime: updatedStart,
+          endTime: updatedEnd,
+          slotInterval: updatedInterval,
+        };
+      },
+    });
+
+    if (!result.isConfirmed || !result.value) return null;
+    return result.value;
+  };
+
+  const loadTemplatesForShops = async (shopList) => {
+    const shopIds = (shopList || []).map((shop) => shop?._id).filter(Boolean);
+    if (!shopIds.length) return;
+
+    setTemplateLoadingByShopId((prev) => {
+      const next = { ...prev };
+      shopIds.forEach((id) => {
+        next[id] = true;
+      });
+      return next;
+    });
+
+    const results = await Promise.all(
+      shopIds.map(async (shopId) => {
+        try {
+          const response = await api.get(`/time/template/${shopId}`);
+          if (response?.data?.success) {
+            return { shopId, data: response.data.data, error: "" };
+          }
+          return {
+            shopId,
+            data: null,
+            error: response?.data?.message || "No template found",
+          };
+        } catch (fetchError) {
+          return {
+            shopId,
+            data: null,
+            error:
+              fetchError?.response?.data?.message ||
+              fetchError?.message ||
+              "Failed to load template",
+          };
+        }
+      })
+    );
+
+    setTemplatesByShopId((prev) => {
+      const next = { ...prev };
+      results.forEach(({ shopId, data }) => {
+        next[shopId] = data;
+      });
+      return next;
+    });
+
+    setTemplateErrorByShopId((prev) => {
+      const next = { ...prev };
+      results.forEach(({ shopId, error: templateError }) => {
+        if (templateError) {
+          next[shopId] = templateError;
+        } else {
+          delete next[shopId];
+        }
+      });
+      return next;
+    });
+
+    setTemplateLoadingByShopId((prev) => {
+      const next = { ...prev };
+      shopIds.forEach((id) => {
+        next[id] = false;
+      });
+      return next;
+    });
+  };
+
   const getAllShopsData = async () => {
     try {
       setLoading(true);
       setError("");
       const response = await api.get("/admin/shops");
-      setShops(Array.isArray(response.data) ? response.data : []);
+      const shopList = Array.isArray(response.data) ? response.data : [];
+      setShops(shopList);
+      loadTemplatesForShops(shopList);
     } catch (fetchError) {
       console.log("Error fetching shops:", fetchError);
       setShops([]);
@@ -34,6 +218,141 @@ export const AdminShops = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleTemplateUpdate = async (shop) => {
+    const template = templatesByShopId[shop?._id];
+
+    if (!template?._id) {
+      Swal.fire({
+        title: "Template Missing",
+        text: "No template found for this shop. Please create one before updating.",
+        icon: "warning",
+        confirmButtonColor: "#F59E0B",
+      });
+      return;
+    }
+
+    const selectedDays = Array.isArray(template.workingDays) ? template.workingDays : [];
+    const startTimeValue = template.startTime || "";
+    const endTimeValue = template.endTime || "";
+    const intervalValue = Number.isFinite(Number(template.slotInterval)) ? template.slotInterval : 30;
+
+    const updatedValues = await openTemplateEditor({
+      title: "Update Shop Template",
+      confirmText: "Save Template",
+      initialDays: selectedDays,
+      initialStartTime: startTimeValue,
+      initialEndTime: endTimeValue,
+      initialInterval: intervalValue,
+    });
+
+    if (!updatedValues) return;
+
+    try {
+      const updateResponse = await api.put(`/time/template/${template._id}`, {
+        workingDays: updatedValues.workingDays,
+        startTime: updatedValues.startTime,
+        endTime: updatedValues.endTime,
+        slotInterval: updatedValues.slotInterval,
+      });
+
+      if (!updateResponse?.data?.success) {
+        throw new Error(updateResponse?.data?.message || "Failed to update template");
+      }
+
+      const updatedTemplate = updateResponse.data.data;
+      setTemplatesByShopId((prev) => ({
+        ...prev,
+        [shop._id]: updatedTemplate,
+      }));
+
+      Swal.fire({
+        title: "Template Updated",
+        text: updateResponse.data.message || "Template updated successfully.",
+        icon: "success",
+        confirmButtonColor: "#10B981",
+      });
+    } catch (updateError) {
+      Swal.fire({
+        title: "Update Failed",
+        text:
+          updateError?.response?.data?.message ||
+          updateError?.message ||
+          "Unable to update template.",
+        icon: "error",
+        confirmButtonColor: "#EF4444",
+      });
+    }
+  };
+
+  const handleTemplateCreate = async (shop) => {
+    if (!shop?._id || !shop?.name || !shop?.email || !shop?.phone) {
+      Swal.fire({
+        title: "Missing Shop Details",
+        text: "Shop name, email, and phone are required to create a template.",
+        icon: "warning",
+        confirmButtonColor: "#F59E0B",
+      });
+      return;
+    }
+
+    const createdValues = await openTemplateEditor({
+      title: "Create Shop Template",
+      confirmText: "Create Template",
+      initialDays: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+      initialStartTime: "",
+      initialEndTime: "",
+      initialInterval: 30,
+    });
+
+    if (!createdValues) return;
+
+    try {
+      const response = await api.post("/time/template/create", {
+        shop_owner_id: shop._id,
+        name: shop.name,
+        email: shop.email,
+        phone: shop.phone,
+        workingDays: createdValues.workingDays,
+        startTime: createdValues.startTime,
+        endTime: createdValues.endTime,
+        slotInterval: createdValues.slotInterval,
+      });
+
+      if (!response?.data?.success) {
+        throw new Error(response?.data?.error || "Failed to create template");
+      }
+
+      const createdTemplate = response.data.data;
+      setTemplatesByShopId((prev) => ({
+        ...prev,
+        [shop._id]: createdTemplate,
+      }));
+
+      setTemplateErrorByShopId((prev) => {
+        const next = { ...prev };
+        delete next[shop._id];
+        return next;
+      });
+
+      Swal.fire({
+        title: "Template Created",
+        text: response.data.message || "Template created successfully.",
+        icon: "success",
+        confirmButtonColor: "#10B981",
+      });
+    } catch (createError) {
+      Swal.fire({
+        title: "Creation Failed",
+        text:
+          createError?.response?.data?.error ||
+          createError?.message ||
+          "Unable to create template.",
+        icon: "error",
+        confirmButtonColor: "#EF4444",
+      });
     }
   };
 
@@ -244,6 +563,48 @@ export const AdminShops = () => {
                       <div className="bg-slate-50 border border-slate-200 rounded-lg p-3">
                         <p className="text-xs uppercase tracking-wide text-slate-500">Updated At</p>
                         <p className="text-sm text-slate-800 mt-1">{formatDateTime(shop.updatedAt)}</p>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                          <p className="text-xs uppercase tracking-wide text-slate-500">Shop Template</p>
+                          {templateLoadingByShopId[shop._id] ? (
+                            <p className="text-sm text-slate-600 mt-1">Loading template...</p>
+                          ) : templateErrorByShopId[shop._id] ? (
+                            <p className="text-sm text-amber-700 mt-1">{templateErrorByShopId[shop._id]}</p>
+                          ) : templatesByShopId[shop._id] ? (
+                            <div className="mt-2 space-y-1 text-sm text-slate-700">
+                              <p>
+                                <span className="font-semibold">Working Days:</span>{" "}
+                                {formatTemplateDays(templatesByShopId[shop._id]?.workingDays)}
+                              </p>
+                              <p>
+                                <span className="font-semibold">Hours:</span>{" "}
+                                {formatTemplateTime(templatesByShopId[shop._id]?.startTime)} -{" "}
+                                {formatTemplateTime(templatesByShopId[shop._id]?.endTime)}
+                              </p>
+                              <p>
+                                <span className="font-semibold">Slot Interval:</span>{" "}
+                                {formatSlotInterval(templatesByShopId[shop._id]?.slotInterval)}
+                              </p>
+                            </div>
+                          ) : (
+                            <p className="text-sm text-slate-600 mt-1">No template found.</p>
+                          )}
+                        </div>
+                        <button
+                          onClick={() =>
+                            templatesByShopId[shop._id]
+                              ? handleTemplateUpdate(shop)
+                              : handleTemplateCreate(shop)
+                          }
+                          disabled={templateLoadingByShopId[shop._id]}
+                          className="inline-flex items-center justify-center bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          {templatesByShopId[shop._id] ? "Update Template" : "Create Template"}
+                        </button>
                       </div>
                     </div>
                   </div>

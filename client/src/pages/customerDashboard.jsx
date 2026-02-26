@@ -758,11 +758,32 @@ const CustomerDashboard = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-cyan-50 to-amber-50 py-3 sm:py-4">
-      <div className="max-w-6xl mx-auto px-3 sm:px-4 lg:px-6">
+    <main className="relative min-h-screen overflow-hidden bg-gradient-to-b from-slate-50 via-cyan-50 to-amber-50 py-4 sm:py-6">
+      <div className="pointer-events-none absolute -left-24 top-24 h-64 w-64 rounded-full bg-cyan-200/60 blur-3xl" />
+      <div className="pointer-events-none absolute -right-24 top-32 h-64 w-64 rounded-full bg-amber-200/60 blur-3xl" />
+
+      <div className="relative mx-auto max-w-6xl px-3 sm:px-4 lg:px-6">
         {/* Header */}
-        <div className="mb-3 sm:mb-3">
-          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">My Appointments</h1>
+        <div className="mb-4 sm:mb-6 rounded-3xl border border-white/80 bg-white/90 p-5 sm:p-6 shadow-[0_20px_45px_-25px_rgba(15,23,42,0.45)]">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-700">SalonHub</p>
+              <h1 className="mt-2 text-2xl sm:text-3xl font-black text-slate-900">My Appointments</h1>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <span className="inline-flex items-center rounded-full bg-cyan-100 px-3 py-1 text-xs font-semibold text-cyan-800">
+                Upcoming: {currentAppointments.length}
+              </span>
+              <span className="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">
+                Pending Reviews: {pendingReviewAppointments.length}
+              </span>
+              <span className="inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800">
+                Completed: {pastAppointments.filter(apt =>
+                  (apt.status === 'completed' || new Date(apt.timeSlot?.date) < new Date()) && apt.status !== 'cancelled'
+                ).length}
+              </span>
+            </div>
+          </div>
           {/* <div className="flex flex-col sm:flex-row sm:items-center justify-between mt-2 gap-2">
             <p className="text-gray-600 text-sm">
               Welcome back, {user?.name || 'Customer'}
@@ -827,14 +848,14 @@ const CustomerDashboard = () => {
         )}
 
         {/* Tabs */}
-        <div className="rounded-2xl border border-white/80 bg-white/90 shadow-[0_16px_35px_-20px_rgba(15,23,42,0.45)] mb-4 sm:mb-6">
-          <div className="flex border-b border-gray-200">
+        <div className="rounded-3xl border border-white/80 bg-white/90 shadow-[0_18px_40px_-24px_rgba(15,23,42,0.45)] mb-4 sm:mb-6 overflow-hidden">
+          <div className="flex border-b border-slate-200 bg-slate-50/70">
             <button
               onClick={() => setActiveTab('current')}
               className={`flex-1 py-3 sm:py-4 px-4 sm:px-6 text-center font-medium text-sm sm:text-base ${
                 activeTab === 'current'
-                  ? 'text-cyan-700 border-b-2 border-cyan-500'
-                  : 'text-gray-500 hover:text-gray-700'
+                  ? 'text-cyan-700 border-b-2 border-cyan-500 bg-white/90'
+                  : 'text-slate-500 hover:text-slate-700'
                 }`}
             >
               Upcoming ({currentAppointments.length})
@@ -843,8 +864,8 @@ const CustomerDashboard = () => {
               onClick={() => setActiveTab('history')}
               className={`flex-1 py-3 sm:py-4 px-4 sm:px-6 text-center font-medium text-sm sm:text-base ${
                 activeTab === 'history'
-                  ? 'text-cyan-700 border-b-2 border-cyan-500'
-                  : 'text-gray-500 hover:text-gray-700'
+                  ? 'text-cyan-700 border-b-2 border-cyan-500 bg-white/90'
+                  : 'text-slate-500 hover:text-slate-700'
                 }`}
             >
               History ({pastAppointments.length})
@@ -909,7 +930,7 @@ const CustomerDashboard = () => {
 
         {/* Stats - Responsive Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
-          <div className="rounded-2xl border border-white/80 bg-white/90 shadow-[0_16px_35px_-20px_rgba(15,23,42,0.45)] p-4 sm:p-6">
+          <div className="rounded-2xl border border-white/80 bg-white/95 shadow-[0_16px_35px_-20px_rgba(15,23,42,0.45)] p-4 sm:p-6">
             <div className="flex items-center">
               <div className="p-2 sm:p-3 bg-cyan-100 rounded-lg">
                 <span className="text-cyan-700 text-xl sm:text-2xl">📅</span>
@@ -920,10 +941,10 @@ const CustomerDashboard = () => {
               </div>
             </div>
           </div>
-          <div className="rounded-2xl border border-white/80 bg-white/90 shadow-[0_16px_35px_-20px_rgba(15,23,42,0.45)] p-4 sm:p-6">
+          <div className="rounded-2xl border border-white/80 bg-white/95 shadow-[0_16px_35px_-20px_rgba(15,23,42,0.45)] p-4 sm:p-6">
             <div className="flex items-center">
-              <div className="p-2 sm:p-3 bg-green-100 rounded-lg">
-                <span className="text-green-600 text-xl sm:text-2xl">✅</span>
+              <div className="p-2 sm:p-3 bg-emerald-100 rounded-lg">
+                <span className="text-emerald-600 text-xl sm:text-2xl">✅</span>
               </div>
               <div className="ml-3 sm:ml-4">
                 <p className="text-xs sm:text-sm font-medium text-gray-600">Completed</p>
@@ -935,10 +956,10 @@ const CustomerDashboard = () => {
               </div>
             </div>
           </div>
-          <div className="rounded-2xl border border-white/80 bg-white/90 shadow-[0_16px_35px_-20px_rgba(15,23,42,0.45)] p-4 sm:p-6">
+          <div className="rounded-2xl border border-white/80 bg-white/95 shadow-[0_16px_35px_-20px_rgba(15,23,42,0.45)] p-4 sm:p-6">
             <div className="flex items-center">
-              <div className="p-2 sm:p-3 bg-yellow-100 rounded-lg">
-                <span className="text-yellow-600 text-xl sm:text-2xl">⭐</span>
+              <div className="p-2 sm:p-3 bg-amber-100 rounded-lg">
+                <span className="text-amber-600 text-xl sm:text-2xl">⭐</span>
               </div>
               <div className="ml-3 sm:ml-4">
                 <p className="text-xs sm:text-sm font-medium text-gray-600">To Review</p>
@@ -948,10 +969,10 @@ const CustomerDashboard = () => {
               </div>
             </div>
           </div>
-          <div className="rounded-2xl border border-white/80 bg-white/90 shadow-[0_16px_35px_-20px_rgba(15,23,42,0.45)] p-4 sm:p-6">
+          <div className="rounded-2xl border border-white/80 bg-white/95 shadow-[0_16px_35px_-20px_rgba(15,23,42,0.45)] p-4 sm:p-6">
             <div className="flex items-center">
-              <div className="p-2 sm:p-3 bg-red-100 rounded-lg">
-                <span className="text-red-600 text-xl sm:text-2xl">❌</span>
+              <div className="p-2 sm:p-3 bg-rose-100 rounded-lg">
+                <span className="text-rose-600 text-xl sm:text-2xl">❌</span>
               </div>
               <div className="ml-3 sm:ml-4">
                 <p className="text-xs sm:text-sm font-medium text-gray-600">Cancelled</p>
@@ -967,7 +988,7 @@ const CustomerDashboard = () => {
       {/* Review Modal */}
       <ReviewModal />
       <DirectionsModal />
-    </div>
+    </main>
   );
 };
 
