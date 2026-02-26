@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../utils/api";
+import { LoadingSpinner } from "../components/Loading";
 import {
   FaUsers,
   FaListAlt,
@@ -205,7 +206,9 @@ export const AdminHome = () => {
 
         {donationLoading ? (
           <div className="p-8 text-center">
-            <div className="mx-auto h-10 w-10 animate-spin rounded-full border-b-2 border-t-2 border-blue-600" />
+            <div className="mx-auto flex justify-center">
+              <LoadingSpinner size="lg" />
+            </div>
             <p className="mt-3 text-sm text-slate-600">Loading donations...</p>
           </div>
         ) : donationError ? (

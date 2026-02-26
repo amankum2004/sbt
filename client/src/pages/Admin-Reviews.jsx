@@ -4,6 +4,7 @@ import Swal from 'sweetalert2';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../utils/api';
 import StarRating from '../components/StarRating';
+import { LoadingSpinner } from "../components/Loading";
 
 const AdminReviews = () => {
   const navigate = useNavigate();
@@ -198,7 +199,9 @@ const AdminReviews = () => {
         <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
           {loading ? (
             <div className="py-14 text-center">
-              <div className="mx-auto h-12 w-12 rounded-full border-2 border-cyan-600 border-t-transparent animate-spin" />
+              <div className="mx-auto flex justify-center">
+                <LoadingSpinner size="xl" />
+              </div>
             </div>
           ) : error ? (
             <div className="py-14 text-center">

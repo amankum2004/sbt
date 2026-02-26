@@ -5,6 +5,7 @@ import { api } from '../utils/api';
 import Swal from 'sweetalert2';
 import ReviewForm from '../components/ReviewForm';
 import { buildDirectionsLinksFromShop } from "../utils/googleMaps";
+import { LoadingSpinner } from "../components/Loading";
 
 const CustomerDashboard = () => {
   const { user } = useLogin();
@@ -747,7 +748,7 @@ const CustomerDashboard = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-slate-50 via-cyan-50 to-amber-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan-600"></div>
+        <LoadingSpinner size="xl" />
       </div>
     );
   }

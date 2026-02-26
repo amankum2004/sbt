@@ -4,6 +4,7 @@ import { FaArrowLeft, FaEdit, FaStar } from 'react-icons/fa';
 import { api } from '../utils/api';
 import { useLogin } from '../components/LoginContext';
 import RatingSummary from '../components/RatingSummary';
+import { LoadingSpinner } from "../components/Loading";
 import ReviewForm from '../components/ReviewForm';
 import ReviewList from '../components/ReviewList';
 
@@ -79,7 +80,9 @@ const ShopReviews = () => {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="mx-auto h-12 w-12 rounded-full border-2 border-cyan-600 border-t-transparent animate-spin" />
+          <div className="mx-auto flex justify-center">
+            <LoadingSpinner size="xl" />
+          </div>
           <p className="mt-2 text-slate-600">Loading reviews...</p>
         </div>
       </div>

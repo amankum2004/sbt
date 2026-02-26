@@ -227,26 +227,6 @@ const CancellationPolicy = () => {
                     </div>
                 </Section>
 
-                {/* <div className="mt-10 p-6 bg-slate-50 rounded-2xl border border-slate-200">
-                    <h3 className="text-lg font-semibold text-slate-900 mb-3">Need Help?</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <a 
-                            href="mailto:salonhub.business@gmail.com" 
-                            className="block p-4 bg-white border border-gray-300 rounded text-center hover:bg-cyan-50 hover:border-blue-300 transition"
-                        >
-                            <div className="text-cyan-700 font-semibold">Email Support</div>
-                            <div className="text-sm text-slate-600 mt-1">Quick response</div>
-                        </a>
-                        <a 
-                            href="tel:+918810269376" 
-                            className="block p-4 bg-white border border-gray-300 rounded text-center hover:bg-emerald-50 hover:border-green-300 transition"
-                        >
-                            <div className="text-green-600 font-semibold">Phone Support</div>
-                            <div className="text-sm text-slate-600 mt-1">Immediate assistance</div>
-                        </a>
-                    </div>
-                </div> */}
-
                 <div className="mt-8 text-center text-slate-600 text-sm">
                     <p>By using SalonHub services, you acknowledge and agree to this Cancellation & Refund Policy.</p>
                 </div>

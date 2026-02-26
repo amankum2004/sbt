@@ -402,6 +402,7 @@ export const Payment = () => {
 
 
 // with both pay now and pay later options
+
 // import React from "react";
 // import { useEffect, useState } from "react";
 // import { useLogin } from '../components/LoginContext'

@@ -16,6 +16,7 @@ import {
 } from "react-icons/fa";
 import { useLogin } from "../components/LoginContext";
 import { api } from "../utils/api";
+import { LoadingSpinner } from "../components/Loading";
 
 const PERIOD_OPTIONS = [
   { key: "day", label: "Daily", subLabel: "Today", icon: FaCalendarDay },
@@ -333,7 +334,7 @@ const BarberAnalyticsDashboard = () => {
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-slate-50 via-cyan-50 to-amber-50 px-4">
         <div className="rounded-2xl border border-white/80 bg-white/90 px-6 py-5 shadow-[0_18px_40px_-24px_rgba(15,23,42,0.45)]">
           <div className="flex items-center gap-3 text-slate-700">
-            <div className="h-4 w-4 animate-pulse rounded-full bg-cyan-500" />
+            <LoadingSpinner size="sm" />
             Loading analytics dashboard...
           </div>
         </div>

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Swal from "sweetalert2";
 import { api } from "../utils/api";
+import { LoadingSpinner } from "../components/Loading";
 import {
   FaCalendarAlt,
   FaCheckCircle,
@@ -181,7 +182,7 @@ export default function AdminPendingShops() {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
         <div className="bg-white rounded-2xl shadow-lg px-8 py-8 border border-slate-200 flex items-center gap-3">
-          <div className="h-5 w-5 rounded-full border-2 border-blue-600 border-t-transparent animate-spin" />
+          <LoadingSpinner size="sm" />
           <span className="text-slate-700 font-medium">Loading pending requests...</span>
         </div>
       </div>

@@ -4,6 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useLogin } from "../components/LoginContext";
 import Swal from 'sweetalert2';
 import { api } from '../utils/api';
+import { LoadingSpinner } from "../components/Loading";
 
 export const AdminUserUpdate = () => {
     const { user } = useLogin();
@@ -24,12 +25,8 @@ export const AdminUserUpdate = () => {
         try {
             setFetchLoading(true);
             setError("");
-            // console.log('Fetching user data for ID:', params.id);
             
             const response = await api.get(`/admin/users/${params.id}`);
-            
-            // console.log('Full API response:', response);
-            // console.log('User data received:', response.data);
             
             if (response.data) {
                 setData({
@@ -38,12 +35,6 @@ export const AdminUserUpdate = () => {
                     phone: response.data.phone || "",
                     usertype: response.data.usertype || "customer"
                 });
-                // console.log('Data set successfully:', {
-                //     name: response.data.name,
-                //     email: response.data.email,
-                //     phone: response.data.phone,
-                //     usertype: response.data.usertype
-                // });
             } else {
                 throw new Error('No user data received from server');
             }
@@ -144,7 +135,9 @@ export const AdminUserUpdate = () => {
             <main className="min-h-screen bg-gradient-to-b from-slate-50 via-cyan-50 to-amber-50 px-4 py-12">
                 <div className="mx-auto flex max-w-xl items-center justify-center rounded-3xl border border-white/70 bg-white/90 p-10 shadow-[0_24px_70px_-20px_rgba(15,23,42,0.35)]">
                     <div className="text-center">
-                        <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-t-2 border-cyan-500" />
+                        <div className="mx-auto mb-4 flex justify-center">
+                            <LoadingSpinner size="xl" />
+                        </div>
                         <p className="font-semibold text-slate-700">Loading user data...</p>
                         <p className="mt-2 text-xs text-slate-500">User ID: {params.id}</p>
                     </div>
@@ -273,10 +266,7 @@ export const AdminUserUpdate = () => {
                             >
                                 {loading ? (
                                     <span className="flex items-center justify-center">
-                                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                        </svg>
+                                        <LoadingSpinner size="xs" className="-ml-1 mr-2" />
                                         Updating...
                                     </span>
                                 ) : (

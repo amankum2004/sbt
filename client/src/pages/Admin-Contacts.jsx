@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 import { api } from "../utils/api";
+import { LoadingSpinner } from "../components/Loading";
 
 export const AdminContacts = () => {
   const [contactData, setContactData] = useState([]);
@@ -110,7 +111,9 @@ export const AdminContacts = () => {
     return (
       <div className="flex justify-center items-center min-h-screen bg-slate-100">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto mb-4" />
+          <div className="mx-auto mb-4 flex justify-center">
+            <LoadingSpinner size="xl" />
+          </div>
           <p className="text-slate-600">Loading contacts...</p>
         </div>
       </div>

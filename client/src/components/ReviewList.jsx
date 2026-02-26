@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { FaCheckCircle, FaUserCircle } from 'react-icons/fa';
 import { api } from '../utils/api';
 import StarRating from './StarRating';
+import { LoadingSpinner } from "./Loading";
 
 const ReviewList = ({ shopId, isAdminView = false, refreshKey = 0 }) => {
   const [reviews, setReviews] = useState([]);
@@ -187,7 +188,9 @@ const ReviewList = ({ shopId, isAdminView = false, refreshKey = 0 }) => {
 
       {loading && reviews.length === 0 ? (
         <div className="text-center py-10">
-          <div className="mx-auto h-10 w-10 rounded-full border-2 border-cyan-600 border-t-transparent animate-spin" />
+          <div className="mx-auto flex justify-center">
+            <LoadingSpinner size="lg" />
+          </div>
           <p className="text-sm text-slate-600 mt-3">Loading reviews...</p>
         </div>
       ) : error ? (
