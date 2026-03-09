@@ -1,7 +1,6 @@
 const express = require('express');
 const { bookAppointment } = require('../controllers/appointment-controller');
 const router = express.Router();
-const Appointment = require('../models/appointment-model');
 const customerController = require('../controllers/customerAppointmentController');
 const barberController = require('../controllers/barberAppointmentController');
 

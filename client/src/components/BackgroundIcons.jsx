@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import { FaCut } from "react-icons/fa";
 import { GiComb } from "react-icons/gi";
 
-const DEFAULT_COUNT = 8;
+const DEFAULT_COUNT = 10;
 
 function rand(min, max) {
   return Math.random() * (max - min) + min;

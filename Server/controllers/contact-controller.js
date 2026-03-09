@@ -1,4 +1,5 @@
-const Contact = require("../models/contact-model");
+const prisma = require("../utils/prisma");
+const { mapContact } = require("../utils/legacy-mappers");
 const { sendAdminContactNotification } = require("../utils/mail");
 
 const contactForm = async (req, res) => {
@@ -9,14 +10,21 @@ const contactForm = async (req, res) => {
       message: (req.body?.message || "").trim(),
     };
 
-    const createdContact = await Contact.create(payload);
+    const createdContact = await prisma.contact.create({
+      data: payload,
+    });
 
-    sendAdminContactNotification(createdContact.toObject())
+    const mappedContact = mapContact(createdContact);
+
+    sendAdminContactNotification(mappedContact)
       .then(() => {
-        console.log(`✅ Admin notified for new contact: ${createdContact._id}`);
+        console.log(`✅ Admin notified for new contact: ${mappedContact?._id}`);
       })
       .catch((emailError) => {
-        console.warn("⚠️ Failed to send admin contact notification:", emailError?.message || emailError);
+        console.warn(
+          "⚠️ Failed to send admin contact notification:",
+          emailError?.message || emailError
+        );
       });
 
     return res.status(200).json({ success: true, message: "message sent successfully" });

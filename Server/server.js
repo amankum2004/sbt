@@ -1,23 +1,24 @@
 const { config } = require('dotenv')
+const path = require('path')
+
+// Load environment file before importing modules that depend on it
+const envFile = process.env.NODE_ENV === 'production'
+  ? '.env.production'
+  : '.env.development';
+config({ path: path.resolve(__dirname, envFile) });
+
 const express = require("express")
 const app = express();
-const mongoose = require('mongoose')
+const prisma = require('./utils/prisma');
 const bodyParser = require("body-parser")
 const cors = require("cors")
 const { Server: SocketIOServer } = require("socket.io");
 const { createServer } = require("http");
-const path = require('path')
 const cookieParser = require('cookie-parser')
 const https = createServer(app);
 const cronRoutes = require("./utils/scheduler");
 const { setSocketIO, getShopRoom } = require("./utils/socket");
 require('./utils/slot-creation');
-
-// Load environment file based on NODE_ENV
-const envFile = process.env.NODE_ENV === 'production'
-  ? '.env.production'
-  : '.env.development';
-config({ path: path.resolve(__dirname, envFile) });
 
 // Load routes using relative path instead of module alias
 const apiRoute = require('./routes')
@@ -26,48 +27,14 @@ const PORT = process.env.PORT ?? 5000
 
 console.log(`🚀 Starting SalonHub Backend in ${process.env.NODE_ENV || 'development'} mode`);
 
-// MongoDB connection with retry and enhanced logging
-const mongooseOptions = {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-  // Wait up to 5s for server selection before timing out (shorter for faster feedback)
-  serverSelectionTimeoutMS: 5000,
-  // Keep sockets open a bit longer
-  socketTimeoutMS: 45000,
-  // Prefer IPv4 to avoid IPv6 resolution issues in some environments
-  family: 4,
-};
-
-let connectAttempts = 0;
-const MAX_CONNECT_RETRIES = 6;
-const RETRY_DELAY_MS = 5000;
-
-function connectWithRetry() {
-  connectAttempts += 1;
-  console.log(`🔌 Attempting MongoDB connection (attempt ${connectAttempts})...`);
-
-  mongoose.connect(String(process.env.MONGO_DB || ''), mongooseOptions)
-    .then(() => {
-      console.log(`✅ Connected to MongoDB (${process.env.NODE_ENV})`);
-    })
-    .catch((error) => {
-      console.error(`❌ MongoDB connection error (attempt ${connectAttempts}):`, error && error.message ? error.message : error);
-      if (connectAttempts < MAX_CONNECT_RETRIES) {
-        console.log(`↻ Retrying MongoDB connection in ${RETRY_DELAY_MS / 1000}s...`);
-        setTimeout(connectWithRetry, RETRY_DELAY_MS);
-      } else {
-        console.error('⛔ Exceeded maximum MongoDB connection attempts.');
-        // Keep process alive but log: in production you might want to exit or alert
-      }
-    });
-}
-
-connectWithRetry();
-
-mongoose.connection.on('connected', () => console.log('📗 Mongoose connected.'));
-mongoose.connection.on('reconnected', () => console.log('📘 Mongoose reconnected.'));
-mongoose.connection.on('disconnected', () => console.warn('⚠️ Mongoose disconnected.'));
-mongoose.connection.on('error', (err) => console.error('❌ Mongoose connection error:', err && err.message ? err.message : err));
+// PostgreSQL (Prisma) connection
+prisma.$connect()
+  .then(() => {
+    console.log(`✅ Connected to PostgreSQL (${process.env.NODE_ENV})`);
+  })
+  .catch((error) => {
+    console.error('❌ PostgreSQL connection error:', error && error.message ? error.message : error);
+  });
 
 // Security: Block common attack patterns
 app.use((req, res, next) => {
@@ -253,10 +220,18 @@ app.get('/api', (req, res) => {
 });
 
 // Health check endpoint
-app.get('/api/health', (req, res) => {
+app.get('/api/health', async (req, res) => {
+  let database = 'disconnected';
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    database = 'connected';
+  } catch (error) {
+    database = 'disconnected';
+  }
+
   res.json({
     status: 'healthy',
-    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+    database,
     server_time: new Date().toISOString(),
     memory_usage: {
       rss: `${Math.round(process.memoryUsage().rss / 1024 / 1024)}MB`,

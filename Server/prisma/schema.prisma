@@ -1,14 +1,249 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+// Prisma schema for SalonHub (PostgreSQL)
 
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
+  engineType = "binary"
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+enum UserType {
+  customer
+  shopOwner
+  admin
+}
+
+enum AppointmentStatus {
+  confirmed
+  pending
+  cancelled
+  completed
+}
+
+enum ReviewStatus {
+  pending
+  approved
+  rejected
+}
+
+enum ShopStatus {
+  open
+  closed
+  break
+}
+
+enum DonationStatus {
+  pending
+  completed
+  failed
+}
+
+enum CoordinateSource {
+  device_gps
+  google_geocode
+  manual_update
+  fallback
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String   @unique
+  email     String   @unique
+  password  String
+  usertype  UserType @default(customer)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  appointments Appointment[]
+  reviews      Review[]
+}
+
+model Otp {
+  id        String   @id @default(cuid())
+  email     String
+  otp       String
+  createdAt DateTime @default(now())
+
+  @@index([email])
+  @@map("OTP")
+}
+
+model Shop {
+  id                 String           @id @default(cuid())
+  name               String
+  email              String           @unique
+  phone              String
+  password           String?
+  shopname           String
+  state              String
+  district           String
+  city               String
+  street             String
+  pin                String
+  lat                Float
+  lng                Float
+  coordinatesSource  CoordinateSource @default(device_gps)
+  isApproved         Boolean          @default(false)
+  status             ShopStatus       @default(open)
+  statusLastUpdated  DateTime         @default(now())
+  averageRating      Float            @default(0)
+  totalReviews       Int              @default(0)
+  ratingBreakdown    Json?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  services     ShopService[]
+  timeSlots    TimeSlot[]
+  templates    Template[]
+  appointments Appointment[]
+  reviews      Review[]
+
+  @@index([lat, lng])
+  @@index([state, district, city])
+  @@index([isApproved])
+}
+
+model ShopService {
+  id      String @id @default(cuid())
+  shopId  String
+  service String
+  price   String
+
+  shop Shop @relation(fields: [shopId], references: [id], onDelete: Cascade)
+
+  @@index([shopId])
+}
+
+model TimeSlot {
+  id          String   @id @default(cuid())
+  shopOwnerId String
+  name        String
+  email       String
+  phone       String
+  date        DateTime
+
+  shop       Shop                @relation(fields: [shopOwnerId], references: [id], onDelete: Cascade)
+  showtimes  TimeSlotShowtime[]
+  appointments Appointment[]
+
+  @@index([shopOwnerId])
+  @@index([date])
+  @@index([shopOwnerId, date])
+}
+
+model TimeSlotShowtime {
+  id         String   @id @default(cuid())
+  timeSlotId String
+  date       DateTime
+  isBooked   Boolean  @default(false)
+
+  timeSlot   TimeSlot              @relation(fields: [timeSlotId], references: [id], onDelete: Cascade)
+  appointments AppointmentShowtime[]
+
+  @@index([timeSlotId])
+  @@index([date])
+  @@index([timeSlotId, date])
+}
+
+model Template {
+  id           String   @id @default(cuid())
+  shopOwnerId  String
+  name         String
+  email        String
+  phone        String
+  workingDays  String[]
+  startTime    String
+  endTime      String
+  slotInterval Int
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  shop Shop @relation(fields: [shopOwnerId], references: [id], onDelete: Cascade)
+
+  @@index([shopOwnerId])
+}
+
+model Appointment {
+  id            String             @id @default(cuid())
+  customerEmail String
+  userId        String
+  shopId        String
+  timeSlotId    String
+  status        AppointmentStatus  @default(confirmed)
+  bookedAt      DateTime           @default(now())
+  totalAmount   Float
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+
+  user       User      @relation(fields: [userId], references: [id], onDelete: Restrict)
+  shop       Shop      @relation(fields: [shopId], references: [id], onDelete: Restrict)
+  timeSlot   TimeSlot  @relation(fields: [timeSlotId], references: [id], onDelete: Restrict)
+  showtimes  AppointmentShowtime[]
+  reviews    Review[]
+
+  @@index([customerEmail])
+  @@index([shopId])
+  @@index([userId])
+}
+
+model AppointmentShowtime {
+  id            String   @id @default(cuid())
+  appointmentId String
+  showtimeId    String
+  date          DateTime
+  serviceName   String
+  servicePrice  Float
+
+  appointment Appointment    @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  showtime    TimeSlotShowtime @relation(fields: [showtimeId], references: [id], onDelete: Restrict)
+
+  @@index([appointmentId])
+  @@index([showtimeId])
+}
+
+model Review {
+  id            String       @id @default(cuid())
+  userId        String
+  userName      String
+  userEmail     String
+  shopId        String
+  appointmentId String
+  rating        Int
+  comment       String?
+  status        ReviewStatus @default(approved)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Restrict)
+  shop        Shop        @relation(fields: [shopId], references: [id], onDelete: Restrict)
+  appointment Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+
+  @@unique([appointmentId, userId])
+  @@index([shopId])
+}
+
+model Contact {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  message   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Donation {
+  id         String         @id @default(cuid())
+  donorName  String
+  donorEmail String
+  amount     Float
+  message    String?
+  paymentId  String
+  orderId    String
+  status     DonationStatus @default(completed)
+  donatedAt  DateTime       @default(now())
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
 }

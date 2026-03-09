@@ -1,173 +1,22 @@
-const nodemailer = require('nodemailer');
-const otpGenerator = require( 'otp-generator');
-const OTP = require('../../models/user/otp-model');
-const User = require('../../models/user/user-model');
-const {mailOtp} = require('../../utils/mail')
+const otpGenerator = require("otp-generator");
+const prisma = require("../../utils/prisma");
+const { mailOtp } = require("../../utils/mail");
 
-
+const normalizeEmail = (value) => (value || "").trim().toLowerCase();
 
 exports.userOTP = async (req, res) => {
-  const normalizedEmail = req.body?.email?.trim()?.toLowerCase();
-  
+  const normalizedEmail = normalizeEmail(req.body?.email);
+
   try {
     if (!normalizedEmail) {
       return res.status(400).json({ success: false, message: "Email is required" });
     }
 
-    const user = await User.findOne({ email: normalizedEmail });
+    const user = await prisma.user.findFirst({ where: { email: normalizedEmail } });
     if (user) {
       return res.status(200).json({
         success: false,
-        message: "User already exists please login"
-      });
-    }
-
-    const otp = otpGenerator.generate(6, {
-      upperCaseAlphabets: false,
-      lowerCaseAlphabets: false,
-      specialChars: false
-    });
-
-    // Save OTP in DB
-    await OTP.create({ email: normalizedEmail, otp });
-
-    // ✅ Respond immediately
-    res.status(200).json({
-      success: true,
-      message: "OTP generated successfully"
-    });
-
-    // 🚀 Send mail in background (non-blocking)
-    mailOtp(otp, normalizedEmail)
-      .then(() => console.log("OTP email sent:", normalizedEmail))
-      .catch(err => console.error("Failed to send OTP email:", err));
-
-  } catch (error) {
-    console.error("Error generating OTP:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Failed to generate OTP. Please try again later."
-    });
-  }
-};
-
-
-// exports.userOTP=async (req, res) => {
-
-//   const { email} = req.body;
-//   try {
-//     const user = await User.findOne({ email:email.toLowerCase() });
-//     if (user) {
-//       return res.status(401).json({ error: "User already exists please login" });
-//     }
-    
-//     const otp = otpGenerator.generate(6, {
-//       upperCaseAlphabets: false,
-//       lowerCaseAlphabets: false,
-//       specialChars: false
-//     })
-
-//     await OTP.create({ email: email.toLowerCase(), otp })
-//     // res.status(200).json({ message: "User not found" });
-//     await mailOtp(otp, email.toLowerCase())
-//     res.status(200).json({
-//       success: true,
-//       message: 'OTP sent successfully'
-//     })
-//   }
-//   catch(error){
-//     console.error('Error sending OTP:', error)
-//     return res.status(500).json({
-//       success: false,
-//       message: 'Failed to send OTP. Please try again later.'
-//     });
-//   }
-// };
-
-
-// exports.userOTP1=async (req, res) => {
-
-//   const { email} = req.body;
-//   try {
-//     const user = await User.findOne({ email });
-//     if (user) {
-//       return res.status(200).json({ message: "Userfound" });
-      
-//     }
-//     res.status(401).json({ error: "User not found please signup" });
-//   }
-//   catch(error){
-//     console.error("Error during fetch:", error);
-//     res.status(500).json({ error: "Internal server error" });
-//   }
-// };
-
-// exports.sendOTP = async (req, res) => {
-//   try {
-//     const { email } = req.body;
-
-//     // Generate OTP
-//     const otp = otpGenerator.generate(6, {
-//       upperCaseAlphabets: false,
-//       lowerCaseAlphabets: false,
-//       specialChars: false,
-//     });
-
-//     // Save OTP in the database
-//     await OTP.create({ email, otp });
-
-//     // Create Nodemailer transporter
-//     const transporter = nodemailer.createTransport({
-//       service: "gmail", // e.g., 'Gmail'
-//       // port:587,
-//       // secure:false,
-//       auth: {
-//         // user: process.env.VITE_APP_EMAIL,
-//         // pass: process.env.VITE_APP_PASSWORD,
-//         user: 'sbthelp123@gmail.com',
-//         pass: 'cwpf ywjb qdrp dexv',
-//       },
-//       debug: true, // enable debug output
-//       logger: true // log information to console
-//     });
-
-//     const mailOptions = {
-//       from: 'sbthelp123@gmail.com',
-//       // from: process.env.REACT_APP_EMAIL,
-//       to: email,
-//       subject: 'Verify your Email Address',
-//       html:`<h3>Please confirm your OTP</h3>
-//       <p>Here is your OTP code: <b>${otp}</b></p>`,
-//     };
-
-//     await transporter.sendMail(mailOptions);
-
-//     res.status(200).json({
-//       success: true,
-//       message: 'OTP sent successfully',
-//     });
-//   } catch (error) {
-//     console.error('Error sending OTP:', error);
-//     return res.status(500).json({
-//       success: false,
-//       message: 'Failed to send OTP. Please try again later.',
-//     });
-//   }
-// };
-
-exports.sendOTPforgot = async (req, res) => {
-  try {
-    const normalizedEmail = req.body?.email?.trim()?.toLowerCase();
-
-    if (!normalizedEmail) {
-      return res.status(400).json({ success: false, message: "Email is required" });
-    }
-
-    const user = await User.findOne({ email: normalizedEmail });
-    if (!user) {
-      return res.status(200).json({
-        success: false,
-        message: "User does not exist. Please sign up."
+        message: "User already exists please login",
       });
     }
 
@@ -177,38 +26,63 @@ exports.sendOTPforgot = async (req, res) => {
       specialChars: false,
     });
 
-    await OTP.create({ email: normalizedEmail, otp });
-    console.log("fine till here");
-    await mailOtp(otp, normalizedEmail)
-    res.status(200).json({
-      success: true,
-      message: 'OTP sent successfully'
+    await prisma.otp.create({
+      data: { email: normalizedEmail, otp },
     });
 
-    // const transporter = nodemailer.createTransport({
-    //   service: "gmail",
-    //   auth: {
-    //     user: 'sbthelp123@gmail.com',
-    //     pass: 'pigw wfcs pidv aibo',
-    //   },
-    // });
-    // const mailOptions = {
-    //   from: 'sbthelp123@gmail.com',
-    //   to: email,
-    //   subject: 'Password Reset',
-    //   html:`<h1>Please confirm your OTP</h1>
-    //   <p>Here is your OTP code: ${otp}</p>`,
-    // };
-    // await transporter.sendMail(mailOptions);
-    // res.status(200).json({
-    //   success: true,
-    //   message: 'OTP sent successfully',
-    // });
+    res.status(200).json({
+      success: true,
+      message: "OTP generated successfully",
+    });
+
+    mailOtp(otp, normalizedEmail)
+      .then(() => console.log("OTP email sent:", normalizedEmail))
+      .catch((err) => console.error("Failed to send OTP email:", err));
   } catch (error) {
-    console.error('Error sending OTP:', error);
+    console.error("Error generating OTP:", error);
     return res.status(500).json({
       success: false,
-      message: 'Failed to send OTP. Please try again later.',
+      message: "Failed to generate OTP. Please try again later.",
+    });
+  }
+};
+
+exports.sendOTPforgot = async (req, res) => {
+  try {
+    const normalizedEmail = normalizeEmail(req.body?.email);
+
+    if (!normalizedEmail) {
+      return res.status(400).json({ success: false, message: "Email is required" });
+    }
+
+    const user = await prisma.user.findFirst({ where: { email: normalizedEmail } });
+    if (!user) {
+      return res.status(200).json({
+        success: false,
+        message: "User does not exist. Please sign up.",
+      });
+    }
+
+    const otp = otpGenerator.generate(6, {
+      upperCaseAlphabets: false,
+      lowerCaseAlphabets: false,
+      specialChars: false,
+    });
+
+    await prisma.otp.create({
+      data: { email: normalizedEmail, otp },
+    });
+
+    await mailOtp(otp, normalizedEmail);
+    res.status(200).json({
+      success: true,
+      message: "OTP sent successfully",
+    });
+  } catch (error) {
+    console.error("Error sending OTP:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to send OTP. Please try again later.",
     });
   }
 };

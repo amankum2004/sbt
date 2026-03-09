@@ -5,13 +5,13 @@ const loginSchema = z.object({
     .string({required_error:"Email is required"})
     .trim()
     .email({message:"Invalid email address"})
-    .min(9,{message: "Email must be of atleast 9 characters" })
+    .min(6,{message: "Email must be of atleast 6 characters" })
     .max(50,{message:"Email must not have more than 50 characters"}),
 
     password:z
     .string({required_error:"Password is required"})
-    .min(6,{message: "password must be of atleast 6 characters" })
-    .max(50,{message:"Password must not have more than 50 characters"})
+    .min(4,{message: "password must be of atleast 4 characters" })
+    .max(20,{message:"Password must not have more than 20 characters"})
 
 })
 

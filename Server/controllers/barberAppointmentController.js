@@ -1,157 +1,99 @@
-const Appointment = require('../models/appointment-model');
-const Shop = require('../models/registerShop-model');
+const prisma = require("../utils/prisma");
+const { mapAppointment, mapShop } = require("../utils/legacy-mappers");
 
 // Get all appointments for barber's shop
 exports.getBarberAppointments = async (req, res) => {
   try {
     const { shopId } = req.params;
-    
-    console.log('=== DEBUGGING BARBER APPOINTMENTS ===');
-    console.log('Requested shopId:', shopId);
+
+    console.log("=== DEBUGGING BARBER APPOINTMENTS ===");
+    console.log("Requested shopId:", shopId);
 
     if (!shopId) {
-      return res.status(200).json({ 
+      return res.status(200).json({
         success: false,
-        error: 'Shop ID is required' 
+        error: "Shop ID is required",
       });
     }
 
-    const fullAppointments = await Appointment.find({ shopId: shopId })
-      .populate('shopId', 'shopname city address phone email')
-      .populate('timeSlot', 'date')
-      .populate('userId', 'name email phone');
+    const appointments = await prisma.appointment.findMany({
+      where: { shopId },
+      include: {
+        shop: true,
+        timeSlot: true,
+        user: true,
+        showtimes: true,
+      },
+      orderBy: { bookedAt: "desc" },
+    });
 
-    console.log('Full population result:', fullAppointments.length);
+    const fullAppointments = appointments.map(mapAppointment);
+
+    console.log("Full population result:", fullAppointments.length);
 
     const now = new Date();
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
 
-    console.log('Time references:', {
-      now: now.toLocaleString(),
-      startOfToday: startOfToday.toLocaleString(),
-      endOfToday: endOfToday.toLocaleString()
-    });
-
-    // Separate appointments based on STATUS first, then DATE
     const todaysAppointments = [];
     const upcomingAppointments = [];
     const pastAppointments = [];
 
-    fullAppointments.forEach(appointment => {
+    fullAppointments.forEach((appointment) => {
       const appointmentDate = appointment.timeSlot?.date;
-      
-      // Use showtime date if available, otherwise use timeSlot date
       let appointmentDateTime;
+
       if (appointment.showtimes && appointment.showtimes.length > 0 && appointment.showtimes[0].date) {
         appointmentDateTime = new Date(appointment.showtimes[0].date);
       } else {
         appointmentDateTime = new Date(appointmentDate);
       }
 
-      console.log('Processing appointment:', {
-        customer: appointment.userId?.name,
-        appointmentTime: appointmentDateTime.toLocaleString(),
-        status: appointment.status,
-        isToday: appointmentDateTime >= startOfToday && appointmentDateTime < endOfToday,
-        isPast: appointmentDateTime < startOfToday,
-        isFuture: appointmentDateTime >= endOfToday
-      });
-
-      // FIRST: Check if appointment is completed or cancelled - these always go to history
-      if (appointment.status === 'completed' || appointment.status === 'cancelled') {
+      if (appointment.status === "completed" || appointment.status === "cancelled") {
         pastAppointments.push(appointment);
-        console.log('-> Added to HISTORY (completed/cancelled status)');
         return;
       }
 
-      // SECOND: For active appointments (pending/confirmed), categorize by DATE
       const isToday = appointmentDateTime >= startOfToday && appointmentDateTime < endOfToday;
       const isPast = appointmentDateTime < startOfToday;
       const isFuture = appointmentDateTime >= endOfToday;
 
       if (isToday) {
-        // Today's appointments - show only if not completed/cancelled
         todaysAppointments.push(appointment);
-        console.log('-> Added to TODAY (today date, active status)');
       } else if (isPast) {
-        // Past appointments with active status - move to history
         pastAppointments.push(appointment);
-        console.log('-> Added to HISTORY (past date, active status)');
       } else if (isFuture) {
-        // Future appointments - show in upcoming
         upcomingAppointments.push(appointment);
-        console.log('-> Added to UPCOMING (future date, active status)');
       }
     });
 
-    // Sort Today appointments chronologically (earliest first)
-    todaysAppointments.sort((a, b) => {
-      const getAppointmentDate = (appointment) => {
-        return appointment.showtimes && appointment.showtimes.length > 0 
-          ? appointment.showtimes[0].date 
-          : appointment.timeSlot?.date;
-      };
-      
-      const dateA = new Date(getAppointmentDate(a) || 0);
-      const dateB = new Date(getAppointmentDate(b) || 0);
-      return dateA - dateB; // Ascending order (earliest first)
-    });
+    const getAppointmentDate = (appointment) =>
+      appointment.showtimes && appointment.showtimes.length > 0
+        ? appointment.showtimes[0].date
+        : appointment.timeSlot?.date;
 
-    // Sort Upcoming appointments chronologically (earliest first)
-    upcomingAppointments.sort((a, b) => {
-      const getAppointmentDate = (appointment) => {
-        return appointment.showtimes && appointment.showtimes.length > 0 
-          ? appointment.showtimes[0].date 
-          : appointment.timeSlot?.date;
-      };
-      
-      const dateA = new Date(getAppointmentDate(a) || 0);
-      const dateB = new Date(getAppointmentDate(b) || 0);
-      return dateA - dateB; // Ascending order (earliest first)
-    });
+    todaysAppointments.sort((a, b) => new Date(getAppointmentDate(a) || 0) - new Date(getAppointmentDate(b) || 0));
+    upcomingAppointments.sort((a, b) => new Date(getAppointmentDate(a) || 0) - new Date(getAppointmentDate(b) || 0));
+    pastAppointments.sort((a, b) => new Date(getAppointmentDate(b) || 0) - new Date(getAppointmentDate(a) || 0));
 
-    // Sort History appointments in reverse chronological order (most recent first)
-    pastAppointments.sort((a, b) => {
-      const getAppointmentDate = (appointment) => {
-        return appointment.showtimes && appointment.showtimes.length > 0 
-          ? appointment.showtimes[0].date 
-          : appointment.timeSlot?.date;
-      };
-      
-      const dateA = new Date(getAppointmentDate(a) || 0);
-      const dateB = new Date(getAppointmentDate(b) || 0);
-      return dateB - dateA; // Descending order (most recent first)
-    });
-
-    console.log('Final categorized appointments:', {
-      today: todaysAppointments.length,
-      upcoming: upcomingAppointments.length,
-      past: pastAppointments.length,
-      todayDetails: todaysAppointments.map(apt => ({
-        customer: apt.userId?.name,
-        date: apt.showtimes?.[0]?.date || apt.timeSlot?.date,
-        status: apt.status
-      })),
-      pastDetails: pastAppointments.map(apt => ({
-        customer: apt.userId?.name,
-        date: apt.showtimes?.[0]?.date || apt.timeSlot?.date,
-        status: apt.status
-      }))
-    });
-
-    // Calculate statistics
     const stats = {
       total: fullAppointments.length,
       today: todaysAppointments.length,
       upcoming: upcomingAppointments.length,
-      completed: pastAppointments.filter(apt => apt.status === 'completed').length,
-      cancelled: pastAppointments.filter(apt => apt.status === 'cancelled').length,
-      pending: todaysAppointments.filter(apt => apt.status === 'pending').length + 
-               upcomingAppointments.filter(apt => apt.status === 'pending').length,
-      confirmed: todaysAppointments.filter(apt => apt.status === 'confirmed').length + 
-                 upcomingAppointments.filter(apt => apt.status === 'confirmed').length
+      completed: pastAppointments.filter((apt) => apt.status === "completed").length,
+      cancelled: pastAppointments.filter((apt) => apt.status === "cancelled").length,
+      pending:
+        todaysAppointments.filter((apt) => apt.status === "pending").length +
+        upcomingAppointments.filter((apt) => apt.status === "pending").length,
+      confirmed:
+        todaysAppointments.filter((apt) => apt.status === "confirmed").length +
+        upcomingAppointments.filter((apt) => apt.status === "confirmed").length,
     };
+
+    const shop = await prisma.shop.findUnique({
+      where: { id: shopId },
+      select: { id: true, name: true, city: true, street: true, shopname: true },
+    });
 
     res.status(200).json({
       success: true,
@@ -159,28 +101,27 @@ exports.getBarberAppointments = async (req, res) => {
       upcomingAppointments,
       pastAppointments,
       stats,
-      shop: await Shop.findById(shopId).select('name city address shopname')
+      shop: shop ? mapShop(shop) : null,
     });
   } catch (error) {
-    console.error('Error fetching barber appointments:', error);
-    res.status(500).json({ 
+    console.error("Error fetching barber appointments:", error);
+    res.status(500).json({
       success: false,
-      error: 'Failed to fetch appointments',
-      details: error.message 
+      error: "Failed to fetch appointments",
+      details: error.message,
     });
   }
 };
-
 
 // Get today's appointments only
 exports.getTodaysAppointments = async (req, res) => {
   try {
     const { shopId } = req.params;
-    
+
     if (!shopId) {
-      return res.status(200).json({ 
+      return res.status(200).json({
         success: false,
-        error: 'Shop ID is required' 
+        error: "Shop ID is required",
       });
     }
 
@@ -189,36 +130,60 @@ exports.getTodaysAppointments = async (req, res) => {
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
 
-    const appointments = await Appointment.find({ 
-      shopId,
-      $or: [
-        { 'timeSlot.date': { $gte: today, $lt: tomorrow } },
-        { 'showtimes.date': { $gte: today, $lt: tomorrow } }
-      ]
-    })
-    .populate('shopId', 'shopname city address')
-    .populate('timeSlot', 'date')
-    .populate('userId', 'name email phone')
-    .sort({ 'showtimes.date': 1 }); // Sort chronologically
+    const appointments = await prisma.appointment.findMany({
+      where: {
+        shopId,
+        OR: [
+          {
+            timeSlot: {
+              is: {
+                date: { gte: today, lt: tomorrow },
+              },
+            },
+          },
+          {
+            showtimes: {
+              some: {
+                date: { gte: today, lt: tomorrow },
+              },
+            },
+          },
+        ],
+      },
+      include: {
+        shop: true,
+        timeSlot: true,
+        user: true,
+        showtimes: true,
+      },
+    });
 
-    if(!appointments){
+    const mappedAppointments = appointments.map(mapAppointment);
+
+    const sortedAppointments = mappedAppointments.sort((a, b) => {
+      const dateA = new Date(a.showtimes?.[0]?.date || a.timeSlot?.date || 0);
+      const dateB = new Date(b.showtimes?.[0]?.date || b.timeSlot?.date || 0);
+      return dateA - dateB;
+    });
+
+    if (!sortedAppointments.length) {
       res.status(200).json({
         success: false,
-        message: 'No appointments for today',   
+        message: "No appointments for today",
       });
+      return;
     }
 
     res.status(200).json({
       success: true,
-      todaysAppointments: appointments,
-      date: today.toISOString().split('T')[0]
+      todaysAppointments: sortedAppointments,
+      date: today.toISOString().split("T")[0],
     });
-
   } catch (error) {
-    console.error('Error fetching today\'s appointments:', error);
-    res.status(500).json({ 
+    console.error("Error fetching today's appointments:", error);
+    res.status(500).json({
       success: false,
-      error: 'Failed to fetch today\'s appointments' 
+      error: "Failed to fetch today's appointments",
     });
   }
 };
@@ -232,56 +197,56 @@ exports.updateAppointmentStatus = async (req, res) => {
     if (!appointmentId || !status) {
       return res.status(400).json({
         success: false,
-        error: 'Appointment ID and status are required'
+        error: "Appointment ID and status are required",
       });
     }
 
-    const validStatuses = ['pending', 'confirmed', 'completed', 'cancelled'];
+    const validStatuses = ["pending", "confirmed", "completed", "cancelled"];
     if (!validStatuses.includes(status)) {
       return res.status(400).json({
         success: false,
-        error: 'Invalid status. Must be one of: pending, confirmed, completed, cancelled'
+        error: "Invalid status. Must be one of: pending, confirmed, completed, cancelled",
       });
     }
 
-    const appointment = await Appointment.findByIdAndUpdate(
-      appointmentId,
-      { status },
-      { new: true }
-    )
-    .populate('shopId', 'shopname city address')
-    .populate('timeSlot', 'date')
-    .populate('userId', 'name email phone');
+    const appointment = await prisma.appointment.update({
+      where: { id: appointmentId },
+      data: { status },
+      include: {
+        shop: true,
+        timeSlot: true,
+        user: true,
+        showtimes: true,
+      },
+    });
 
     if (!appointment) {
       return res.status(200).json({
         success: false,
-        error: 'Appointment not found'
+        error: "Appointment not found",
       });
     }
 
     res.status(200).json({
       success: true,
-      message: 'Appointment status updated successfully',
-      appointment
+      message: "Appointment status updated successfully",
+      appointment: mapAppointment(appointment),
     });
-
   } catch (error) {
-    console.error('Error updating appointment status:', error);
+    console.error("Error updating appointment status:", error);
     res.status(500).json({
       success: false,
-      error: 'Failed to update appointment status'
+      error: "Failed to update appointment status",
     });
   }
 };
 
-
-const ANALYTICS_PERIODS = new Set(['day', 'week', 'month', 'year']);
+const ANALYTICS_PERIODS = new Set(["day", "week", "month", "year"]);
 
 const roundCurrency = (value) => Number((Number(value) || 0).toFixed(2));
 
 const parseDateFromQuery = (rawDate) => {
-  if (typeof rawDate !== 'string') return null;
+  if (typeof rawDate !== "string") return null;
   const match = rawDate.trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
   if (!match) return null;
 
@@ -332,7 +297,7 @@ const getAppointmentDate = (appointment) => {
 };
 
 const getPeriodRange = (rawPeriod, filters = {}) => {
-  const period = ANALYTICS_PERIODS.has(rawPeriod) ? rawPeriod : 'month';
+  const period = ANALYTICS_PERIODS.has(rawPeriod) ? rawPeriod : "month";
   const now = new Date();
   const referenceDate = parseDateFromQuery(filters.date) || now;
   const yearFromQuery = parseValidYear(filters.year, now.getFullYear());
@@ -340,14 +305,14 @@ const getPeriodRange = (rawPeriod, filters = {}) => {
   let startDate;
   let endDate;
 
-  if (period === 'day') {
+  if (period === "day") {
     startDate = new Date(referenceDate.getFullYear(), referenceDate.getMonth(), referenceDate.getDate());
     endDate = new Date(startDate);
     endDate.setDate(endDate.getDate() + 1);
     return { period, startDate, endDate };
   }
 
-  if (period === 'week') {
+  if (period === "week") {
     const currentDay = referenceDate.getDay();
     const diffToMonday = currentDay === 0 ? 6 : currentDay - 1;
     startDate = new Date(referenceDate.getFullYear(), referenceDate.getMonth(), referenceDate.getDate());
@@ -357,7 +322,7 @@ const getPeriodRange = (rawPeriod, filters = {}) => {
     return { period, startDate, endDate };
   }
 
-  if (period === 'month') {
+  if (period === "month") {
     startDate = new Date(yearFromQuery, monthFromQuery, 1);
     endDate = new Date(yearFromQuery, monthFromQuery + 1, 1);
     return { period, startDate, endDate };
@@ -369,30 +334,30 @@ const getPeriodRange = (rawPeriod, filters = {}) => {
 };
 
 const getBucketKeyAndLabel = (date, period) => {
-  if (period === 'day') {
+  if (period === "day") {
     const hour = date.getHours();
-    const key = `h-${hour.toString().padStart(2, '0')}`;
-    const label = `${hour.toString().padStart(2, '0')}:00`;
+    const key = `h-${hour.toString().padStart(2, "0")}`;
+    const label = `${hour.toString().padStart(2, "0")}:00`;
     return { key, label };
   }
 
-  if (period === 'year') {
+  if (period === "year") {
     const year = date.getFullYear();
     const month = date.getMonth() + 1;
-    const key = `${year}-${month.toString().padStart(2, '0')}`;
-    const label = date.toLocaleString('en-IN', { month: 'short' });
+    const key = `${year}-${month.toString().padStart(2, "0")}`;
+    const label = date.toLocaleString("en-IN", { month: "short" });
     return { key, label };
   }
 
   const year = date.getFullYear();
-  const month = (date.getMonth() + 1).toString().padStart(2, '0');
-  const day = date.getDate().toString().padStart(2, '0');
+  const month = (date.getMonth() + 1).toString().padStart(2, "0");
+  const day = date.getDate().toString().padStart(2, "0");
   const key = `${year}-${month}-${day}`;
 
   const label =
-    period === 'week'
-      ? date.toLocaleString('en-IN', { weekday: 'short', day: '2-digit' })
-      : date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
+    period === "week"
+      ? date.toLocaleString("en-IN", { weekday: "short", day: "2-digit" })
+      : date.toLocaleDateString("en-IN", { day: "2-digit", month: "short" });
 
   return { key, label };
 };
@@ -400,12 +365,12 @@ const getBucketKeyAndLabel = (date, period) => {
 const createBuckets = (startDate, endDate, period) => {
   const buckets = new Map();
 
-  if (period === 'day') {
+  if (period === "day") {
     for (let hour = 0; hour < 24; hour += 1) {
-      const key = `h-${hour.toString().padStart(2, '0')}`;
+      const key = `h-${hour.toString().padStart(2, "0")}`;
       buckets.set(key, {
         key,
-        label: `${hour.toString().padStart(2, '0')}:00`,
+        label: `${hour.toString().padStart(2, "0")}:00`,
         bookings: 0,
         completed: 0,
         cancelled: 0,
@@ -416,10 +381,10 @@ const createBuckets = (startDate, endDate, period) => {
     return buckets;
   }
 
-  if (period === 'year') {
+  if (period === "year") {
     for (let month = 0; month < 12; month += 1) {
       const current = new Date(startDate.getFullYear(), month, 1);
-      const { key, label } = getBucketKeyAndLabel(current, 'year');
+      const { key, label } = getBucketKeyAndLabel(current, "year");
       buckets.set(key, {
         key,
         label,
@@ -455,17 +420,12 @@ const createBuckets = (startDate, endDate, period) => {
 exports.getAppointmentAnalytics = async (req, res) => {
   try {
     const { shopId } = req.params;
-    const {
-      period: periodQuery = 'month',
-      date: dateQuery,
-      month: monthQuery,
-      year: yearQuery,
-    } = req.query;
+    const { period: periodQuery = "month", date: dateQuery, month: monthQuery, year: yearQuery } = req.query;
 
     if (!shopId) {
       return res.status(400).json({
         success: false,
-        error: 'Shop ID is required'
+        error: "Shop ID is required",
       });
     }
 
@@ -475,9 +435,10 @@ exports.getAppointmentAnalytics = async (req, res) => {
       year: yearQuery,
     });
 
-    const appointments = await Appointment.find({ shopId })
-      .select('status totalAmount showtimes bookedAt')
-      .lean();
+    const appointments = await prisma.appointment.findMany({
+      where: { shopId },
+      include: { showtimes: true },
+    });
 
     const periodAppointments = [];
     for (const appointment of appointments) {
@@ -508,18 +469,18 @@ exports.getAppointmentAnalytics = async (req, res) => {
 
     for (const appointment of periodAppointments) {
       const amount = Number(appointment.totalAmount) || 0;
-      const status = appointment.status || 'pending';
+      const status = appointment.status || "pending";
 
       summary.totalAppointments += 1;
       summary.grossRevenue += amount;
 
-      if (status === 'pending') summary.pending += 1;
-      if (status === 'confirmed') summary.confirmed += 1;
-      if (status === 'completed') summary.completed += 1;
-      if (status === 'cancelled') summary.cancelled += 1;
-      if (status === 'completed') summary.realizedRevenue += amount;
-      if (status === 'pending' || status === 'confirmed') summary.expectedRevenue += amount;
-      if (status === 'cancelled') summary.cancelledRevenueLoss += amount;
+      if (status === "pending") summary.pending += 1;
+      if (status === "confirmed") summary.confirmed += 1;
+      if (status === "completed") summary.completed += 1;
+      if (status === "cancelled") summary.cancelled += 1;
+      if (status === "completed") summary.realizedRevenue += amount;
+      if (status === "pending" || status === "confirmed") summary.expectedRevenue += amount;
+      if (status === "cancelled") summary.cancelledRevenueLoss += amount;
 
       const bucketMeta = getBucketKeyAndLabel(appointment.appointmentDate, period);
       if (!buckets.has(bucketMeta.key)) {
@@ -537,18 +498,18 @@ exports.getAppointmentAnalytics = async (req, res) => {
       const bucket = buckets.get(bucketMeta.key);
       bucket.bookings += 1;
       bucket.grossRevenue += amount;
-      if (status === 'completed') {
+      if (status === "completed") {
         bucket.completed += 1;
         bucket.revenue += amount;
       }
-      if (status === 'cancelled') {
+      if (status === "cancelled") {
         bucket.cancelled += 1;
       }
 
       if (Array.isArray(appointment.showtimes) && appointment.showtimes.length > 0) {
         for (const showtime of appointment.showtimes) {
-          const serviceName = showtime?.service?.name?.trim() || 'Unknown Service';
-          const servicePrice = Number(showtime?.service?.price);
+          const serviceName = showtime?.serviceName?.trim() || "Unknown Service";
+          const servicePrice = Number(showtime?.servicePrice);
           const serviceRevenue = Number.isFinite(servicePrice) ? servicePrice : amount;
 
           if (!serviceMap.has(serviceName)) {
@@ -556,18 +517,18 @@ exports.getAppointmentAnalytics = async (req, res) => {
           }
           const serviceStats = serviceMap.get(serviceName);
           serviceStats.bookings += 1;
-          if (status === 'completed') {
+          if (status === "completed") {
             serviceStats.revenue += serviceRevenue;
           }
         }
       } else {
-        const fallbackService = 'Unknown Service';
+        const fallbackService = "Unknown Service";
         if (!serviceMap.has(fallbackService)) {
           serviceMap.set(fallbackService, { name: fallbackService, bookings: 0, revenue: 0 });
         }
         const serviceStats = serviceMap.get(fallbackService);
         serviceStats.bookings += 1;
-        if (status === 'completed') {
+        if (status === "completed") {
           serviceStats.revenue += amount;
         }
       }
@@ -615,12 +576,11 @@ exports.getAppointmentAnalytics = async (req, res) => {
       analytics,
       topServices,
     });
-
   } catch (error) {
-    console.error('Error fetching appointment analytics:', error);
+    console.error("Error fetching appointment analytics:", error);
     res.status(500).json({
       success: false,
-      error: 'Failed to fetch appointment analytics'
+      error: "Failed to fetch appointment analytics",
     });
   }
 };
@@ -631,41 +591,38 @@ exports.getAppointmentDetails = async (req, res) => {
     const { appointmentId } = req.params;
 
     if (!appointmentId) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         success: false,
-        error: 'Appointment ID is required' 
+        error: "Appointment ID is required",
       });
     }
 
-    const appointment = await Appointment.findById(appointmentId)
-      .populate('shopId', 'shopname city address phone email services')
-      .populate('timeSlot', 'date')
-      .populate('userId', 'name email phone')
-      .populate({
-        path: 'timeSlot',
-        populate: {
-          path: 'showtimes',
-          match: { _id: { $in: appointment?.showtimes?.map(st => st.showtimeId) } }
-        }
-      });
+    const appointment = await prisma.appointment.findUnique({
+      where: { id: appointmentId },
+      include: {
+        shop: { include: { services: true } },
+        timeSlot: { include: { showtimes: true } },
+        user: true,
+        showtimes: { include: { showtime: true } },
+      },
+    });
 
     if (!appointment) {
-      return res.status(200).json({ 
+      return res.status(200).json({
         success: false,
-        error: 'Appointment not found' 
+        error: "Appointment not found",
       });
     }
 
     res.status(200).json({
       success: true,
-      appointment
+      appointment: mapAppointment(appointment),
     });
-
   } catch (error) {
-    console.error('Error fetching appointment details:', error);
-    res.status(500).json({ 
+    console.error("Error fetching appointment details:", error);
+    res.status(500).json({
       success: false,
-      error: 'Failed to fetch appointment details' 
+      error: "Failed to fetch appointment details",
     });
   }
 };

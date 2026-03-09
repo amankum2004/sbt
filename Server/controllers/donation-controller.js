@@ -1,14 +1,13 @@
-const Donation = require("../models/donation-model");
+const prisma = require("../utils/prisma");
 
 const getAllDonations = async (req, res) => {
   try {
-    const donations = await Donation.find({})
-      .sort({ createdAt: -1 })
-      .lean();
+    const donations = await prisma.donation.findMany({
+      orderBy: { createdAt: "desc" },
+    });
 
-    // Normalize field names for frontend compatibility.
     const normalizedDonations = donations.map((donation) => ({
-      _id: donation._id,
+      _id: donation.id,
       name: donation.donorName,
       email: donation.donorEmail,
       amount: donation.amount,
@@ -17,8 +16,8 @@ const getAllDonations = async (req, res) => {
       updatedAt: donation.updatedAt,
       donatedAt: donation.donatedAt,
       status: donation.status,
-      payment_id: donation.payment_id,
-      order_id: donation.order_id,
+      payment_id: donation.paymentId,
+      order_id: donation.orderId,
     }));
 
     return res.status(200).json(normalizedDonations);

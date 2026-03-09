@@ -1,85 +1,107 @@
-const User = require('../../models/user/user-model')
+const prisma = require("../../utils/prisma");
 
 const fetchUsers = async (req, res) => {
   try {
-    let query = {}
+    let where = {};
 
-    // Check if role filter is provided in query parameters
     if (req.query.role) {
-      // If role filter is provided, construct the query to filter users by role
-      query = { usertype: req.query.role }
+      where = { usertype: req.query.role };
     }
 
-    // Fetch users based on the constructed query
-    const users = await User.find(query)
+    const users = await prisma.user.findMany({
+      where,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        usertype: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
 
-    res.json({ users })
+    res.json({ users: users.map((user) => ({ _id: user.id, ...user })) });
   } catch (error) {
-    console.error('Error fetching users:', error)
-    res.status(500).json({ error: 'Failed to fetch users' })
+    console.error("Error fetching users:", error);
+    res.status(500).json({ error: "Failed to fetch users" });
   }
-}
+};
 
 const updateUserType = async (req, res) => {
   try {
-    const { email, userType } = req.body
-    const user = await User.findOne({ email: email.toLowerCase() })
+    const { email, userType } = req.body;
+    const normalizedEmail = (email || "").trim().toLowerCase();
+
+    const user = await prisma.user.findFirst({
+      where: { email: normalizedEmail },
+    });
 
     if (!user) {
-      return res.status(404).json({ error: 'User not found' })
+      return res.status(404).json({ error: "User not found" });
     }
 
-    user.usertype = userType
-    await user.save()
+    const updatedUser = await prisma.user.update({
+      where: { id: user.id },
+      data: { usertype: userType },
+    });
 
-    res.status(200).json({ message: 'User type updated successfully', user })
+    res.status(200).json({
+      message: "User type updated successfully",
+      user: { _id: updatedUser.id, ...updatedUser },
+    });
   } catch (error) {
-    console.error('Error updating user type:', error)
-    res.status(500).json({ error: 'Error updating user type' })
+    console.error("Error updating user type:", error);
+    res.status(500).json({ error: "Error updating user type" });
   }
-}
+};
 
 const userType = async (req, res) => {
   try {
-    const { email } = req.user
-    const user = await User.findOne({ email: email.toLowerCase() })
+    const { email } = req.user;
+    const normalizedEmail = (email || "").trim().toLowerCase();
+
+    const user = await prisma.user.findFirst({
+      where: { email: normalizedEmail },
+    });
+
     if (!user) {
-      return res.status(404).json({ error: 'User not found' })
+      return res.status(404).json({ error: "User not found" });
     }
+
     res.status(200).json({
       userType: user.usertype,
-      userName: user.username,
-      userPhone: user.phone
-    })
+      userName: user.name,
+      userPhone: user.phone,
+    });
   } catch (error) {
-    console.error('Error fetching user type:', error)
-    res.status(500).json({ error: 'Error fetching user type' })
+    console.error("Error fetching user type:", error);
+    res.status(500).json({ error: "Error fetching user type" });
   }
-}
-
+};
 
 const updateProfile = async (req, res) => {
   try {
     const userId = req.params.id;
     const { name, email, phone } = req.body;
 
-    const updatedUser = await User.findByIdAndUpdate(
-      userId,
-      { name: name, email: email, phone: phone },
-      { new: true }
-    );
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: { name, email, phone },
+    });
 
     if (!updatedUser) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    res.json({ message: "Profile updated", user: updatedUser });
+    res.json({
+      message: "Profile updated",
+      user: { _id: updatedUser.id, ...updatedUser },
+    });
   } catch (error) {
     console.error("Update failed:", error);
     res.status(500).json({ message: "Something went wrong" });
   }
 };
 
-
-
-module.exports = { fetchUsers, updateUserType, userType, updateProfile }
+module.exports = { fetchUsers, updateUserType, userType, updateProfile };
