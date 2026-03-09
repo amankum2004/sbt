@@ -4,12 +4,13 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "vitest",
-    "test:ui": "vitest --ui",
-    "test:run": "vitest run",
-    "test:coverage": "vitest run --coverage",
+    "test": "vitest --config vitest.config.cjs",
+    "test:ui": "vitest --ui --config vitest.config.cjs",
+    "test:run": "vitest run --config vitest.config.cjs",
+    "test:coverage": "vitest run --coverage --config vitest.config.cjs",
+    "test:e2e": "npm --prefix client run test:e2e",
     "prettier": "prettier --write .",
-    "start": "cd frontend && npm run build && cd ../backend && npm run start"
+    "start": "cd client && npm run build && cd ../backend && npm run start"
   },
   "devDependencies": {
     "@playwright/test": "^1.57.0",

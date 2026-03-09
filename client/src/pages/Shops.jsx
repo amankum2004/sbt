@@ -12,11 +12,13 @@ import {
 } from "../utils/googleMaps";
 
 const USER_LOCATION_STORAGE_KEY = "salonhub_user_location";
-const LOCATION_CACHE_TTL_MS = 1000 * 60 * 60 * 6; // 6 hours
+const LOCATION_CACHE_TTL_MS = 1000 * 60 * 30; // 30 minutes
+const MAX_LOCATION_SAMPLES = 6;
+const TARGET_ACCURACY_METERS = 30;
+const MAX_CACHED_ACCURACY_METERS = 150;
 
 export const Shops = () => {
   const [shop, setShop] = useState([]);
-  const [rawShops, setRawShops] = useState([]);
   const [selectedState, setSelectedState] = useState("");
   const [selectedDistrict, setSelectedDistrict] = useState("");
   const [selectedCity, setSelectedCity] = useState("");
@@ -29,14 +31,18 @@ export const Shops = () => {
       const parsed = JSON.parse(cached);
       const cachedLat = toCoordinateNumber(parsed?.lat);
       const cachedLng = toCoordinateNumber(parsed?.lng);
+      const cachedAccuracy = Number(parsed?.accuracy);
       const cachedTimestamp = Number(parsed?.timestamp);
 
       if (!Number.isFinite(cachedLat) || !Number.isFinite(cachedLng)) return null;
       if (Number.isFinite(cachedTimestamp) && Date.now() - cachedTimestamp > LOCATION_CACHE_TTL_MS) {
         return null;
       }
+      if (Number.isFinite(cachedAccuracy) && cachedAccuracy > MAX_CACHED_ACCURACY_METERS) {
+        return null;
+      }
 
-      return { lat: cachedLat, lng: cachedLng };
+      return { lat: cachedLat, lng: cachedLng, accuracy: Number.isFinite(cachedAccuracy) ? cachedAccuracy : null };
     } catch {
       return null;
     }
@@ -126,6 +132,101 @@ export const Shops = () => {
     return R * c;
   };
 
+  const getBestDeviceLocation = () =>
+    new Promise((resolve, reject) => {
+      if (!navigator.geolocation) {
+        reject(new Error("Geolocation is not supported by this browser."));
+        return;
+      }
+
+      let watchId = null;
+      let timeoutId = null;
+      const samples = [];
+
+      const cleanup = () => {
+        if (watchId !== null) {
+          navigator.geolocation.clearWatch(watchId);
+          watchId = null;
+        }
+        if (timeoutId !== null) {
+          clearTimeout(timeoutId);
+          timeoutId = null;
+        }
+      };
+
+      const finalize = () => {
+        if (!samples.length) {
+          cleanup();
+          reject(new Error("Unable to capture valid device location."));
+          return;
+        }
+
+        const bestSample = samples.reduce((best, current) => {
+          if (!best) return current;
+
+          const bestAccuracy = Number.isFinite(best.accuracy) ? best.accuracy : Infinity;
+          const currentAccuracy = Number.isFinite(current.accuracy) ? current.accuracy : Infinity;
+
+          if (currentAccuracy < bestAccuracy) return current;
+          if (currentAccuracy === bestAccuracy && current.timestamp > best.timestamp) return current;
+          return best;
+        }, null);
+
+        cleanup();
+        resolve(bestSample);
+      };
+
+      watchId = navigator.geolocation.watchPosition(
+        (position) => {
+          const latitude = toCoordinateNumber(position.coords?.latitude);
+          const longitude = toCoordinateNumber(position.coords?.longitude);
+          const accuracy = toCoordinateNumber(position.coords?.accuracy);
+
+          if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return;
+
+          samples.push({
+            latitude,
+            longitude,
+            accuracy,
+            timestamp: Number(position.timestamp) || Date.now(),
+          });
+
+          const bestAccuracy = samples.reduce((best, sample) => {
+            const sampleAccuracy = Number.isFinite(sample.accuracy) ? sample.accuracy : Infinity;
+            return Math.min(best, sampleAccuracy);
+          }, Infinity);
+
+          if (samples.length >= MAX_LOCATION_SAMPLES || bestAccuracy <= TARGET_ACCURACY_METERS) {
+            finalize();
+          }
+        },
+        (error) => {
+          if (samples.length > 0) {
+            finalize();
+            return;
+          }
+
+          cleanup();
+          reject(error);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 20000,
+          maximumAge: 0,
+        }
+      );
+
+      timeoutId = setTimeout(() => {
+        if (samples.length > 0) {
+          finalize();
+          return;
+        }
+
+        cleanup();
+        reject(new Error("Location request timed out."));
+      }, 22000);
+    });
+
   const applyDistanceToShops = (shopsList, location) => {
     if (!Array.isArray(shopsList)) return [];
 
@@ -139,6 +240,11 @@ export const Shops = () => {
 
     return shopsList
       .map((entry) => {
+        const serverDistance = toCoordinateNumber(entry?.distance);
+        if (Number.isFinite(serverDistance)) {
+          return { ...entry, distance: serverDistance };
+        }
+
         const hasCoordinates =
           Number.isFinite(toCoordinateNumber(entry.lat)) && Number.isFinite(toCoordinateNumber(entry.lng));
         const distance = hasCoordinates
@@ -157,6 +263,13 @@ export const Shops = () => {
       if (selectedState) params.state = selectedState;
       if (selectedDistrict) params.district = selectedDistrict;
       if (selectedCity) params.city = selectedCity;
+      if (
+        Number.isFinite(toCoordinateNumber(userLocation?.lat)) &&
+        Number.isFinite(toCoordinateNumber(userLocation?.lng))
+      ) {
+        params.lat = toCoordinateNumber(userLocation.lat);
+        params.lng = toCoordinateNumber(userLocation.lng);
+      }
 
       const response = await api.get(`/shop/approvedshops`, { params });
       const payload = response.data;
@@ -173,11 +286,13 @@ export const Shops = () => {
       shops = shops.map((entry) => {
         const normalizedLat = toCoordinateNumber(entry?.lat);
         const normalizedLng = toCoordinateNumber(entry?.lng);
+        const normalizedDistance = toCoordinateNumber(entry?.distance);
 
         return {
           ...entry,
           lat: normalizedLat,
           lng: normalizedLng,
+          distance: Number.isFinite(normalizedDistance) ? normalizedDistance : undefined,
         };
       });
 
@@ -188,65 +303,64 @@ export const Shops = () => {
         lng: s.lng,
       })));
 
-      setRawShops(shops);
       setShop(applyDistanceToShops(shops, userLocation));
     } catch (error) {
       console.error("Failed to fetch shops:", error);
       setShop([]);
-      setRawShops([]);
     } finally {
       hideLoading();
     }
   };
 
   useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const latitude = toCoordinateNumber(position.coords.latitude);
-          const longitude = toCoordinateNumber(position.coords.longitude);
+    let mounted = true;
 
-          if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
-            setUserLocation(null);
-            return;
-          }
+    getBestDeviceLocation()
+      .then((bestLocation) => {
+        if (!mounted) return;
 
-          const nextLocation = { lat: latitude, lng: longitude };
-          setUserLocation(nextLocation);
-          localStorage.setItem(
-            USER_LOCATION_STORAGE_KEY,
-            JSON.stringify({ ...nextLocation, timestamp: Date.now() })
-          );
+        const latitude = toCoordinateNumber(bestLocation?.latitude);
+        const longitude = toCoordinateNumber(bestLocation?.longitude);
+        const accuracy = toCoordinateNumber(bestLocation?.accuracy);
 
-          // Debug: Log your device's current location
-          console.log("🟢 Your Device Location:", {
-            lat: latitude,
-            lng: longitude,
-            accuracy: position.coords.accuracy + " meters",
-            timestamp: new Date(position.timestamp).toLocaleString(),
-          });
-        },
-        (error) => {
-          console.warn("❌ Location permission denied.", error);
+        if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
           setUserLocation(null);
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 20000,
-          maximumAge: 300000,
+          return;
         }
-      );
-    }
+
+        const nextLocation = {
+          lat: latitude,
+          lng: longitude,
+          accuracy: Number.isFinite(accuracy) ? accuracy : null,
+        };
+
+        setUserLocation(nextLocation);
+        localStorage.setItem(
+          USER_LOCATION_STORAGE_KEY,
+          JSON.stringify({ ...nextLocation, timestamp: Date.now() })
+        );
+
+        console.log("🟢 Best Device Location:", {
+          lat: latitude,
+          lng: longitude,
+          accuracy: Number.isFinite(accuracy) ? `${Math.round(accuracy)} meters` : "unknown",
+        });
+      })
+      .catch((error) => {
+        if (!mounted) return;
+        console.warn("❌ Failed to capture accurate location.", error);
+        setUserLocation(null);
+        localStorage.removeItem(USER_LOCATION_STORAGE_KEY);
+      });
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   useEffect(() => {
-    if (!rawShops.length) return;
-    setShop(applyDistanceToShops(rawShops, userLocation));
-  }, [rawShops, userLocation]);
-
-  useEffect(() => {
     getAllShopsData();
-  }, [selectedState, selectedDistrict, selectedCity]);
+  }, [selectedState, selectedDistrict, selectedCity, userLocation?.lat, userLocation?.lng]);
 
   return (
     <div className="relative min-h-screen bg-gradient-to-b from-slate-50 via-cyan-50 to-amber-50 py-4 px-4 sm:px-6 lg:px-8">

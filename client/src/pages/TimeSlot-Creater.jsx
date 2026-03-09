@@ -54,15 +54,18 @@ export const TemplateForm = () => {
             if (user) {
                 try {
                     // Fetch shop data
-                    const shopRes = await api.get(`/shop/by-email/${user.email}`);
+                    const shopRes = await api.get(`/shop/by-email/${user.email}`, {
+                        allowSuccessFalse: true,
+                    });
                     const shopData = shopRes.data;
                     console.log('Shop data:', shopData);
                     
                     setShopData(shopData);
 
                     // Check if shop exists and is approved
-                    if (!shopData) {
+                    if (!shopData?._id || shopData?.success === false) {
                         setShopStatus("none"); // No shop registered
+                        setShopData(null);
                         setIsLoading(false);
                         return;
                     }
@@ -121,8 +124,13 @@ export const TemplateForm = () => {
                 } catch (err) {
                     console.error("Error fetching shop data:", err);
                     // If shop doesn't exist, set status to "none"
-                    if (err.response?.status === 404) {
+                    const errorMessage = err?.response?.data?.message || err?.message || "";
+                    const isShopNotFound =
+                        err?.response?.status === 404 || /shop not found/i.test(errorMessage);
+
+                    if (isShopNotFound) {
                         setShopStatus("none");
+                        setShopData(null);
                     } else {
                         setMessage("Failed to load shop details. Please try again.");
                         setMessageType("error");
@@ -310,23 +318,23 @@ export const TemplateForm = () => {
         }
 
         return (
-            <div className="flex justify-center items-center h-screen bg-gradient-to-b from-slate-50 via-cyan-50 to-amber-50">
-                <div className="rounded-2xl border border-white/80 bg-white/90 p-8 shadow-[0_16px_35px_-20px_rgba(15,23,42,0.45)] max-w-md w-full text-center">
+            <div className="flex justify-center items-center h-screen bg-gradient-to-b from-slate-50 via-cyan-50 to-amber-50 px-4">
+                <div className="rounded-2xl border border-white/70 bg-white/90 p-6 sm:p-8 shadow-[0_18px_40px_-24px_rgba(15,23,42,0.45)] max-w-md w-full text-center">
                     <div className="text-6xl mb-4">{icon}</div>
-                    <h2 className="text-2xl font-bold text-gray-800 mb-4">{title}</h2>
-                    <p className="text-gray-600 mb-6">{message}</p>
+                    <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4">{title}</h2>
+                    <p className="text-gray-600 mb-6 text-sm sm:text-base">{message}</p>
                     <div className="flex flex-col space-y-3">
                         {shopStatus === "none" && (
                             <button
                                 onClick={() => navigate('/registershop')}
-                                className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg transition duration-200"
+                                className="rounded-lg bg-gradient-to-r from-cyan-500 to-amber-400 px-6 py-2 text-sm font-semibold text-slate-950 transition hover:brightness-110 sm:text-base"
                             >
                                 Register Your Shop
                             </button>
                         )}
                         <button
                             onClick={() => navigate('/')}
-                            className="rounded-lg bg-gradient-to-r from-cyan-500 to-amber-400 px-6 py-2 font-semibold text-slate-950 transition hover:brightness-110"
+                            className="rounded-lg border border-slate-200 bg-white px-6 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 sm:text-base"
                         >
                             Go to Home
                         </button>

@@ -53,7 +53,7 @@ With SalonHub:
 - Express.js
 
 **Database:**
-- MongoDB
+- PostgreSQL (Prisma ORM)
 
 **Other Tools:**
 - Razorpay (for payments)

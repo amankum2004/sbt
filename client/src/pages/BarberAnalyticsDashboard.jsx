@@ -108,31 +108,36 @@ const getPeriodQueryParams = (period, selectedDayDate, selectedMonthValue, selec
 
 const getStatusCardMeta = (status) => {
   switch (status) {
-    case "none":
-      return {
-        icon: "🏪",
-        title: "Shop Not Registered",
-        message: "Register your shop first to unlock analytics and revenue insights.",
-        actionLabel: "Register Shop",
-        actionPath: "/registershop",
-      };
     case "pending":
       return {
         icon: "⏳",
         title: "Shop Pending Approval",
-        message: "Your shop is under review. Analytics will be available after approval.",
-        actionLabel: "View Profile",
-        actionPath: "/barberprofile",
+        message: "Your shop registration is under review. Please wait for approval to access this page.",
+        actionLabel: "Go to Home",
+        actionPath: "/",
+      };
+    case "rejected":
+      return {
+        icon: "❌",
+        title: "Shop Not Approved",
+        message: "Your shop registration was not approved. Please contact support for more information.",
+        actionLabel: "Go to Home",
+        actionPath: "/",
       };
     default:
       return {
-        icon: "❌",
-        title: "Unable To Load Shop",
-        message: "We could not fetch your shop details right now. Please try again.",
-        actionLabel: "Go To Profile",
-        actionPath: "/barberprofile",
+        icon: "🏪",
+        title: "Shop Not Registered",
+        message: "You need to register your shop first before setting up analytics.",
+        actionLabel: "Register Shop",
+        actionPath: "/registershop",
       };
   }
+};
+
+const isShopNotFoundPayload = (payload) => {
+  const message = payload?.message || payload?.error || "";
+  return payload?.success === false && /shop not found/i.test(message);
 };
 
 const BarberAnalyticsDashboard = () => {
@@ -212,10 +217,12 @@ const BarberAnalyticsDashboard = () => {
       setErrorMessage("");
 
       try {
-        const shopResponse = await api.get(`/shop/by-email/${user.email}`);
+        const shopResponse = await api.get(`/shop/by-email/${user.email}`, {
+          allowSuccessFalse: true,
+        });
         const latestShop = shopResponse?.data;
 
-        if (!latestShop?._id) {
+        if (!latestShop?._id || isShopNotFoundPayload(latestShop)) {
           setShopStatus("none");
           setShop(null);
           return;
@@ -259,8 +266,22 @@ const BarberAnalyticsDashboard = () => {
         }
       } catch (error) {
         console.error("Error loading barber analytics:", error);
-        setShopStatus("error");
-        setErrorMessage(error?.response?.data?.error || "Failed to load analytics dashboard.");
+        const errorMessage = error?.response?.data?.message || error?.message || "";
+        const isShopNotFound =
+          error?.response?.status === 404 || /shop not found/i.test(errorMessage);
+
+        if (isShopNotFound) {
+          setShopStatus("none");
+          setShop(null);
+          setErrorMessage("");
+        } else {
+          setShopStatus("error");
+          setErrorMessage(
+            error?.response?.data?.error ||
+              error?.response?.data?.message ||
+              "Failed to load analytics. Please try again."
+          );
+        }
       } finally {
         setLoading(false);
       }
@@ -346,22 +367,24 @@ const BarberAnalyticsDashboard = () => {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-slate-50 via-cyan-50 to-amber-50 px-4">
         <div className="w-full max-w-lg rounded-3xl border border-white/80 bg-white/90 p-8 text-center shadow-[0_18px_45px_-24px_rgba(15,23,42,0.45)]">
-          <div className="mb-3 text-5xl">{statusMeta.icon}</div>
+          <div className="mb-3 text-6xl">{statusMeta.icon}</div>
           <h2 className="text-2xl font-black text-slate-900">{statusMeta.title}</h2>
           <p className="mt-2 text-sm text-slate-600">{statusMeta.message}</p>
           {errorMessage ? <p className="mt-3 text-sm font-medium text-rose-600">{errorMessage}</p> : null}
-          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
+          <div className="mt-6 flex flex-col gap-3">
+            {shopStatus === "none" ? (
+              <Link
+                to="/registershop"
+                className="rounded-lg bg-gradient-to-r from-cyan-500 to-amber-400 px-6 py-2.5 text-sm font-semibold text-slate-950 transition hover:brightness-110"
+              >
+                Register Your Shop
+              </Link>
+            ) : null}
             <Link
-              to={statusMeta.actionPath}
-              className="rounded-lg bg-gradient-to-r from-cyan-500 to-amber-400 px-5 py-2.5 text-sm font-black text-slate-950 transition hover:brightness-110"
+              to="/"
+              className="rounded-lg border border-slate-200 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
             >
-              {statusMeta.actionLabel}
-            </Link>
-            <Link
-              to="/barberDashboard"
-              className="rounded-lg border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-            >
-              Shop Dashboard
+              Go to Home
             </Link>
           </div>
         </div>

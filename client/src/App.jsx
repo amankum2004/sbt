@@ -1,4 +1,4 @@
-import React, { useEffect } from "react"; 
+import { useEffect } from "react"; 
 import {BrowserRouter,Routes,Route, Navigate} from "react-router-dom"
 import { LoginProvider , useLogin} from "./components/LoginContext"
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -98,12 +98,44 @@ function AppRoutes()  {
       <Route path="/updatePassword" element={<UpdatePassword />}/>
       <Route path="/poster" element={<Poster />} />
       
-      {/* Protected Routes - All wrapped in ProtectedRoute */}
-      <Route path="/*" element={
-        <ProtectedRoute>
-          <ProtectedRoutes />
-        </ProtectedRoute>
-      }/>
+      {/* Protected Routes */}
+      <Route path="/nearbyShops" element={<ProtectedRoute><Shops /></ProtectedRoute>} />
+      <Route path="/registershop" element={<ProtectedRoute><RegisterShop /></ProtectedRoute>} />
+      <Route path="/customerprofile" element={<ProtectedRoute><CustomerProfile /></ProtectedRoute>} />
+      <Route path="/barberprofile" element={<ProtectedRoute><BarberProfile /></ProtectedRoute>} />
+      <Route path="/timeSlot-create" element={<ProtectedRoute><TemplateForm /></ProtectedRoute>} />
+      <Route path="/barberDashboard" element={<ProtectedRoute><BarberDashboard /></ProtectedRoute>} />
+      <Route path="/analytics-dashboard" element={<ProtectedRoute><BarberAnalyticsDashboard /></ProtectedRoute>} />
+      <Route path="/customerDashboard" element={<ProtectedRoute><CustomerDashboard /></ProtectedRoute>} />
+      <Route path="/barber-profile-update" element={<ProtectedRoute><BarberProfileUpdate /></ProtectedRoute>} />
+      <Route path="/payment" element={<ProtectedRoute><Payment /></ProtectedRoute>} />
+      <Route
+        path="/nearbyShops/:shopId/shopinfo"
+        element={<ProtectedRoute><DateTimeSelection /></ProtectedRoute>}
+      />
+
+      {/* Protected Admin Routes */}
+      <Route
+        path="/admin/*"
+        element={
+          <ProtectedRoute requiredUserType="admin">
+            <AdminLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route index element={<AdminHome />} />
+        <Route path="users" element={<AdminUsers />} />
+        <Route path="contacts" element={<AdminContacts />} />
+        <Route path="services" element={<AdminServices />} />
+        <Route path="shops" element={<AdminShops />} />
+        <Route path="requests" element={<AdminPendingShops />} />
+        <Route path="users/:id/edit" element={<AdminUserUpdate />} />
+        <Route path="shops/:id/edit" element={<AdminShopUpdate />} />
+        <Route path="donations" element={<AdminViewDonations />} />
+        <Route path="reviews" element={<AdminReviews />} />
+        <Route path=":shopId/review" element={<ShopReviews />} />
+        <Route path="*" element={<Error />} />
+      </Route>
       
       {/* Catch all route for public errors */}
       <Route path="*" element={<Error />}/>
@@ -111,43 +143,4 @@ function AppRoutes()  {
   );
 }
 
-// Separate component for all protected routes
-function ProtectedRoutes() {
-  return (
-    <Routes>
-      {/* All protected individual routes */}
-      <Route path="/nearbyShops" element={<Shops/>}/>
-      <Route path="/registershop" element={<RegisterShop/>}/>
-      <Route path="/customerprofile" element={<CustomerProfile/>}/>
-      <Route path="/barberprofile" element={<BarberProfile/>}/>
-      <Route path="/timeSlot-create" element={<TemplateForm/>}/>
-      <Route path="/barberDashboard" element={<BarberDashboard/>}/>
-      <Route path="/analytics-dashboard" element={<BarberAnalyticsDashboard/>}/>
-      <Route path="/customerDashboard" element={<CustomerDashboard/>}/>
-      <Route path="/barber-profile-update" element={<BarberProfileUpdate/>}/>
-      <Route path="/payment" element={<Payment/>}/>
-      <Route path="/nearbyShops/:shopId/shopinfo" element={<DateTimeSelection/>}/>
-      
-      {/* Protected Admin Routes */}
-      <Route path="/admin/*" element={<AdminLayout />}>
-        <Route index element={<AdminHome/>}/>
-        <Route path="users" element={<AdminUsers/>}/>
-        <Route path="contacts" element={<AdminContacts/>}/>
-        <Route path="services" element={<AdminServices/>}/>
-        <Route path="shops" element={<AdminShops/>}/>
-        <Route path="requests" element={<AdminPendingShops/>}/>
-        <Route path="users/:id/edit" element={<AdminUserUpdate/>}/>
-        <Route path="shops/:id/edit" element={<AdminShopUpdate/>}/>
-        <Route path="donations" element={<AdminViewDonations/>}/>
-        <Route path="reviews" element={<AdminReviews />} />
-        <Route path=":shopId/review" element={<ShopReviews />} />
-      </Route>
-      
-      {/* Catch all for protected routes - redirect to home or show error */}
-      <Route path="*" element={<Navigate to="/" replace />}/>
-    </Routes>
-  );
-}
-
 export default App;
-

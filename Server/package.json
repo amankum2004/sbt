@@ -5,12 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "migrate:coordinates-cleanup": "node scripts/migrate-remove-legacy-coordinates.js",
     "prisma:generate": "prisma generate --schema prisma/schema.prisma",
     "prisma:migrate:dev": "prisma migrate dev --schema prisma/schema.prisma",
-    "prisma:migrate:deploy": "prisma migrate deploy --schema prisma/schema.prisma",
-    "migrate:mongo-to-postgres": "node scripts/migrate-mongo-to-postgres.js",
-    "migrate:mongo-to-postgres:reset": "node scripts/migrate-mongo-to-postgres.js --reset"
+    "prisma:migrate:deploy": "prisma migrate deploy --schema prisma/schema.prisma"
   },
   "keywords": [],
   "author": "",
@@ -33,8 +30,6 @@
     "module-alias": "^2.2.3",
     "moment": "^2.30.1",
     "moment-timezone": "^0.6.0",
-    "mongodb": "^6.5.0",
-    "mongoose": "^8.2.1",
     "node": "^20.19.6",
     "node-cron": "^3.0.3",
     "nodemailer": "^6.10.1",
@@ -52,7 +47,6 @@
   "_moduleAliases": {
     "@": "./",
     "@routes": "./routes",
-    "@models": "./models",
     "@controllers": "./controllers",
     "@middlewares": "./middlewares",
     "@utils": "./utils",

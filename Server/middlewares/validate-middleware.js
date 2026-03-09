@@ -1,24 +1,26 @@
-// // const { Schema } = require("mongoose")
+const validate = (schema, source = "body") => async (req, res, next) => {
+  try {
+    const payload = req[source];
+    const parsedPayload = await schema.parseAsync(payload);
+    req[source] = parsedPayload;
+    next();
+  } catch (error) {
+    if (error?.name === "ZodError") {
+      const issues = error.issues || [];
+      const firstIssue = issues[0];
 
-// const validate = (schema) => async (req,res,next) => {
-//     try {
-//         const parseBody = await schema.parseAsync(req.body)
-//         req.body = parseBody;
-//         next();
-//     } catch (err) {
-//         const status = 422;
-//         // const message = "Fill all the inputs properly"
-//         const extraDetails = err.errors[0].message;
-//         const message = err.errors[0].message;
-//         const error = {
-//             status,
-//             message,
-//             extraDetails,
-//         }
-//         console.log(error)
-//         res.status(400).json({msg:message})
-//         next(error);
-//     }
-// };
+      return res.status(422).json({
+        success: false,
+        message: firstIssue?.message || "Validation failed",
+        errors: issues.map((issue) => ({
+          path: Array.isArray(issue.path) ? issue.path.join(".") : "",
+          message: issue.message,
+        })),
+      });
+    }
 
-// module.exports = validate;
+    return next(error);
+  }
+};
+
+module.exports = validate;
