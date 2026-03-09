@@ -190,7 +190,7 @@ export const Home = () => {
                 <p className="mb-1 inline-flex items-center gap-2 rounded-full bg-slate-900 px-2 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-amber-200">
                   Salon Booking Made Elegant
                 </p>
-                <h3 className="text-3xl font-black leading-tight text-slate-900 md:text-5xl">
+                <h3 className="text-2xl font-black leading-tight text-slate-900 md:text-3xl">
                   Welcome
                   {user ? (
                     <span className="mx-2 bg-gradient-to-r from-orange-500 to-rose-500 bg-clip-text italic text-transparent">

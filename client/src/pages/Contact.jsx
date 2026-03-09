@@ -146,7 +146,7 @@ export const Contact = () => {
                 <p className="mb-2 inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-amber-200">
                   <FaHeadset /> Customer Support
                 </p>
-                <h3 className="text-3xl font-black leading-tight text-slate-900 md:text-5xl">
+                <h3 className="text-2xl font-black leading-tight text-slate-900 md:text-3xl">
                   Contact SalonHub for Booking Help
                 </h3>
                 <p className="mt-5 max-w-2xl text-base leading-relaxed text-slate-600 md:text-lg">
