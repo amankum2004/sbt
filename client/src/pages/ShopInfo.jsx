@@ -524,7 +524,7 @@ const DateTimeSelection = () => {
           {/* <p className="inline-flex rounded-full bg-slate-900 px-4 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-cyan-200">
             Slot Booking
           </p> */}
-          <h2 className="mt-1 text-3xl font-black text-slate-900">Book Your Time Slot</h2>
+          <h2 className="mt-1 text-3xl font-black text-slate-900">Select Your Time Slot</h2>
         </div>
         {liveUpdateNotice ? (
           <div className="mb-1 rounded-xl border border-cyan-200 bg-cyan-50 px-4 py-1 text-center text-sm font-semibold text-cyan-800">

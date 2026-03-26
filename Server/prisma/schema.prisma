@@ -180,7 +180,7 @@ model Appointment {
 
   user       User      @relation(fields: [userId], references: [id], onDelete: Restrict)
   shop       Shop      @relation(fields: [shopId], references: [id], onDelete: Restrict)
-  timeSlot   TimeSlot  @relation(fields: [timeSlotId], references: [id], onDelete: Restrict)
+  timeSlot   TimeSlot  @relation(fields: [timeSlotId], references: [id], onDelete: Cascade)
   showtimes  AppointmentShowtime[]
   reviews    Review[]
 

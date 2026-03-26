@@ -13,24 +13,28 @@ router.post("/cleanup", async (req, res) => {
     const TIMEZONE = "Asia/Kolkata";
     const todayLocalMidnightUtc = moment.tz(TIMEZONE).startOf("day").utc().toDate();
 
-    const timeSlotResult = await prisma.timeSlot.deleteMany({
-      where: { date: { lt: todayLocalMidnightUtc } },
-    });
-
-    const appointmentsToDelete = await prisma.appointment.findMany({
-      where: {
-        showtimes: {
-          none: {
-            date: { gte: todayLocalMidnightUtc },
-          },
+    const { appointmentResult, timeSlotResult } = await prisma.$transaction(async (tx) => {
+      // Delete dependent appointments first to satisfy FK RESTRICT on Appointment.timeSlotId
+      const appointmentResult = await tx.appointment.deleteMany({
+        where: {
+          OR: [
+            { timeSlot: { date: { lt: todayLocalMidnightUtc } } },
+            {
+              showtimes: {
+                none: {
+                  date: { gte: todayLocalMidnightUtc },
+                },
+              },
+            },
+          ],
         },
-      },
-      select: { id: true },
-    });
+      });
 
-    const appointmentIds = appointmentsToDelete.map((appointment) => appointment.id);
-    const appointmentResult = await prisma.appointment.deleteMany({
-      where: { id: { in: appointmentIds } },
+      const timeSlotResult = await tx.timeSlot.deleteMany({
+        where: { date: { lt: todayLocalMidnightUtc } },
+      });
+
+      return { appointmentResult, timeSlotResult };
     });
 
     return res.status(200).json({
