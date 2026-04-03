@@ -218,7 +218,7 @@ const Login = () => {
                 value={formData[loginMethod]}
                 onChange={handleInput}
                 disabled={isSubmitting}
-                placeholder={loginMethod === "email" ? "you@example.com" : "9876543210"}
+                placeholder={loginMethod === "email" ? "you@example.com" : "1234567890"}
                 className="h-11 w-full rounded-xl border border-white/15 bg-slate-950/65 pl-10 pr-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/30"
                 autoComplete="off"
                 required

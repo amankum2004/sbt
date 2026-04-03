@@ -500,7 +500,7 @@ export const Shops = () => {
                 
                 {/* Rating breakdown preview - only on desktop */}
                 <div className="hidden sm:block text-xs text-gray-500 mt-1">
-                  {curShop.ratingBreakdown?.[5]} 
+                  {curShop.ratingBreakdown?.[5] || 0} five-star reviews
                 </div>
               </div>
 
