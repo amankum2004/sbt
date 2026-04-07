@@ -187,9 +187,9 @@ export const Home = () => {
           <section className="mb-6 overflow-hidden rounded-3xl border border-white/70 bg-white/85 shadow-[0_24px_70px_-20px_rgba(15,23,42,0.35)] backdrop-blur">
             <div className="grid gap-6 p-7 md:grid-cols-[1.2fr_0.8fr] md:p-10">
               <div>
-                <p className="mb-1 inline-flex items-center gap-2 rounded-full bg-slate-900 px-2 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-amber-200">
+                {/* <p className="mb-1 inline-flex items-center gap-2 rounded-full bg-slate-900 px-2 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-amber-200">
                   Salon Booking Made Elegant
-                </p>
+                </p> */}
                 <h3 className="text-2xl font-black leading-tight text-slate-900 md:text-3xl">
                   Welcome
                   {user ? (
