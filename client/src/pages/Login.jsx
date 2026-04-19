@@ -155,7 +155,7 @@ const Login = () => {
       } else {
         Swal.fire({
           title: "Error",
-          text: "Network error. Please check your connection.",
+          text: "Network error.",
           icon: "error",
         });
       }
