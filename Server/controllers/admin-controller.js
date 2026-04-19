@@ -7,6 +7,7 @@ const normalizeEmail = (value) => (value || "").trim().toLowerCase();
 const getAllUsers = async (req, res) => {
   try {
     const users = await prisma.user.findMany({
+      where: { isDeleted: false },
       select: {
         id: true,
         name: true,
@@ -34,8 +35,8 @@ const getAllUsers = async (req, res) => {
 const getUserById = async (req, res) => {
   try {
     const id = req.params.id;
-    const data = await prisma.user.findUnique({
-      where: { id },
+    const data = await prisma.user.findFirst({
+      where: { id, isDeleted: false },
       select: {
         id: true,
         name: true,
@@ -82,7 +83,28 @@ const updateUserById = async (req, res) => {
 const deleteUserById = async (req, res) => {
   try {
     const id = req.params.id;
-    await prisma.user.delete({ where: { id } });
+    const existingUser = await prisma.user.findUnique({
+      where: { id },
+      select: { id: true, email: true, phone: true, isDeleted: true },
+    });
+
+    if (!existingUser || existingUser.isDeleted) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const deletionStamp = Date.now();
+    const scrubbedEmail = `deleted+${existingUser.id}+${deletionStamp}@salonhub.invalid`;
+    const scrubbedPhone = `deleted-${existingUser.id}`;
+
+    await prisma.user.update({
+      where: { id },
+      data: {
+        isDeleted: true,
+        deletedAt: new Date(),
+        email: scrubbedEmail,
+        phone: scrubbedPhone,
+      },
+    });
     return res.status(200).json({ message: "User deleted successfully" });
   } catch (error) {
     console.log(error);
@@ -106,7 +128,7 @@ const getAllContacts = async (req, res) => {
       .filter(Boolean);
 
     const users = await prisma.user.findMany({
-      where: { email: { in: contactEmails } },
+      where: { email: { in: contactEmails }, isDeleted: false },
       select: { email: true, usertype: true },
     });
 

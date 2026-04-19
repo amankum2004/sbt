@@ -4,13 +4,13 @@ import { useLogin } from '../components/LoginContext';
 import { Link, useNavigate } from 'react-router-dom';
 import { FaStore, FaEdit, FaPlus, FaUser, FaCalendarAlt, FaChartBar, FaUserEdit, FaPhoneAlt, FaEnvelope, FaUserTag, FaChevronDown, FaChevronUp } from 'react-icons/fa';
 import { MdCancel, MdRefresh } from 'react-icons/md';
-import { FiSave, FiEdit } from 'react-icons/fi';
+import { FiSave, FiEdit, FiTrash2 } from 'react-icons/fi';
 import { api } from '../utils/api';
 import Swal from 'sweetalert2';
 import ShopStatusButton from '../components/ShopStatusButton';
 
 export const BarberProfile = () => {
-  const { user, shop, shopExists, refreshShopData, setUser } = useLogin();
+  const { user, shop, shopExists, refreshShopData, setUser, logout } = useLogin();
   const [loading, setLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editableProfile, setEditableProfile] = useState({ name: '', phone: '' });
@@ -85,6 +85,41 @@ export const BarberProfile = () => {
         text: 'Profile update failed. Please try again.',
         icon: 'error',
         confirmButtonColor: '#EF4444'
+      });
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    const result = await Swal.fire({
+      title: "Delete your account?",
+      text: "This will deactivate your account and you will no longer be able to sign in.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, delete my account",
+      confirmButtonColor: "#EF4444",
+      cancelButtonColor: "#64748B",
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      const response = await api.delete("/user/delete-account");
+      if (response.status === 200) {
+        await Swal.fire({
+          title: "Account deleted",
+          text: "Your account has been deactivated.",
+          icon: "success",
+          confirmButtonText: "OK",
+        });
+        logout();
+      }
+    } catch (error) {
+      console.error("Account deletion failed", error);
+      Swal.fire({
+        title: "Error",
+        text: error.response?.data?.message || "Failed to delete account",
+        icon: "error",
+        confirmButtonColor: "#EF4444",
       });
     }
   };
@@ -369,6 +404,25 @@ export const BarberProfile = () => {
             </div>
           </div>
         )}
+
+        <div className="rounded-3xl border border-rose-200/80 bg-rose-50/70 p-6 mb-6 shadow-[0_18px_50px_-30px_rgba(220,38,38,0.45)]">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              {/* <p className="text-xs font-semibold uppercase tracking-[0.25em] text-rose-600">Danger Zone</p> */}
+              <h3 className="mt-2 text-lg font-bold text-rose-900">Delete Account</h3>
+              <p className="mt-1 text-sm text-rose-700">
+                This will deactivate your account. You will lose access until support reactivates it.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={handleDeleteAccount}
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-rose-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-rose-700"
+            >
+              <FiTrash2 /> Delete Account
+            </button>
+          </div>
+        </div>
       </main>
     </div>
   );

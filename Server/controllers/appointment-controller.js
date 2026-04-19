@@ -43,7 +43,7 @@ exports.bookAppointment = async (
     if (showtime.isBooked) {
       throw new Error("Showtime is already booked");
     }
-
+    
     const servicePayload = (() => {
       let serviceName = "General Service";
       let servicePrice = totalAmount || 0;

@@ -1,7 +1,8 @@
 // middlewares/auth.js
 const jwt = require("jsonwebtoken");
+const prisma = require("../utils/prisma");
 
-const authenticate = (req, res, next) => {
+const authenticate = async (req, res, next) => {
   try {
     let token = null;
 
@@ -13,6 +14,18 @@ const authenticate = (req, res, next) => {
       token = authHeader.split(" ")[1];
 
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+      const existingUser = await prisma.user.findUnique({
+        where: { id: decoded.userId },
+        select: { isDeleted: true },
+      });
+
+      if (!existingUser || existingUser.isDeleted) {
+        return res.status(401).json({
+          success: false,
+          message: "Account is deleted or unavailable",
+        });
+      }
 
       req.user = {
         userId: decoded.userId,
@@ -29,6 +42,18 @@ const authenticate = (req, res, next) => {
       token = req.headers["x-auth-token"];
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
+      const existingUser = await prisma.user.findUnique({
+        where: { id: decoded.userId },
+        select: { isDeleted: true },
+      });
+
+      if (!existingUser || existingUser.isDeleted) {
+        return res.status(401).json({
+          success: false,
+          message: "Account is deleted or unavailable",
+        });
+      }
+
       req.user = decoded;
       return next();
     }
@@ -43,6 +68,18 @@ const authenticate = (req, res, next) => {
      */
     if (req.headers["x-user"]) {
       const user = JSON.parse(req.headers["x-user"]);
+
+      const existingUser = await prisma.user.findUnique({
+        where: { id: user.userId },
+        select: { isDeleted: true },
+      });
+
+      if (!existingUser || existingUser.isDeleted) {
+        return res.status(401).json({
+          success: false,
+          message: "Account is deleted or unavailable",
+        });
+      }
 
       req.user = {
         userId: user.userId,
@@ -92,5 +129,4 @@ const authorize = (...allowedRoles) => {
 };
 
 module.exports = { authenticate, authorize };
-
 

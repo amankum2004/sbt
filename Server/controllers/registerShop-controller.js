@@ -149,6 +149,7 @@ exports.registershop = async (req, res) => {
             equals: normalizedEmail,
             mode: "insensitive",
           },
+          isDeleted: false,
         },
       });
 

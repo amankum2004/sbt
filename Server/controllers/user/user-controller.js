@@ -2,10 +2,10 @@ const prisma = require("../../utils/prisma");
 
 const fetchUsers = async (req, res) => {
   try {
-    let where = {};
+    let where = { isDeleted: false };
 
     if (req.query.role) {
-      where = { usertype: req.query.role };
+      where.usertype = req.query.role;
     }
 
     const users = await prisma.user.findMany({
@@ -34,7 +34,7 @@ const updateUserType = async (req, res) => {
     const normalizedEmail = (email || "").trim().toLowerCase();
 
     const user = await prisma.user.findFirst({
-      where: { email: normalizedEmail },
+      where: { email: normalizedEmail, isDeleted: false },
     });
 
     if (!user) {
@@ -62,7 +62,7 @@ const userType = async (req, res) => {
     const normalizedEmail = (email || "").trim().toLowerCase();
 
     const user = await prisma.user.findFirst({
-      where: { email: normalizedEmail },
+      where: { email: normalizedEmail, isDeleted: false },
     });
 
     if (!user) {
@@ -85,14 +85,18 @@ const updateProfile = async (req, res) => {
     const userId = req.params.id;
     const { name, email, phone } = req.body;
 
+    const existingUser = await prisma.user.findFirst({
+      where: { id: userId, isDeleted: false },
+    });
+
+    if (!existingUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
     const updatedUser = await prisma.user.update({
       where: { id: userId },
       data: { name, email, phone },
     });
-
-    if (!updatedUser) {
-      return res.status(404).json({ message: "User not found" });
-    }
 
     res.json({
       message: "Profile updated",
@@ -104,4 +108,51 @@ const updateProfile = async (req, res) => {
   }
 };
 
-module.exports = { fetchUsers, updateUserType, userType, updateProfile };
+const deleteAccount = async (req, res) => {
+  try {
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const existingUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, isDeleted: true, email: true, phone: true },
+    });
+
+    if (!existingUser || existingUser.isDeleted) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const deletionStamp = Date.now();
+    const scrubbedEmail = `deleted+${existingUser.id}+${deletionStamp}@salonhub.invalid`;
+    const scrubbedPhone = `deleted-${existingUser.id}`;
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        isDeleted: true,
+        deletedAt: new Date(),
+        email: scrubbedEmail,
+        phone: scrubbedPhone,
+      },
+    });
+
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "Lax",
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Account deleted successfully",
+    });
+  } catch (error) {
+    console.error("Account deletion failed:", error);
+    return res.status(500).json({ message: "Failed to delete account" });
+  }
+};
+
+module.exports = { fetchUsers, updateUserType, userType, updateProfile, deleteAccount };

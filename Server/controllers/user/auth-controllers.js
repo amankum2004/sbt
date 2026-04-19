@@ -27,7 +27,8 @@ const register = async (req, res) => {
     const normalizedEmail = normalizeEmail(email);
 
     const existingUser = await prisma.user.findFirst({
-      where: { email: normalizedEmail },
+      where: { email: normalizedEmail, isDeleted: false },
+      select: { id: true },
     });
     if (existingUser) {
       return res.status(200).json({
@@ -87,7 +88,7 @@ const register = async (req, res) => {
 
 const login = async (req, res) => {
   console.log("=== BACKEND LOGIN REQUEST START ===");
-  console.log("Request body:", req.body);
+  // console.log("Request body:", req.body);
   console.log("Request time:", new Date().toISOString());
 
   const { email, phone, password, contactType } = req.body;
@@ -124,11 +125,11 @@ const login = async (req, res) => {
     let user;
     if (contactType === "email") {
       user = await prisma.user.findFirst({
-        where: { email: normalizeEmail(email) },
+        where: { email: normalizeEmail(email), isDeleted: false },
       });
     } else {
       user = await prisma.user.findFirst({
-        where: { phone: phone },
+        where: { phone: phone, isDeleted: false },
       });
     }
 
@@ -236,10 +237,10 @@ const update = async (req, res) => {
     }
 
     const user = await prisma.user.findFirst({
-      where: { email: normalizedEmail },
+      where: { email: normalizedEmail, isDeleted: false },
     });
 
-    if (!user) {
+    if (!user || user.isDeleted) {
       return res.status(404).json({ error: "User not found" });
     }
 

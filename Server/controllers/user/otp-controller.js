@@ -12,7 +12,9 @@ exports.userOTP = async (req, res) => {
       return res.status(400).json({ success: false, message: "Email is required" });
     }
 
-    const user = await prisma.user.findFirst({ where: { email: normalizedEmail } });
+    const user = await prisma.user.findFirst({
+      where: { email: normalizedEmail, isDeleted: false },
+    });
     if (user) {
       return res.status(200).json({
         success: false,
@@ -55,7 +57,9 @@ exports.sendOTPforgot = async (req, res) => {
       return res.status(400).json({ success: false, message: "Email is required" });
     }
 
-    const user = await prisma.user.findFirst({ where: { email: normalizedEmail } });
+    const user = await prisma.user.findFirst({
+      where: { email: normalizedEmail, isDeleted: false },
+    });
     if (!user) {
       return res.status(200).json({
         success: false,
