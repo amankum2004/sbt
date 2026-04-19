@@ -156,7 +156,7 @@ const TermsOfService = () => {
                 <Section title="16. Contact Information">
                     <div className="space-y-2">
                         <p><strong>Email:</strong> salonhub.business@gmail.com</p>
-                        <p><strong>Phone:</strong> +91 8810269376</p>
+                        <p><strong>Phone:</strong> +91 9217767135</p>
                         <p><strong>Address:</strong> SalonHub, Delhi, India</p>
                     </div>
                 </Section>

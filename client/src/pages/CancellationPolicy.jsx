@@ -88,7 +88,7 @@ const CancellationPolicy = () => {
                     <ul className="list-disc list-inside space-y-2">
                         <li>Through your SalonHub account dashboard</li>
                         <li>Via email to salonhub.business@gmail.com</li>
-                        <li>By calling +91 8810269376 (during business hours)</li>
+                        <li>By calling +91 9217767135 (during business hours)</li>
                         <li>Note: Cancellation time is based on Indian Standard Time (IST)</li>
                     </ul>
                 </Section>
@@ -214,7 +214,7 @@ const CancellationPolicy = () => {
                         </div>
                         <div className="flex items-start">
                             <span className="font-semibold w-32">Phone:</span>
-                            <span>+91 8810269376 (Mon-Sat, 9 AM - 6 PM IST)</span>
+                            <span>+91 9217767135 (Mon-Sat, 9 AM - 6 PM IST)</span>
                         </div>
                         <div className="flex items-start">
                             <span className="font-semibold w-32">Address:</span>

@@ -501,8 +501,8 @@ const PrivacyPolicy = () => {
                                         <ContactItem
                                             icon={<PhoneIcon className="h-4 w-4" />}
                                             type="Phone"
-                                            value="+91 8810269376"
-                                            link="tel:+918810269376"
+                                            value="+91 9217767135"
+                                            link="tel:+919217767135"
                                         />
                                         <ContactItem
                                             icon={<ClockIcon className="h-4 w-4" />}
@@ -538,7 +538,7 @@ const PrivacyPolicy = () => {
                                         Security Team Email
                                     </a>
                                     <a 
-                                        href="tel:+918810269376" 
+                                        href="tel:+919217767135" 
                                         className="px-4 py-2 bg-white text-cyan-700 rounded-lg font-semibold hover:bg-gray-100 transition"
                                     >
                                         Emergency Contact
@@ -818,7 +818,7 @@ export default PrivacyPolicy;
 //                 {/* <Section title="8. Contact Us">
 //                     <p>
 //                         Email: <strong>sbthelp123@gmail.com</strong><br />
-//                         Phone: <strong>+91 8810269376</strong>
+//                         Phone: <strong>+91 9217767135</strong>
 //                     </p>
 //                 </Section> */}
 //             </div>

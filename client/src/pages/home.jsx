@@ -25,7 +25,7 @@ export const Home = () => {
     description:
       "Book the best salon and spa services at home or in-salon across India. Haircuts, facials, manicure, pedicure, bridal makeup and more beauty services.",
     url: "https://salonhub.co.in",
-    telephone: "+91-8810269376",
+    telephone: "+91-9217767135",
     address: {
       "@type": "PostalAddress",
       addressCountry: "IN",
