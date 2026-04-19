@@ -1,5 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import {
   FaCalendarCheck,
   FaClock,
@@ -25,7 +26,7 @@ export const Home = () => {
     description:
       "Book the best salon and spa services at home or in-salon across India. Haircuts, facials, manicure, pedicure, bridal makeup and more beauty services.",
     url: "https://salonhub.co.in",
-    telephone: "+91-9217767135",
+    telephone: "+91-",
     address: {
       "@type": "PostalAddress",
       addressCountry: "IN",
@@ -207,18 +208,18 @@ export const Home = () => {
                 </p>
 
                 <div className="mt-7 flex flex-col gap-4 sm:flex-row sm:items-center">
-                  <a
-                    href={getButtonLink()}
+                  <Link
+                    to={getButtonLink()}
                     className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-7 py-3 text-base font-bold text-white shadow-lg shadow-slate-900/20 transition hover:-translate-y-0.5 hover:bg-slate-800"
                   >
                     {getButtonText()}
-                  </a>
-                  <a
-                    href="/services"
+                  </Link>
+                  <Link
+                    to="/services"
                     className="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-7 py-3 text-base font-semibold text-slate-700 transition hover:border-cyan-300 hover:text-cyan-700"
                   >
                     Explore Services
-                  </a>
+                  </Link>
                 </div>
               </div>
 

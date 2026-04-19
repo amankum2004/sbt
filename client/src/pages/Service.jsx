@@ -1,5 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import { FaCut, FaSpa, FaShieldAlt, FaStar, FaCheckCircle } from "react-icons/fa";
 
 const riseIn = {
@@ -198,18 +199,18 @@ export const Service = () => {
                   services with transparent pricing and quick booking.
                 </p>
                 <div className="mt-7 flex flex-wrap gap-3">
-                  <a
-                    href="/"
+                  <Link
+                    to="/"
                     className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-6 py-3 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-slate-800"
                   >
                     Start Booking
-                  </a>
-                  <a
-                    href="/contact"
+                  </Link>
+                  <Link
+                    to="/contact"
                     className="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-6 py-3 text-sm font-bold text-slate-700 transition hover:border-emerald-300 hover:text-emerald-700"
                   >
                     Need Consultation?
-                  </a>
+                  </Link>
                 </div>
               </div>
 
