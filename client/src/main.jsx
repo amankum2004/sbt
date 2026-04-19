@@ -6,7 +6,6 @@ import {NextUIProvider }from '@nextui-org/react'
 import {ToastContainer} from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
 import { LoadingProvider } from './components/Loading.jsx'
-import { SpeedInsights } from "@vercel/speed-insights/next"
 
 // Suppress service worker preload warning
 if ('serviceWorker' in navigator) {
