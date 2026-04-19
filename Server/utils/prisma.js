@@ -27,6 +27,7 @@ const buildPoolConfig = (databaseUrl) => {
   const poolConfig = {
     connectionString: databaseUrl,
     keepAlive: true,
+    connectionTimeoutMillis: Number(process.env.PGCONNECT_TIMEOUT_MS || 10000),
   };
 
   let parsedUrl;
@@ -40,7 +41,15 @@ const buildPoolConfig = (databaseUrl) => {
     .trim()
     .toLowerCase();
   const isAivenHost = parsedUrl.hostname.endsWith(".aivencloud.com");
+  const configuredFamily = Number(process.env.PG_FAMILY || process.env.DB_FAMILY || 0);
   const shouldUseSsl = Boolean(sslMode && sslMode !== "disable") || isAivenHost;
+
+  if (configuredFamily === 4 || configuredFamily === 6) {
+    poolConfig.family = configuredFamily;
+  } else if (isAivenHost) {
+    // Prefer IPv4 for hosted runtimes where IPv6 egress can be flaky.
+    poolConfig.family = 4;
+  }
 
   if (!shouldUseSsl) {
     return poolConfig;
