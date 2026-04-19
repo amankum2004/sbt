@@ -28,7 +28,7 @@ const PORT = process.env.PORT ?? 5000
 console.log(`🚀 Starting SalonHub Backend in ${process.env.NODE_ENV || 'development'} mode`);
 
 // PostgreSQL (Prisma) connection
-prisma.$connect()
+prisma.$queryRaw`SELECT 1`
   .then(() => {
     console.log(`✅ Connected to PostgreSQL (${process.env.NODE_ENV})`);
   })
