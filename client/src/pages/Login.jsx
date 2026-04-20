@@ -89,7 +89,9 @@ const Login = () => {
         [loginMethod]: loginMethod === "email" ? formData.email : formData.phone,
       };
 
-      const response = await api.post("/auth/login", payload);
+      const response = await api.post("/auth/login", payload, {
+        allowSuccessFalse: true,
+      });
       hideLoading();
 
       if (!response.data.success) {
@@ -123,28 +125,14 @@ const Login = () => {
     } catch (err) {
       hideLoading();
 
-      if (err.message === "config is not defined") {
-        if (err.originalError?.response?.data?.error) {
-          Swal.fire({
-            title: "Error",
-            text: err.originalError.response.data.error,
-            icon: "error",
-          });
-        } else {
-          Swal.fire({
-            title: "Error",
-            text: "An unexpected error occurred. Please try again.",
-            icon: "error",
-          });
-        }
-        setIsSubmitting(false);
-        return;
-      }
+      const status = err.response?.status || err.status;
+      const backendError =
+        err.response?.data?.error ||
+        err.response?.data?.message ||
+        err.details?.message ||
+        err.message;
 
-      const status = err.response?.status;
-      const backendError = err.response?.data?.error;
-
-      if (backendError) {
+      if (backendError && err.code !== "ERR_NETWORK") {
         Swal.fire({ title: "Error", text: backendError, icon: "error" });
       } else if (status === 404) {
         Swal.fire({ title: "Error", text: "User not found", icon: "error" });
@@ -155,7 +143,7 @@ const Login = () => {
       } else {
         Swal.fire({
           title: "Error",
-          text: "Network error.",
+          text: "Unable to reach the server. Please try again.",
           icon: "error",
         });
       }
