@@ -217,7 +217,7 @@ const BarberAnalyticsDashboard = () => {
       setErrorMessage("");
 
       try {
-        const shopResponse = await api.get(`/shop/by-email/${user.email}`, {
+        const shopResponse = await api.get(`/shop/by-phone/${user.phone}`, {
           allowSuccessFalse: true,
         });
         const latestShop = shopResponse?.data;
@@ -288,7 +288,7 @@ const BarberAnalyticsDashboard = () => {
     };
 
     fetchAnalytics();
-  }, [user?.email, navigate]);
+  }, [user?.phone, navigate]);
 
   useEffect(() => {
     if (shopStatus !== "approved" || !shop?._id) return;

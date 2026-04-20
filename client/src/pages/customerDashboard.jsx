@@ -25,7 +25,7 @@ const CustomerDashboard = () => {
   });
 
   useEffect(() => {
-    if (user?.email) {
+    if (user?.phone) {
       fetchAppointments();
       fetchUserReviews();
     }
@@ -91,7 +91,7 @@ const CustomerDashboard = () => {
   const fetchAppointments = async () => {
     try {
       setLoading(true);
-      const response = await api.get(`/appoint/appointments/${user.email}`);
+      const response = await api.get(`/appoint/appointments/phone/${user.phone}`);
 
       if (response.data.success) {
         const sortedCurrent = sortAppointmentsByDateTime(response.data.currentAppointments || [], false);
@@ -207,7 +207,7 @@ const CustomerDashboard = () => {
   // Check if appointment is eligible for review
   const isEligibleForReview = (appointment) => {
       // Prevent shop owners from reviewing their own shops
-    if (user?.email === appointment.shopId?.email) {
+    if (user?.phone && user.phone === appointment.shopId?.ownerPhone) {
       console.log(`⛔ User is shop owner - cannot review own shop for appointment ${appointment._id}`);
       return false;
     }
@@ -254,17 +254,9 @@ const CustomerDashboard = () => {
 
         const response = await api.put(`/appoint/appointments/${appointmentId}/cancel`);
         
-        // Show success with email note
         Swal.fire({
           title: 'Cancelled!',
-          html: `
-            <div style="text-align: center;">
-              <p>${response.data.message || 'Your appointment has been cancelled.'}</p>
-              <p style="font-size: 14px; color: #666; margin-top: 10px;">
-                ✅ A confirmation email has been sent to your registered email address.
-              </p>
-            </div>
-          `,
+          text: response.data.message || 'Your appointment has been cancelled.',
           icon: 'success',
           confirmButtonText: 'OK'
         });
@@ -727,7 +719,7 @@ const CustomerDashboard = () => {
   // Diagnostic function
   const runDiagnostic = () => {
     console.log('=== CUSTOMER DASHBOARD DIAGNOSTIC ===');
-    console.log('User:', user?.email);
+    console.log('User:', user?.phone || user?.email);
     console.log('Total appointments reviewed:', Object.keys(reviewsGiven).length);
     console.log('Reviews given:', reviewsGiven);
     

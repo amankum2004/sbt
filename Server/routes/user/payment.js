@@ -5,11 +5,19 @@ const prisma = require("../../utils/prisma");
 const { bookAppointment } = require("../../controllers/appointment-controller");
 const {
   sendConfirmationEmail,
+  sendConfirmationSms,
+  sendPaymentSuccessSms,
   sendDonationConfirmationEmail,
   sendAdminDonationNotification,
 } = require("../../utils/mail");
 
 const router = express.Router();
+
+const logNotificationFailure = (label, result) => {
+  if (result?.status === "rejected") {
+    console.warn(`⚠️ ${label} failed:`, result.reason?.message || result.reason);
+  }
+};
 
 router.post("/order", async (req, res) => {
   try {
@@ -141,7 +149,17 @@ router.post("/donation/validate", async (req, res) => {
 });
 
 router.post("/order/validate", async (req, res) => {
-  const { payment_id, order_id, signature, customerEmail, customerName, shopDetails, selectedTimeSlot } = req.body;
+  const {
+    payment_id,
+    order_id,
+    signature,
+    customerEmail,
+    customerPhone,
+    customerName,
+    shopDetails,
+    selectedTimeSlot,
+    userId,
+  } = req.body;
 
   const sha = crypto.createHmac("sha256", process.env.RAZORPAY_SECRET);
   sha.update(`${order_id}|${payment_id}`);
@@ -174,10 +192,41 @@ router.post("/order/validate", async (req, res) => {
         }
 
         const shopOwnerId = timeSlot.shopOwnerId;
-        await bookAppointment(shopOwnerId, timeSlotId, showtimeId, timeSlot.date);
-        await sendConfirmationEmail(customerEmail, customerName, shopName, location, selectedTimeSlot);
+        await bookAppointment(
+          shopOwnerId,
+          timeSlotId,
+          showtimeId,
+          timeSlot.date,
+          customerEmail || null,
+          customerPhone || null,
+          userId || null
+        );
       }
-      return res.status(200).json({ message: "Payment successful and email sent!" });
+
+      const notificationResults = await Promise.allSettled([
+        ...(customerEmail
+          ? [sendConfirmationEmail(customerEmail, customerName, shopName, location, selectedTimeSlot)]
+          : []),
+        ...(customerPhone
+          ? [
+              sendConfirmationSms(customerPhone, customerName, shopName, location, selectedTimeSlot),
+              sendPaymentSuccessSms(
+                customerPhone,
+                customerName,
+                shopName,
+                location,
+                selectedTimeSlot,
+                null
+              ),
+            ]
+          : []),
+      ]);
+
+      notificationResults.forEach((result, index) =>
+        logNotificationFailure(`Post-payment notification ${index + 1}`, result)
+      );
+
+      return res.status(200).json({ message: "Payment successful and booking confirmed!" });
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: "Error booking appointment" });
@@ -209,8 +258,8 @@ router.post("/book-direct", async (req, res) => {
       return res.status(400).json({ error: "No time slots selected" });
     }
 
-    if (!customerEmail) {
-      return res.status(400).json({ error: "Customer email is required" });
+    if (!customerPhone) {
+      return res.status(400).json({ error: "Customer phone is required" });
     }
 
     if (!showtimeServices) {
@@ -243,13 +292,25 @@ router.post("/book-direct", async (req, res) => {
       timeSlotId,
       showtimeId,
       date,
-      customerEmail,
+      customerEmail || null,
+      customerPhone,
       userId,
       serviceInfo,
       totalAmount
     );
 
-    await sendConfirmationEmail(customerEmail, customerName, shopName, location, selectedTimeSlots);
+    const notificationResults = await Promise.allSettled([
+      ...(customerEmail
+        ? [sendConfirmationEmail(customerEmail, customerName, shopName, location, selectedTimeSlots)]
+        : []),
+      ...(customerPhone
+        ? [sendConfirmationSms(customerPhone, customerName, shopName, location, selectedTimeSlots)]
+        : []),
+    ]);
+
+    notificationResults.forEach((result, index) =>
+      logNotificationFailure(`Direct-booking notification ${index + 1}`, result)
+    );
 
     res.json({
       success: true,

@@ -1,4 +1,7 @@
 const prisma = require("../../utils/prisma");
+const { normalizePhone } = require("../../utils/phone");
+
+const normalizeEmail = (value) => (value || "").trim().toLowerCase();
 
 const fetchUsers = async (req, res) => {
   try {
@@ -30,11 +33,22 @@ const fetchUsers = async (req, res) => {
 
 const updateUserType = async (req, res) => {
   try {
-    const { email, userType } = req.body;
-    const normalizedEmail = (email || "").trim().toLowerCase();
+    const { email, phone, userType } = req.body;
+    const normalizedEmail = normalizeEmail(email);
+    const normalizedPhone = normalizePhone(phone);
+
+    if (!normalizedPhone && !normalizedEmail) {
+      return res.status(400).json({ error: "Phone number is required" });
+    }
 
     const user = await prisma.user.findFirst({
-      where: { email: normalizedEmail, isDeleted: false },
+      where: {
+        isDeleted: false,
+        OR: [
+          ...(normalizedPhone ? [{ phone: normalizedPhone }] : []),
+          ...(normalizedEmail ? [{ email: normalizedEmail }] : []),
+        ],
+      },
     });
 
     if (!user) {
@@ -58,11 +72,10 @@ const updateUserType = async (req, res) => {
 
 const userType = async (req, res) => {
   try {
-    const { email } = req.user;
-    const normalizedEmail = (email || "").trim().toLowerCase();
+    const normalizedPhone = normalizePhone(req.user?.phone);
 
     const user = await prisma.user.findFirst({
-      where: { email: normalizedEmail, isDeleted: false },
+      where: { phone: normalizedPhone, isDeleted: false },
     });
 
     if (!user) {
@@ -84,6 +97,8 @@ const updateProfile = async (req, res) => {
   try {
     const userId = req.params.id;
     const { name, email, phone } = req.body;
+    const normalizedPhone = phone ? normalizePhone(phone) : null;
+    const normalizedEmail = email ? normalizeEmail(email) : null;
 
     const existingUser = await prisma.user.findFirst({
       where: { id: userId, isDeleted: false },
@@ -93,9 +108,24 @@ const updateProfile = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    const updatedUser = await prisma.user.update({
-      where: { id: userId },
-      data: { name, email, phone },
+    const updatedUser = await prisma.$transaction(async (tx) => {
+      const nextUser = await tx.user.update({
+        where: { id: userId },
+        data: {
+          name,
+          email: normalizedEmail || null,
+          phone: normalizedPhone || existingUser.phone,
+        },
+      });
+
+      if (existingUser.usertype === "shopOwner" && normalizedPhone && normalizedPhone !== existingUser.phone) {
+        await tx.shop.updateMany({
+          where: { ownerPhone: existingUser.phone },
+          data: { ownerPhone: normalizedPhone },
+        });
+      }
+
+      return nextUser;
     });
 
     res.json({

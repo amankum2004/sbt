@@ -2,8 +2,10 @@ const prisma = require("../../utils/prisma");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { mapShop } = require("../../utils/legacy-mappers");
+const { normalizePhone } = require("../../utils/phone");
 
 const normalizeEmail = (value) => (value || "").trim().toLowerCase();
+const SMS_OTP_ENABLED = process.env.ENABLE_SMS_OTP === "true";
 
 const home = async (req, res) => {
   try {
@@ -17,17 +19,24 @@ const register = async (req, res) => {
   try {
     const { name, phone, password, otp, email, usertype } = req.body;
 
-    if (!name || !email || !password || !otp || !phone || !usertype) {
+    if (!name || !password || !phone || !usertype || (SMS_OTP_ENABLED && !otp)) {
       return res.status(200).json({
         success: false,
         message: "All fields are required",
       });
     }
 
-    const normalizedEmail = normalizeEmail(email);
+    const normalizedEmail = email ? normalizeEmail(email) : null;
+    const normalizedPhone = normalizePhone(phone);
 
     const existingUser = await prisma.user.findFirst({
-      where: { email: normalizedEmail, isDeleted: false },
+      where: {
+        isDeleted: false,
+        OR: [
+          { phone: normalizedPhone },
+          ...(normalizedEmail ? [{ email: normalizedEmail }] : []),
+        ],
+      },
       select: { id: true },
     });
     if (existingUser) {
@@ -37,16 +46,19 @@ const register = async (req, res) => {
       });
     }
 
-    const latestOtp = await prisma.otp.findFirst({
-      where: { email: normalizedEmail },
-      orderBy: { createdAt: "desc" },
-    });
-
-    if (!latestOtp || otp !== latestOtp.otp) {
-      return res.status(200).json({
-        success: false,
-        message: "The OTP is not valid",
+    // Keep the OTP verification path ready for when SMS delivery is turned back on.
+    if (SMS_OTP_ENABLED) {
+      const latestOtp = await prisma.otp.findFirst({
+        where: { phone: normalizedPhone },
+        orderBy: { createdAt: "desc" },
       });
+
+      if (!latestOtp || otp !== latestOtp.otp) {
+        return res.status(200).json({
+          success: false,
+          message: "The OTP is not valid",
+        });
+      }
     }
 
     let hashedPassword;
@@ -63,7 +75,7 @@ const register = async (req, res) => {
       data: {
         name,
         email: normalizedEmail,
-        phone,
+        phone: normalizedPhone,
         password: hashedPassword,
         usertype,
       },
@@ -91,7 +103,7 @@ const login = async (req, res) => {
   // console.log("Request body:", req.body);
   console.log("Request time:", new Date().toISOString());
 
-  const { email, phone, password, contactType } = req.body;
+  const { phone, password } = req.body;
 
   try {
     if (!password) {
@@ -101,37 +113,17 @@ const login = async (req, res) => {
       });
     }
 
-    if (!contactType || (contactType !== "email" && contactType !== "phone")) {
-      return res.status(200).json({
-        success: false,
-        error: "Valid contact type (email or phone) is required",
-      });
-    }
-
-    if (contactType === "email" && !email) {
-      return res.status(200).json({
-        success: false,
-        error: "Email is required",
-      });
-    }
-
-    if (contactType === "phone" && !phone) {
+    if (!phone) {
       return res.status(400).json({
         success: false,
         error: "Phone number is required",
       });
     }
 
-    let user;
-    if (contactType === "email") {
-      user = await prisma.user.findFirst({
-        where: { email: normalizeEmail(email), isDeleted: false },
-      });
-    } else {
-      user = await prisma.user.findFirst({
-        where: { phone: phone, isDeleted: false },
-      });
-    }
+    const normalizedPhone = normalizePhone(phone);
+    const user = await prisma.user.findFirst({
+      where: { phone: normalizedPhone, isDeleted: false },
+    });
 
     if (!user) {
       return res.status(200).json({
@@ -151,7 +143,7 @@ const login = async (req, res) => {
     let shop = null;
     if (user.usertype === "shopOwner") {
       const shopRecord = await prisma.shop.findFirst({
-        where: { email: user.email },
+        where: { ownerPhone: user.phone },
         include: { services: true },
       });
       shop = shopRecord ? mapShop(shopRecord) : null;
@@ -160,7 +152,7 @@ const login = async (req, res) => {
     const token = jwt.sign(
       {
         userId: user.id,
-        email: user.email,
+        email: user.email || null,
         usertype: user.usertype || "customer",
         name: user.name || "user",
         phone: user.phone || "",
@@ -180,7 +172,7 @@ const login = async (req, res) => {
 
     const userResponse = {
       userId: user.id,
-      email: user.email,
+      email: user.email || null,
       usertype: user.usertype || "customer",
       name: user.name || "user",
       phone: user.phone || "",
@@ -205,25 +197,28 @@ const login = async (req, res) => {
 
 const update = async (req, res) => {
   try {
-    const { email, password, otp } = req.body;
-    if (!email || !password || !otp) {
+    const { phone, password, otp } = req.body;
+    if (!phone || !password || (SMS_OTP_ENABLED && !otp)) {
       return res.status(200).json({
         success: false,
         message: "All fields are required",
       });
     }
 
-    const normalizedEmail = normalizeEmail(email);
-    const latestOtp = await prisma.otp.findFirst({
-      where: { email: normalizedEmail },
-      orderBy: { createdAt: "desc" },
-    });
-
-    if (!latestOtp || otp !== latestOtp.otp) {
-      return res.status(200).json({
-        success: false,
-        message: "The OTP is not valid",
+    const normalizedPhone = normalizePhone(phone);
+    // Keep the OTP verification path ready for when SMS delivery is turned back on.
+    if (SMS_OTP_ENABLED) {
+      const latestOtp = await prisma.otp.findFirst({
+        where: { phone: normalizedPhone },
+        orderBy: { createdAt: "desc" },
       });
+
+      if (!latestOtp || otp !== latestOtp.otp) {
+        return res.status(200).json({
+          success: false,
+          message: "The OTP is not valid",
+        });
+      }
     }
 
     let hashedPassword;
@@ -237,7 +232,7 @@ const update = async (req, res) => {
     }
 
     const user = await prisma.user.findFirst({
-      where: { email: normalizedEmail, isDeleted: false },
+      where: { phone: normalizedPhone, isDeleted: false },
     });
 
     if (!user || user.isDeleted) {

@@ -1,6 +1,5 @@
 const { z } = require("zod");
 
-const CONTACT_TYPES = ["email", "phone"];
 const USER_TYPES = ["customer", "shopOwner", "admin"];
 const COORDINATE_SOURCES = ["device_gps", "google_geocode", "manual_update", "fallback"];
 
@@ -11,10 +10,22 @@ const emailSchema = z
   .max(254, { message: "Email must not exceed 254 characters" })
   .transform((value) => value.toLowerCase());
 
+const optionalEmailSchema = z.preprocess((value) => {
+  if (typeof value !== "string") return value;
+  const trimmedValue = value.trim();
+  return trimmedValue ? trimmedValue : undefined;
+}, emailSchema.optional());
+
 const phoneSchema = z
   .string({ required_error: "Phone is required" })
   .trim()
   .regex(/^\d{10}$/, { message: "Phone number must be exactly 10 digits" });
+
+const optionalPhoneSchema = z.preprocess((value) => {
+  if (typeof value !== "string") return value;
+  const trimmedValue = value.trim();
+  return trimmedValue ? trimmedValue : undefined;
+}, phoneSchema.optional());
 
 const passwordSchema = z
   .string({ required_error: "Password is required" })
@@ -26,6 +37,12 @@ const otpCodeSchema = z
   .string({ required_error: "OTP is required" })
   .trim()
   .regex(/^\d{6}$/, { message: "OTP must be exactly 6 digits" });
+
+const optionalOtpCodeSchema = z.preprocess((value) => {
+  if (typeof value !== "string") return value;
+  const trimmedValue = value.trim();
+  return trimmedValue ? trimmedValue : undefined;
+}, otpCodeSchema.optional());
 
 const nameSchema = z
   .string({ required_error: "Name is required" })
@@ -40,51 +57,23 @@ const userTypeSchema = z.enum(USER_TYPES, {
 
 const loginSchema = z
   .object({
-    contactType: z.enum(CONTACT_TYPES).optional(),
-    email: emailSchema.optional(),
-    phone: phoneSchema.optional(),
+    contactType: z.literal("phone").optional(),
+    phone: phoneSchema,
     password: passwordSchema,
-  })
-  .superRefine((data, ctx) => {
-    const inferredContactType = data.contactType || (data.email ? "email" : data.phone ? "phone" : null);
-
-    if (!inferredContactType) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Either email or phone is required for login",
-      });
-      return;
-    }
-
-    if (inferredContactType === "email" && !data.email) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["email"],
-        message: "Email is required when contactType is email",
-      });
-    }
-
-    if (inferredContactType === "phone" && !data.phone) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["phone"],
-        message: "Phone is required when contactType is phone",
-      });
-    }
   })
   .transform((data) => ({
     ...data,
-    contactType: data.contactType || (data.email ? "email" : "phone"),
+    contactType: "phone",
   }));
 
 const signupSchema = z
   .object({
     name: nameSchema.optional(),
     username: nameSchema.optional(), // backward-compatibility with legacy payloads
-    email: emailSchema,
+    email: optionalEmailSchema,
     phone: phoneSchema,
     password: passwordSchema,
-    otp: otpCodeSchema,
+    otp: optionalOtpCodeSchema,
     usertype: userTypeSchema,
   })
   .superRefine((data, ctx) => {
@@ -102,13 +91,13 @@ const signupSchema = z
   }));
 
 const resetPasswordSchema = z.object({
-  email: emailSchema,
+  phone: phoneSchema,
   password: passwordSchema,
-  otp: otpCodeSchema,
+  otp: optionalOtpCodeSchema,
 });
 
 const otpRequestSchema = z.object({
-  email: emailSchema,
+  phone: phoneSchema,
 });
 
 const serviceItemSchema = z.object({
@@ -125,8 +114,9 @@ const serviceItemSchema = z.object({
 
 const shopSchema = z.object({
   name: nameSchema,
-  email: emailSchema,
+  email: optionalEmailSchema,
   phone: phoneSchema,
+  ownerPhone: optionalPhoneSchema,
   password: passwordSchema.optional(),
   shopname: z
     .string({ required_error: "Shop name is required" })
@@ -166,9 +156,12 @@ module.exports = {
   resetPasswordSchema,
   otpRequestSchema,
   emailSchema,
+  optionalEmailSchema,
   phoneSchema,
+  optionalPhoneSchema,
   passwordSchema,
   otpCodeSchema,
+  optionalOtpCodeSchema,
   nameSchema,
 };
 

@@ -1,9 +1,24 @@
 const axios = require('axios');
+const { formatPhoneForSms, normalizePhone } = require('./phone');
 
 // Brevo API configuration
-const BREVO_API_KEY = process.env.BREVO_API;
+const BREVO_API_KEY = (
+  process.env.BREVO_SMS_API_KEY ||
+  process.env.BREVO_API_KEY ||
+  process.env.BREVO_API ||
+  ''
+).trim();
 const BREVO_SENDER_EMAIL = process.env.BREVO_EMAIL;
 const BREVO_SENDER_NAME = 'SalonHub';
+const BREVO_SMS_SENDER = (process.env.BREVO_SMS_SENDER || 'SalonHub').trim().slice(0, 11);
+const TWILIO_ACCOUNT_SID = (process.env.TWILIO_ACCOUNT_SID || '').trim();
+const TWILIO_AUTH_TOKEN = (process.env.TWILIO_AUTH_TOKEN || '').trim();
+const TWILIO_FROM_NUMBER = (
+  process.env.TWILIO_FROM_NUMBER ||
+  process.env.TWILIO_PHONE_NUMBER ||
+  ''
+).trim();
+const TWILIO_MESSAGING_SERVICE_SID = (process.env.TWILIO_MESSAGING_SERVICE_SID || '').trim();
 const Email = 'salonhub.business@gmail.com';
 const ADMIN_NOTIFICATION_EMAIL = (
   process.env.ADMIN_NOTIFICATION_EMAIL ||
@@ -20,6 +35,198 @@ const FRONTEND_BASE_URL = isLocalOrPrivateFrontendUrl
   : normalizedConfiguredFrontendUrl;
 
 const CURRENT_YEAR = new Date().getFullYear();
+
+const normalizeTwilioFromNumber = (value = '') => {
+  const trimmedValue = String(value || '').trim();
+  if (!trimmedValue) return '';
+
+  if (/^\+\d{8,15}$/.test(trimmedValue)) {
+    return trimmedValue;
+  }
+
+  const digits = trimmedValue.replace(/\D/g, '');
+  if (digits.length >= 8 && digits.length <= 15) {
+    return `+${digits}`;
+  }
+
+  return trimmedValue;
+};
+
+const resolveTwilioSender = (feature = 'Twilio SMS') => {
+  const fromNumber = normalizeTwilioFromNumber(TWILIO_FROM_NUMBER);
+  const messagingServiceSid = TWILIO_MESSAGING_SERVICE_SID;
+  const hasValidMessagingServiceSid = /^MG[a-zA-Z0-9]{32}$/.test(messagingServiceSid);
+  const hasConfiguredMessagingServiceSid = Boolean(messagingServiceSid);
+  const hasValidFromNumber = /^\+\d{8,15}$/.test(fromNumber);
+
+  if (hasValidMessagingServiceSid) {
+    return { type: 'messagingService', value: messagingServiceSid };
+  }
+
+  if (hasConfiguredMessagingServiceSid) {
+    const sidPrefix = messagingServiceSid.slice(0, 2) || 'unknown';
+    const validationMessage =
+      `TWILIO_MESSAGING_SERVICE_SID is invalid for ${feature}. Twilio Messaging Service SIDs must start with "MG", but the configured value starts with "${sidPrefix}".`;
+
+    if (hasValidFromNumber) {
+      console.warn(`⚠️ ${validationMessage} Falling back to TWILIO_FROM_NUMBER.`);
+      return { type: 'from', value: fromNumber };
+    }
+
+    throw new Error(`${validationMessage} Clear it or replace it with a valid "MG..." SID.`);
+  }
+
+  if (hasValidFromNumber) {
+    return { type: 'from', value: fromNumber };
+  }
+
+  if (fromNumber) {
+    throw new Error(
+      `TWILIO_FROM_NUMBER is invalid for ${feature}. Use E.164 format, for example "+15551234567".`
+    );
+  }
+
+  throw new Error(
+    `Missing Twilio sender for ${feature}. Set TWILIO_FROM_NUMBER or TWILIO_MESSAGING_SERVICE_SID.`
+  );
+};
+
+const assertBrevoApiKey = (feature = 'Brevo API') => {
+  if (!BREVO_API_KEY) {
+    throw new Error(
+      `Missing Brevo API key for ${feature}. Set BREVO_SMS_API_KEY or BREVO_API_KEY with a Brevo API key that starts with "xkeysib-".`
+    );
+  }
+
+  if (BREVO_API_KEY.startsWith('xsmtpsib-')) {
+    throw new Error(
+      `Invalid Brevo key for ${feature}. The configured key starts with "xsmtpsib-", which is an SMTP key. Use a Brevo API key from Settings > SMTP & API that starts with "xkeysib-".`
+    );
+  }
+
+  if (!BREVO_API_KEY.startsWith('xkeysib-')) {
+    console.warn(
+      `⚠️ Brevo key format looks unusual for ${feature}. Expected a key that starts with "xkeysib-".`
+    );
+  }
+
+  return BREVO_API_KEY;
+};
+
+const assertTwilioConfig = (feature = 'Twilio SMS') => {
+  if (!TWILIO_ACCOUNT_SID || !TWILIO_AUTH_TOKEN) {
+    throw new Error(
+      `Missing Twilio credentials for ${feature}. Set TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN.`
+    );
+  }
+  resolveTwilioSender(feature);
+
+  return {
+    accountSid: TWILIO_ACCOUNT_SID,
+    authToken: TWILIO_AUTH_TOKEN,
+  };
+};
+
+const formatSmsDateTime = (dateValue) => {
+  const parsedDate = new Date(dateValue);
+  if (Number.isNaN(parsedDate.getTime())) return '';
+
+  const datePart = parsedDate.toLocaleDateString('en-IN', {
+    timeZone: 'Asia/Kolkata',
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
+
+  const timePart = parsedDate.toLocaleTimeString('en-IN', {
+    timeZone: 'Asia/Kolkata',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+  });
+
+  return `${datePart}, ${timePart}`;
+};
+
+const summarizeSlotsForSms = (selectedTimeSlots = []) => {
+  const slots = Array.isArray(selectedTimeSlots) ? selectedTimeSlots : [];
+  if (!slots.length) return 'schedule not available';
+
+  const labels = slots
+    .map((slot) => formatSmsDateTime(slot?.showtimeDate || slot?.date))
+    .filter(Boolean);
+
+  if (!labels.length) return 'schedule not available';
+  if (labels.length === 1) return labels[0];
+
+  return `${labels[0]} (+${labels.length - 1} more)`;
+};
+
+const buildTwilioMessageBody = (lines = []) =>
+  lines
+    .map((line) => String(line || '').trim())
+    .filter(Boolean)
+    .join('\n');
+
+const sendTwilioSms = async ({ to, body, feature = 'Twilio SMS' }) => {
+  const normalizedPhone = normalizePhone(to);
+  const smsRecipient = formatPhoneForSms(normalizedPhone);
+
+  if (!normalizedPhone || !smsRecipient) {
+    throw new Error(`Valid phone number is required for ${feature}`);
+  }
+
+  const { accountSid, authToken } = assertTwilioConfig(feature);
+  const senderConfig = resolveTwilioSender(feature);
+  const messagePayload = new URLSearchParams({
+    To: smsRecipient,
+    Body: body,
+  });
+
+  if (senderConfig.type === 'messagingService') {
+    messagePayload.set('MessagingServiceSid', senderConfig.value);
+  } else {
+    messagePayload.set('From', senderConfig.value);
+  }
+
+  console.log(`📱 Sending ${feature} to: ${normalizedPhone}`);
+
+  try {
+    const response = await axios.post(
+      `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`,
+      messagePayload.toString(),
+      {
+        auth: {
+          username: accountSid,
+          password: authToken,
+        },
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          Accept: 'application/json',
+        },
+        timeout: 10000,
+      }
+    );
+
+    console.log(`✅ ${feature} sent successfully via Twilio`);
+    return response.data;
+  } catch (error) {
+    const twilioMessage =
+      error.response?.data?.message ||
+      error.response?.data?.detail ||
+      error.message;
+
+    console.error(`❌ Failed to send ${feature} via Twilio:`, error.response?.data || error.message);
+
+    if (error.response?.status === 401 || error.response?.status === 403) {
+      throw new Error(
+        `Twilio rejected the ${feature} request. Please verify TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, and your sender configuration.`
+      );
+    }
+
+    throw new Error(twilioMessage || `Failed to send ${feature}`);
+  }
+};
 
 const withSalonHubLogo = (htmlContent = '', options = {}) => {
   const {
@@ -363,10 +570,159 @@ const mailOtp = async (otp, email, subject = 'OTP Verification') => {
   }
 };
 
+const sendOtpSms = async (otp, phone) => {
+  return sendTwilioSms({
+    to: phone,
+    body: `${otp} is your SalonHub verification code. It is valid for 10 minutes.`,
+    feature: 'OTP SMS',
+  });
+};
+
+const sendConfirmationSms = async (customerPhone, customerName, shopName, location, selectedTimeSlots) => {
+  if (!customerPhone) {
+    console.log('Skipping booking confirmation SMS because customer phone is unavailable.');
+    return null;
+  }
+
+  const slotSummary = summarizeSlotsForSms(selectedTimeSlots);
+  const smsBody = buildTwilioMessageBody([
+    `Hi ${customerName || 'Customer'}, your SalonHub booking is confirmed.`,
+    `Salon: ${shopName}`,
+    `When: ${slotSummary}`,
+    location ? `Location: ${location}` : '',
+    'Please arrive 5-10 minutes early.',
+  ]);
+
+  return sendTwilioSms({
+    to: customerPhone,
+    body: smsBody,
+    feature: 'booking confirmation SMS',
+  });
+};
+
+const sendPaymentSuccessSms = async (
+  customerPhone,
+  customerName,
+  shopName,
+  location,
+  selectedTimeSlots,
+  totalAmount
+) => {
+  if (!customerPhone) {
+    console.log('Skipping payment success SMS because customer phone is unavailable.');
+    return null;
+  }
+
+  const slotSummary = summarizeSlotsForSms(selectedTimeSlots);
+  const amountText = Number.isFinite(Number(totalAmount)) ? `Amount: Rs. ${Number(totalAmount).toFixed(0)}` : '';
+
+  const smsBody = buildTwilioMessageBody([
+    `Hi ${customerName || 'Customer'}, payment received and your SalonHub booking is confirmed.`,
+    `Salon: ${shopName}`,
+    `When: ${slotSummary}`,
+    amountText,
+    location ? `Location: ${location}` : '',
+  ]);
+
+  return sendTwilioSms({
+    to: customerPhone,
+    body: smsBody,
+    feature: 'payment success SMS',
+  });
+};
+
+const sendShopStatusSms = async (customerPhone, customerName, shopName, newStatus, appointmentDate) => {
+  if (!customerPhone) {
+    console.log('Skipping shop status SMS because customer phone is unavailable.');
+    return null;
+  }
+
+  const appointmentText = appointmentDate
+    ? `Upcoming appointment: ${formatSmsDateTime(appointmentDate)}`
+    : 'You have an upcoming appointment at this salon.';
+
+  const smsBody = buildTwilioMessageBody([
+    `Hi ${customerName || 'Customer'}, status update from SalonHub.`,
+    `${shopName} is currently ${newStatus}.`,
+    appointmentText,
+    'Please check your dashboard before visiting.',
+  ]);
+
+  return sendTwilioSms({
+    to: customerPhone,
+    body: smsBody,
+    feature: 'shop status SMS',
+  });
+};
+
+const sendCancellationSms = async (customerPhone, customerName, shopName, location, appointmentDetails) => {
+  if (!customerPhone) {
+    console.log('Skipping cancellation SMS because customer phone is unavailable.');
+    return null;
+  }
+
+  const slotSummary = summarizeSlotsForSms(
+    Array.isArray(appointmentDetails?.showtimes)
+      ? appointmentDetails.showtimes.map((showtime) => ({ showtimeDate: showtime.date }))
+      : []
+  );
+
+  const smsBody = buildTwilioMessageBody([
+    `Hi ${customerName || 'Customer'}, your SalonHub appointment has been cancelled.`,
+    `Salon: ${shopName}`,
+    `When: ${slotSummary}`,
+    location ? `Location: ${location}` : '',
+    'The time slot is now released.',
+  ]);
+
+  return sendTwilioSms({
+    to: customerPhone,
+    body: smsBody,
+    feature: 'cancellation SMS',
+  });
+};
+
+const sendShopOwnerCancellationSms = async (
+  shopOwnerPhone,
+  shopName,
+  customerName,
+  customerPhone,
+  appointmentDetails
+) => {
+  if (!shopOwnerPhone) {
+    console.log('Skipping shop owner cancellation SMS because owner phone is unavailable.');
+    return null;
+  }
+
+  const slotSummary = summarizeSlotsForSms(
+    Array.isArray(appointmentDetails?.showtimes)
+      ? appointmentDetails.showtimes.map((showtime) => ({ showtimeDate: showtime.date }))
+      : []
+  );
+
+  const smsBody = buildTwilioMessageBody([
+    `SalonHub alert for ${shopName}.`,
+    `${customerName || 'A customer'} cancelled an appointment.`,
+    customerPhone ? `Customer phone: ${formatPhoneForSms(customerPhone)}` : '',
+    `When: ${slotSummary}`,
+    'The slot is now available for booking.',
+  ]);
+
+  return sendTwilioSms({
+    to: shopOwnerPhone,
+    body: smsBody,
+    feature: 'shop owner cancellation SMS',
+  });
+};
+
 // ==========================================
 // Appointment Booking Confirmation Email
 // ==========================================
 const sendConfirmationEmail = async (customerEmail, customerName, shopName, location, selectedTimeSlots) => {
+  if (!customerEmail) {
+    console.log("Skipping booking confirmation email because customer email is unavailable.");
+    return null;
+  }
   console.log("📧 Sending booking confirmation to:", customerEmail);
   
   // Format the time slots properly
@@ -512,6 +868,10 @@ const sendConfirmationEmail = async (customerEmail, customerName, shopName, loca
 // Payment Success Email
 // ==========================================
 const sendPaymentSuccessEmail = async (customerEmail, customerName, shopName, location, selectedTimeSlot) => {
+  if (!customerEmail) {
+    console.log("Skipping payment success email because customer email is unavailable.");
+    return null;
+  }
   console.log("📧 Sending payment success email to:", customerEmail);
 
   const emailData = {
@@ -711,11 +1071,12 @@ const testEmailService = async (testEmail = 'test@example.com') => {
 // ==========================================
 const verifyBrevoApiKey = async () => {
   try {
+    const brevoApiKey = assertBrevoApiKey('Brevo account verification');
     const response = await axios.get(
       'https://api.brevo.com/v3/account',
       {
         headers: {
-          'api-key': BREVO_API_KEY,
+          'api-key': brevoApiKey,
           'Accept': 'application/json'
         },
         timeout: 5000
@@ -726,9 +1087,47 @@ const verifyBrevoApiKey = async () => {
     console.log('📧 Account:', response.data.email);
     console.log('🏢 Company:', response.data.company);
     console.log('📊 Plan:', response.data.plan?.[0]?.type);
+    console.log('📱 SMS Sender:', BREVO_SMS_SENDER || '(not set)');
     return true;
   } catch (error) {
     console.error('❌ Brevo API key verification failed:');
+    console.error('Error:', error.response?.data || error.message);
+    return false;
+  }
+};
+
+const verifyTwilioConfig = async () => {
+  try {
+    if (!TWILIO_ACCOUNT_SID && !TWILIO_AUTH_TOKEN && !TWILIO_FROM_NUMBER && !TWILIO_MESSAGING_SERVICE_SID) {
+      console.log('ℹ️ Twilio SMS is not configured; skipping Twilio verification.');
+      return false;
+    }
+
+    const { accountSid, authToken } = assertTwilioConfig('Twilio account verification');
+    const senderConfig = resolveTwilioSender('Twilio account verification');
+    const response = await axios.get(
+      `https://api.twilio.com/2010-04-01/Accounts/${accountSid}.json`,
+      {
+        auth: {
+          username: accountSid,
+          password: authToken,
+        },
+        headers: {
+          Accept: 'application/json',
+        },
+        timeout: 5000,
+      }
+    );
+
+    console.log('✅ Twilio credentials verified successfully');
+    console.log('📱 Twilio Account:', response.data.friendly_name || response.data.sid);
+    console.log(
+      '📨 Twilio Sender:',
+      senderConfig.value || '(not set)'
+    );
+    return true;
+  } catch (error) {
+    console.error('❌ Twilio configuration verification failed:');
     console.error('Error:', error.response?.data || error.message);
     return false;
   }
@@ -738,6 +1137,10 @@ const verifyBrevoApiKey = async () => {
 // Shop Status Change Notification Email
 // ==========================================
 const sendShopStatusNotification = async (customerEmail, customerName, shopName, newStatus, appointmentDate) => {
+  if (!customerEmail) {
+    console.log("Skipping shop status email because customer email is unavailable.");
+    return null;
+  }
   console.log(`📧 Sending shop status notification to: ${customerEmail}`);
 
   const statusConfig = {
@@ -852,6 +1255,10 @@ const sendShopStatusNotification = async (customerEmail, customerName, shopName,
 // Appointment Cancellation Email
 // ==========================================
 const sendCancellationEmail = async (customerEmail, customerName, shopName, location, appointmentDetails) => {
+  if (!customerEmail) {
+    console.log("Skipping cancellation email because customer email is unavailable.");
+    return null;
+  }
   console.log(`📧 Sending cancellation email to: ${customerEmail}`);
   
   // Format the appointment details
@@ -1149,10 +1556,17 @@ const sendShopOwnerCancellationNotification = async (shopOwnerEmail, shopName, c
 
 // Verify API key on startup
 verifyBrevoApiKey();
+verifyTwilioConfig();
 
 module.exports = {
   sendPaymentSuccessEmail,
   mailOtp,
+  sendOtpSms,
+  sendConfirmationSms,
+  sendPaymentSuccessSms,
+  sendShopStatusSms,
+  sendCancellationSms,
+  sendShopOwnerCancellationSms,
   sendConfirmationEmail,
   sendDonationConfirmationEmail,
   sendAdminContactNotification,
@@ -1162,7 +1576,8 @@ module.exports = {
   sendCancellationEmail, // Add this
   sendShopOwnerCancellationNotification, // Add this
   testEmailService,
-  verifyBrevoApiKey
+  verifyBrevoApiKey,
+  verifyTwilioConfig
 };
 
 

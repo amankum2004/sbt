@@ -8,6 +8,7 @@ import { FiSave, FiEdit, FiTrash2 } from 'react-icons/fi';
 import { api } from '../utils/api';
 import Swal from 'sweetalert2';
 import ShopStatusButton from '../components/ShopStatusButton';
+import { normalizePhone } from '../utils/phone';
 
 export const BarberProfile = () => {
   const { user, shop, shopExists, refreshShopData, setUser, logout } = useLogin();
@@ -31,10 +32,10 @@ export const BarberProfile = () => {
     if (user) {
       setEditableProfile({ name: user.name, phone: user.phone || '' });
     }
-  }, [user?.email, user?.usertype, navigate]);
+  }, [user?.phone, user?.usertype, navigate]);
 
   const manuallyCheckShop = async () => {
-    if (!user?.email) return;
+    if (!user?.phone) return;
 
     try {
       setLoading(true);
@@ -59,7 +60,7 @@ export const BarberProfile = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setEditableProfile({ ...editableProfile, [name]: value });
+    setEditableProfile({ ...editableProfile, [name]: name === "phone" ? normalizePhone(value) : value });
   };
 
   const handleSaveProfile = async () => {
@@ -69,13 +70,15 @@ export const BarberProfile = () => {
         phone: editableProfile.phone,
       });
       if (response.status === 200) {
+        const updatedUser = { ...user, name: editableProfile.name, phone: editableProfile.phone };
         Swal.fire({ 
           title: 'Success', 
           text: 'Profile updated successfully!', 
           icon: 'success',
           confirmButtonColor: '#3B82F6'
         });
-        setUser({ ...user, name: editableProfile.name, phone: editableProfile.phone });
+        setUser(updatedUser);
+        localStorage.setItem("user_data", JSON.stringify(updatedUser));
         setIsEditing(false);
       }
     } catch (error) {
@@ -343,8 +346,8 @@ export const BarberProfile = () => {
                     <FaEnvelope className="text-gray-400 text-sm" />
                     <p className="text-gray-500 text-xs font-medium uppercase tracking-wide">Email</p>
                   </div>
-                  <p className="text-gray-900 font-semibold text-sm leading-snug break-all whitespace-normal" title={user.email}>
-                    {user.email}
+                  <p className="text-gray-900 font-semibold text-sm leading-snug break-all whitespace-normal" title={user.email || 'Not provided'}>
+                    {user.email || 'Not provided'}
                   </p>
                 </div>
 

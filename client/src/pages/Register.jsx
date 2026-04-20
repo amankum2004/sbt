@@ -5,7 +5,6 @@ import {
   FaEnvelope,
   FaEye,
   FaEyeSlash,
-  FaKey,
   FaLock,
   FaPhoneAlt,
   FaUser,
@@ -13,95 +12,73 @@ import {
 } from "react-icons/fa";
 import { api } from "../utils/api";
 import BackgroundIcons from "../components/BackgroundIcons";
+import { isValidPhone, normalizePhone } from "../utils/phone";
 
 export const Register = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSendingOTP, setIsSendingOTP] = useState(false);
-
   const [formData, setFormData] = useState({
-    email: "",
     name: "",
     phone: "",
+    email: "",
     usertype: "customer",
     password: "",
-    otp: "",
   });
 
-  const { email, name, phone, usertype, password, otp } = formData;
+  const { email, name, phone, usertype, password } = formData;
   const [showPassword, setShowPassword] = useState(false);
-  const [showOTP, setShowOTP] = useState(false);
-
-  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
   const handleInput = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    const { name: fieldName, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [fieldName]: fieldName === "phone" ? normalizePhone(value) : value,
+    }));
   };
 
-  const handleSendOTP = async (e) => {
+  const handleContinue = (e) => {
     e.preventDefault();
 
-    if (!emailRegex.test(email)) {
-      Swal.fire({ title: "Error", text: "Please enter a valid email address", icon: "error" });
+    if (!isValidPhone(phone)) {
+      Swal.fire({ title: "Error", text: "Please enter a valid 10-digit mobile number", icon: "error" });
       return;
     }
 
-    setIsSendingOTP(true);
-    try {
-      const res = await api.post(
-        "/otp/user-otp",
-        { email },
-        { allowSuccessFalse: true }
-      );
-
-      if (res.data?.success) {
-        setStep(2);
-        Swal.fire({ title: "Success", text: "OTP sent to your email", icon: "success" });
-      } else {
-        Swal.fire({
-          title: "Error",
-          text: res.data?.message || res.data?.error || "Unable to send OTP",
-          icon: "error",
-        });
-      }
-    } catch (err) {
-      Swal.fire({
-        title: "Error",
-        text: err.response?.data?.message || err.response?.data?.error || "Failed to send OTP. Please try again.",
-        icon: "error",
-      });
-    } finally {
-      setIsSendingOTP(false);
-    }
+    setStep(2);
   };
 
   const handleRegister = async (e) => {
     e.preventDefault();
 
-    if (!emailRegex.test(email)) {
+    if (!isValidPhone(phone)) {
+      Swal.fire({ title: "Error", text: "Please enter a valid 10-digit mobile number", icon: "error" });
+      return;
+    }
+
+    if (email && !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email)) {
       Swal.fire({ title: "Error", text: "Please enter a valid email address", icon: "error" });
       return;
     }
 
-    if (!name || !phone || !password || !otp) {
+    if (!name || !phone || !password) {
       Swal.fire({ title: "Error", text: "Please fill all required fields", icon: "error" });
       return;
     }
 
     setIsSubmitting(true);
     try {
-      const res = await api.post(
-        "/auth/register",
-        formData,
-        { allowSuccessFalse: true }
-      );
+      const payload = {
+        ...formData,
+        phone: normalizePhone(phone),
+      };
+
+      const res = await api.post("/auth/register", payload, { allowSuccessFalse: true });
 
       if (res.data?.success) {
         Swal.fire({ title: "Success", text: "Registration successful", icon: "success" });
-        localStorage.setItem("signupEmail", email);
-        navigate("/login", { state: { email } });
+        localStorage.setItem("signupPhone", normalizePhone(phone));
+        navigate("/login", { state: { phone: normalizePhone(phone) } });
       } else {
         Swal.fire({
           title: "Error",
@@ -113,40 +90,11 @@ export const Register = () => {
       console.error("Registration error:", err);
       Swal.fire({
         title: "Error",
-        text: "Email/Phone already registered or invalid OTP",
+        text: err.response?.data?.message || err.response?.data?.error || "Mobile number already registered",
         icon: "error",
       });
     } finally {
       setIsSubmitting(false);
-    }
-  };
-
-  const handleResendOTP = async () => {
-    setIsSendingOTP(true);
-    try {
-      const res = await api.post(
-        "/otp/user-otp",
-        { email },
-        { allowSuccessFalse: true }
-      );
-
-      if (res.data?.success) {
-        Swal.fire({ title: "Success", text: "OTP resent to your email", icon: "success" });
-      } else {
-        Swal.fire({
-          title: "Error",
-          text: res.data?.message || res.data?.error || "Unable to resend OTP",
-          icon: "error",
-        });
-      }
-    } catch (err) {
-      Swal.fire({
-        title: "Error",
-        text: err.response?.data?.message || err.response?.data?.error || "Failed to resend OTP",
-        icon: "error",
-      });
-    } finally {
-      setIsSendingOTP(false);
     }
   };
 
@@ -161,23 +109,25 @@ export const Register = () => {
           <div className="mb-5 text-center">
             <img src="/images/salonHub-logo.svg" alt="SalonHub" className="mx-auto h-16 w-16 rounded-full bg-white p-1" />
             <h1 className="mt-4 bg-gradient-to-r from-cyan-200 via-amber-200 to-orange-200 bg-clip-text text-3xl font-black text-transparent">
-              {step === 1 ? "Verify Your Email" : "Create Account"}
+              {step === 1 ? "Register" : "Create Account"}
             </h1>
             <p className="mt-1 text-sm text-slate-300">
-              {step === 1 ? "Enter email to get OTP" : "Complete your profile to continue"}
+              {step === 1
+                ? "We are temporarily skipping OTP verification."
+                : "Complete your details to finish registration."}
             </p>
           </div>
 
-          <form onSubmit={step === 1 ? handleSendOTP : handleRegister} className="space-y-4">
+          <form onSubmit={step === 1 ? handleContinue : handleRegister} className="space-y-4">
             <div className="relative">
-              <FaEnvelope className="pointer-events-none absolute left-3 top-3 text-slate-400" />
+              <FaPhoneAlt className="pointer-events-none absolute left-3 top-3 text-slate-400" />
               <input
-                type="email"
-                name="email"
-                value={email}
+                type="tel"
+                name="phone"
+                value={phone}
                 onChange={handleInput}
-                placeholder="you@example.com"
-                disabled={(step === 2 && !isSubmitting) || isSendingOTP}
+                placeholder="10-digit mobile number"
+                disabled={(step === 2 && !isSubmitting) || isSubmitting}
                 required
                 autoComplete="off"
                 className="h-11 w-full rounded-xl border border-white/15 bg-slate-950/65 pl-10 pr-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/30 disabled:cursor-not-allowed disabled:opacity-70"
@@ -186,6 +136,10 @@ export const Register = () => {
 
             {step === 2 ? (
               <>
+                <div className="rounded-xl border border-amber-300/20 bg-amber-400/10 px-4 py-3 text-xs text-amber-100">
+                  OTP verification is temporarily disabled. Your account will be created directly with this mobile number.
+                </div>
+
                 <div className="relative">
                   <FaUser className="pointer-events-none absolute left-3 top-3 text-slate-400" />
                   <input
@@ -202,14 +156,13 @@ export const Register = () => {
                 </div>
 
                 <div className="relative">
-                  <FaPhoneAlt className="pointer-events-none absolute left-3 top-3 text-slate-400" />
+                  <FaEnvelope className="pointer-events-none absolute left-3 top-3 text-slate-400" />
                   <input
-                    type="tel"
-                    name="phone"
-                    value={phone}
+                    type="email"
+                    name="email"
+                    value={email}
                     onChange={handleInput}
-                    placeholder="Mobile number"
-                    required
+                    placeholder="Email address (optional)"
                     autoComplete="off"
                     disabled={isSubmitting}
                     className="h-11 w-full rounded-xl border border-white/15 bg-slate-950/65 pl-10 pr-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/30"
@@ -252,54 +205,15 @@ export const Register = () => {
                     {showPassword ? <FaEye size={18} /> : <FaEyeSlash size={18} />}
                   </button>
                 </div>
-
-                <div className="relative">
-                  <FaKey className="pointer-events-none absolute left-3 top-3 text-slate-400" />
-                  <input
-                    type={showOTP ? "text" : "password"}
-                    name="otp"
-                    value={otp}
-                    onChange={handleInput}
-                    placeholder="Enter OTP"
-                    required
-                    disabled={isSubmitting}
-                    className="h-11 w-full rounded-xl border border-white/15 bg-slate-950/65 pl-10 pr-10 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/30"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowOTP((prev) => !prev)}
-                    className="absolute right-3 top-2.5 text-slate-300 transition hover:text-white"
-                    aria-label="Toggle OTP visibility"
-                  >
-                    {showOTP ? <FaEye size={18} /> : <FaEyeSlash size={18} />}
-                  </button>
-                </div>
-
-                <div className="text-right">
-                  <button
-                    type="button"
-                    onClick={handleResendOTP}
-                    disabled={isSendingOTP}
-                    className="text-xs font-semibold text-amber-300 transition hover:text-amber-200 disabled:opacity-70"
-                  >
-                    {isSendingOTP ? "Sending OTP..." : "Resend OTP"}
-                  </button>
-                </div>
               </>
             ) : null}
 
             <button
               type="submit"
-              disabled={isSubmitting || (step === 1 && isSendingOTP)}
+              disabled={isSubmitting}
               className="inline-flex h-11 w-full items-center justify-center rounded-xl bg-gradient-to-r from-cyan-500 via-teal-500 to-amber-400 text-sm font-black text-slate-950 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {step === 1
-                ? isSendingOTP
-                  ? "Sending OTP..."
-                  : "Send OTP"
-                : isSubmitting
-                  ? "Registering..."
-                  : "Register"}
+              {step === 1 ? "Continue" : isSubmitting ? "Registering..." : "Register"}
             </button>
 
             {step === 2 ? (
@@ -310,7 +224,7 @@ export const Register = () => {
                   disabled={isSubmitting}
                   className="text-xs font-medium text-slate-300 transition hover:text-white"
                 >
-                  Back to change email
+                  Back to change mobile number
                 </button>
               </div>
             ) : null}

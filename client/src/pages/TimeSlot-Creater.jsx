@@ -54,7 +54,7 @@ export const TemplateForm = () => {
             if (user) {
                 try {
                     // Fetch shop data
-                    const shopRes = await api.get(`/shop/by-email/${user.email}`, {
+                    const shopRes = await api.get(`/shop/by-phone/${user.phone}`, {
                         allowSuccessFalse: true,
                     });
                     const shopData = shopRes.data;

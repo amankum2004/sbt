@@ -51,7 +51,7 @@ model User {
   id        String   @id @default(cuid())
   name      String
   phone     String   @unique
-  email     String   @unique
+  email     String?  @unique
   password  String
   usertype  UserType @default(customer)
   createdAt DateTime @default(now())
@@ -65,10 +65,12 @@ model User {
 
 model Otp {
   id        String   @id @default(cuid())
-  email     String
+  phone     String
+  email     String?
   otp       String
   createdAt DateTime @default(now())
 
+  @@index([phone])
   @@index([email])
   @@map("OTP")
 }
@@ -76,8 +78,9 @@ model Otp {
 model Shop {
   id                 String           @id @default(cuid())
   name               String
-  email              String           @unique
+  email              String?          @unique
   phone              String
+  ownerPhone         String?          @unique
   password           String?
   shopname           String
   state              String
@@ -170,7 +173,8 @@ model Template {
 
 model Appointment {
   id            String             @id @default(cuid())
-  customerEmail String
+  customerEmail String?
+  customerPhone String?
   userId        String
   shopId        String
   timeSlotId    String
@@ -187,6 +191,7 @@ model Appointment {
   reviews    Review[]
 
   @@index([customerEmail])
+  @@index([customerPhone])
   @@index([shopId])
   @@index([userId])
 }

@@ -14,6 +14,7 @@ export const Payment = () => {
   const { 
     selectedShowtimes,
     totalAmount,
+    customerPhone = '',
     customerEmail = '',
     customerName = '',
     shopName = '',
@@ -47,6 +48,7 @@ export const Payment = () => {
   useEffect(() => {
     console.log("Booking Details from location.state:", {
       totalAmount,
+      customerPhone,
       customerEmail,
       customerName,
       shopName,
@@ -55,7 +57,7 @@ export const Payment = () => {
       selectedShowtimes,
       showtimeServices // Check if this exists
     });
-  }, [totalAmount, customerEmail, customerName, shopName, shopPhone, shopLocation, shopId, selectedShowtimes, showtimeServices]);
+  }, [totalAmount, customerPhone, customerEmail, customerName, shopName, shopPhone, shopLocation, shopId, selectedShowtimes, showtimeServices]);
 
   const confirmBooking = async () => {
     try {
@@ -77,6 +79,10 @@ export const Payment = () => {
         throw new Error('No time slots selected. Please go back and select a time slot.');
       }
 
+      if (!(customerPhone || user?.phone)) {
+        throw new Error('Customer mobile number is missing. Please log in again and retry.');
+      }
+
       // Validate that showtimeServices exists
       if (!showtimeServices || Object.keys(showtimeServices).length === 0) {
         throw new Error('Service information is missing. Please go back and select services.');
@@ -85,7 +91,7 @@ export const Payment = () => {
       const bookingData = {
         customerEmail: customerEmail || user?.email,
         customerName: customerName || user?.name,
-        customerPhone: user?.phone || '',
+        customerPhone: customerPhone || user?.phone || '',
         userId: user?.userId || user?._id,
         shopDetails: {
           shopName,
@@ -145,8 +151,10 @@ export const Payment = () => {
               <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
                 <h3 className="text-lg font-bold text-slate-900">Customer Details</h3>
                 <p className="mt-2 text-sm text-slate-700"><strong>Name:</strong> {customerName}</p>
-                <p className="text-sm text-slate-700"><strong>Email:</strong> {customerEmail}</p>
-                <p className="text-sm text-slate-700"><strong>Phone:</strong> {user?.phone || 'N/A'}</p>
+                <p className="text-sm text-slate-700"><strong>Phone:</strong> {customerPhone || user?.phone || 'N/A'}</p>
+                {customerEmail && (
+                  <p className="text-sm text-slate-700"><strong>Email:</strong> {customerEmail}</p>
+                )}
               </div>
               
               <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">

@@ -8,6 +8,7 @@ exports.bookAppointment = async (
   showtimeId,
   date,
   customerEmail,
+  customerPhone,
   userId,
   serviceInfo,
   totalAmount
@@ -18,6 +19,7 @@ exports.bookAppointment = async (
       showtimeId,
       date,
       customerEmail,
+      customerPhone,
       userId,
       serviceInfo,
       totalAmount,
@@ -89,6 +91,7 @@ exports.bookAppointment = async (
     const appointment = await tx.appointment.create({
       data: {
         customerEmail,
+        customerPhone,
         userId,
         shopId,
         timeSlotId: showtime.timeSlotId,

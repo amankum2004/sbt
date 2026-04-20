@@ -10,10 +10,10 @@ router.route('/registershop').post(validate(shopSchema), registershopController.
 
 router.get("/approvedshops", registershopController.getAllApprovedShops);
 
-router.get('/check-shop/:email', registershopController.checkShopExists);
+router.get('/check-shop/phone/:phone', registershopController.checkShopExists);
 
 router.route("/shoplists/:id").get(registershopController.getShopById);
-router.get('/by-email/:email', registershopController.getShopByEmail);
+router.get('/by-phone/:phone', registershopController.getShopByPhone);
 
 router.patch('/update', registershopController.updateBarberProfile);
 

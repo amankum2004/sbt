@@ -18,10 +18,13 @@ const BarberDashboard = () => {
   const [shopId, setShopId] = useState('');
   const [shopStatus, setShopStatus] = useState('');
   const [checkingShopStatus, setCheckingShopStatus] = useState(true);
+  const activeShopId = shopId || shop?._id || user?.shop?._id || "";
 
   const fetchAppointments = async () => {
+    if (!activeShopId) return;
+
     try {
-      const response = await api.get(`/appoint/barber-appointments/${user.shop._id}`);
+      const response = await api.get(`/appoint/barber-appointments/${activeShopId}`);
       // console.log('Appointments response:', response.data);
       if (response.data.success) {
         const todaysAppts = response.data.todaysAppointments || [];
@@ -56,8 +59,10 @@ const BarberDashboard = () => {
   };
   
   const fetchTodaysAppointments = async () => {
+    if (!activeShopId) return;
+
     try {
-      const response = await api.get(`/appoint/barber-appointments/${user.shop._id}/today`);
+      const response = await api.get(`/appoint/barber-appointments/${activeShopId}/today`);
       // console.log("Today's Appointments response:", response.data);
       if (response.data.success) {
         const todayAppts = response.data.todaysAppointments || [];
@@ -85,9 +90,9 @@ const BarberDashboard = () => {
 
   useEffect(() => {
     const checkShopStatus = async () => {
-      if (user) {
+      if (user?.phone) {
         try {
-          const shopRes = await api.get(`/shop/by-email/${user.email}`);
+          const shopRes = await api.get(`/shop/by-phone/${user.phone}`);
           const latestShopData = shopRes.data;
           // console.log('Latest shop data:', latestShopData);
           setShopId(latestShopData._id);
@@ -111,7 +116,7 @@ const BarberDashboard = () => {
     };
 
     checkShopStatus();
-  }, [user, navigate]);
+  }, [user?.phone, navigate]);
 
   // Enhanced time formatting function
   const formatTime = (timeString) => {
@@ -732,8 +737,6 @@ const BarberDashboard = () => {
 };
 
 export default BarberDashboard;
-
-
 
 
 

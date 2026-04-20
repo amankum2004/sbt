@@ -30,6 +30,7 @@ const authenticate = async (req, res, next) => {
       req.user = {
         userId: decoded.userId,
         email: decoded.email,
+        phone: decoded.phone,
         usertype: decoded.usertype,
         name: decoded.name,
       };
@@ -84,6 +85,7 @@ const authenticate = async (req, res, next) => {
       req.user = {
         userId: user.userId,
         email: user.email,
+        phone: user.phone,
         usertype: user.usertype,
         name: user.name,
       };
@@ -129,4 +131,3 @@ const authorize = (...allowedRoles) => {
 };
 
 module.exports = { authenticate, authorize };
-

@@ -7,6 +7,7 @@ import { stateDistrictCityData } from "../utils/locationData";
 import Swal from "sweetalert2";
 import { FaMapMarkerAlt, FaPlus, FaTrash, FaUser, FaEnvelope, FaPhone, FaStore, FaMapPin, FaRupeeSign } from 'react-icons/fa';
 import { LoadingSpinner } from "../components/Loading";
+import { normalizePhone } from "../utils/phone";
 
 export const BarberProfileUpdate = () => {
   const navigate = useNavigate();
@@ -22,6 +23,7 @@ export const BarberProfileUpdate = () => {
     name: "",
     email: "",
     phone: "",
+    ownerPhone: "",
     shopname: "",
     state: "",
     district: "",
@@ -35,12 +37,12 @@ export const BarberProfileUpdate = () => {
   });
 
   const persistCoordinatesToServer = async ({ lat, lng, coordinatesSource }) => {
-    const email = data.email || user?.email;
+    const ownerPhone = data.ownerPhone || user?.phone;
 
-    if (!email) {
+    if (!ownerPhone) {
       Swal.fire({
-        title: "Missing Email",
-        text: "Unable to save coordinates without a valid email.",
+        title: "Missing Mobile Number",
+        text: "Unable to save coordinates without a valid owner mobile number.",
         icon: "error",
         confirmButtonColor: "#EF4444"
       });
@@ -59,7 +61,7 @@ export const BarberProfileUpdate = () => {
 
     try {
       await api.patch(`/shop/update`, {
-        email,
+        ownerPhone,
         lat,
         lng,
         coordinatesSource
@@ -288,12 +290,16 @@ export const BarberProfileUpdate = () => {
   };
 
   const getSingleUserData = async () => {
-    if (!user?.email) return;
+    if (!user?.phone) return;
 
     try {
-      const response = await api.get(`/shop/by-email/${user.email}`)
+      const response = await api.get(`/shop/by-phone/${user.phone}`)
       const shopData = await response.data;
-      setData(shopData);
+      setData((prev) => ({
+        ...prev,
+        ...shopData,
+        ownerPhone: shopData?.ownerPhone || user?.phone || "",
+      }));
 
       // Check if location exists
       if (Number.isFinite(Number(shopData.lat)) && Number.isFinite(Number(shopData.lng))) {
@@ -317,11 +323,11 @@ export const BarberProfileUpdate = () => {
 
   useEffect(() => {
     getSingleUserData();
-  }, [user?.email]);
+  }, [user?.phone]);
 
   const handleInput = (e) => {
     let name = e.target.name;
-    let value = e.target.value;
+    let value = name === "phone" ? normalizePhone(e.target.value) : e.target.value;
     const shouldInvalidateCoords = ["shopname", "street", "pin"].includes(name);
 
     setData((prev) => ({
@@ -380,6 +386,7 @@ export const BarberProfileUpdate = () => {
 
     try {
       const payload = {
+        ownerPhone: data.ownerPhone || user?.phone,
         email: data.email,
         name: data.name,
         phone: data.phone,

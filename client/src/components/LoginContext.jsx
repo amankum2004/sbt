@@ -22,14 +22,14 @@ export const LoginProvider = ({ children }) => {
   }
 
   // Check if shop exists
-  const checkShopExists = async (email) => {
-    if (!email) {
+  const checkShopExists = async (phone) => {
+    if (!phone) {
       return { exists: false };
     }
 
     try {
-      const normalizedEmail = encodeURIComponent(email.trim().toLowerCase());
-      const response = await api.get(`/shop/check-shop/${normalizedEmail}`);
+      const normalizedPhone = encodeURIComponent(String(phone).replace(/\D/g, "").slice(-10));
+      const response = await api.get(`/shop/check-shop/phone/${normalizedPhone}`);
       return response.data;
     } catch (error) {
       console.error("Error checking shop existence:", error);
@@ -67,7 +67,7 @@ export const LoginProvider = ({ children }) => {
         if (jwtToken && userDataStr) {
           try {
             const userData = JSON.parse(userDataStr);
-            console.log('✅ User loaded from localStorage:', userData.email);
+            console.log('✅ User loaded from localStorage:', userData.phone || userData.email);
             
             setLoggedIn(true);
             setUser(userData);
@@ -78,10 +78,10 @@ export const LoginProvider = ({ children }) => {
               const shopData = JSON.parse(savedShop);
               setShop(shopData);
               setShopExists(true);
-            } else if (userData.usertype === 'shopOwner' && userData.email) {
+            } else if (userData.usertype === 'shopOwner' && userData.phone) {
               // Auto-check shop for shop owners
               try {
-                const response = await checkShopExists(userData.email);
+                const response = await checkShopExists(userData.phone);
                 if (response.exists) {
                   setShop(response.shop);
                   setShopExists(true);
@@ -111,7 +111,7 @@ export const LoginProvider = ({ children }) => {
   }, []);
 
   const login = async (userData) => {
-    console.log('LoginContext: login called with user data', userData.email);
+    console.log('LoginContext: login called with user data', userData.phone || userData.email);
     
     // Store user data
     localStorage.setItem('user_data', JSON.stringify(userData));
@@ -119,9 +119,9 @@ export const LoginProvider = ({ children }) => {
     setUser(userData);
 
     // Check shop existence if user is shopOwner
-    if (userData.usertype === 'shopOwner' && userData.email) {
+    if (userData.usertype === 'shopOwner' && userData.phone) {
       try {
-        const response = await checkShopExists(userData.email);
+        const response = await checkShopExists(userData.phone);
         if (response.exists) {
           setShop(response.shop);
           setShopExists(true);
@@ -159,8 +159,8 @@ export const LoginProvider = ({ children }) => {
   };
 
   const refreshShopData = async () => {
-    if (user && user.usertype === 'shopOwner' && user.email) {
-      const shopCheck = await checkShopExists(user.email);
+    if (user && user.usertype === 'shopOwner' && user.phone) {
+      const shopCheck = await checkShopExists(user.phone);
       if (shopCheck.exists) {
         setShop(shopCheck.shop);
         setShopExists(true);

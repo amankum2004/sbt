@@ -1,5 +1,6 @@
 const prisma = require("../utils/prisma");
 const { mapAppointment, mapShop } = require("../utils/legacy-mappers");
+const { normalizePhone } = require("../utils/phone");
 
 const buildFullAddress = (shop) => {
   if (!shop) return "";
@@ -12,20 +13,32 @@ const buildFullAddress = (shop) => {
   return `${parts.join(", ")}${pin}`.trim();
 };
 
+const buildCustomerWhereByPhone = (phone) => ({
+  OR: [
+    { customerPhone: phone },
+    {
+      user: {
+        phone,
+      },
+    },
+  ],
+});
+
 // Get customer appointments
 exports.getCustomerAppointments = async (req, res) => {
   try {
-    const { customerEmail } = req.params;
+    const { customerPhone } = req.params;
+    const normalizedPhone = normalizePhone(customerPhone);
 
-    if (!customerEmail) {
+    if (!normalizedPhone) {
       return res.status(400).json({
         success: false,
-        error: "Customer email is required",
+        error: "Customer phone is required",
       });
     }
 
     const appointments = await prisma.appointment.findMany({
-      where: { customerEmail },
+      where: buildCustomerWhereByPhone(normalizedPhone),
       include: {
         shop: { include: { services: true } },
         timeSlot: { include: { showtimes: true } },
@@ -153,7 +166,7 @@ exports.cancelAppointment = async (req, res) => {
       where: { id: appointmentId },
       include: {
         timeSlot: { include: { showtimes: true } },
-        user: { select: { name: true, email: true } },
+        user: { select: { name: true, email: true, phone: true } },
         shop: { include: { services: true } },
         showtimes: true,
       },
@@ -207,13 +220,23 @@ exports.cancelAppointment = async (req, res) => {
     });
 
     const customerEmail = appointment.customerEmail;
-    const customerName = appointment.user?.name || appointment.customerEmail.split("@")[0];
+    const customerPhone = appointment.customerPhone || appointment.user?.phone || null;
+    const customerName =
+      appointment.user?.name ||
+      appointment.user?.phone ||
+      appointment.customerPhone ||
+      "Customer";
     const mappedShop = mapShop(appointment.shop);
     const shopName = mappedShop?.name || mappedShop?.shopname || "Salon";
     const shopLocation = mappedShop?.address || buildFullAddress(mappedShop) || "Unknown Location";
 
     try {
-      const { sendCancellationEmail } = require("../utils/mail");
+      const {
+        sendCancellationEmail,
+        sendCancellationSms,
+        sendShopOwnerCancellationNotification,
+        sendShopOwnerCancellationSms,
+      } = require("../utils/mail");
 
       const mappedShowtimes = (appointment.showtimes || []).map((showtime) => ({
         date: showtime.date,
@@ -232,15 +255,60 @@ exports.cancelAppointment = async (req, res) => {
         bookedAt: appointment.bookedAt,
       };
 
-      sendCancellationEmail(
-        customerEmail,
-        customerName,
-        shopName,
-        shopLocation,
-        appointmentDetails
-      );
+      const notificationResults = await Promise.allSettled([
+        ...(customerEmail
+          ? [
+              sendCancellationEmail(
+                customerEmail,
+                customerName,
+                shopName,
+                shopLocation,
+                appointmentDetails
+              ),
+            ]
+          : []),
+        ...(customerPhone
+          ? [
+              sendCancellationSms(
+                customerPhone,
+                customerName,
+                shopName,
+                shopLocation,
+                appointmentDetails
+              ),
+            ]
+          : []),
+        ...(mappedShop?.email
+          ? [
+              sendShopOwnerCancellationNotification(
+                mappedShop.email,
+                shopName,
+                customerName,
+                customerEmail || "",
+                appointmentDetails
+              ),
+            ]
+          : []),
+        ...(mappedShop?.ownerPhone || mappedShop?.phone
+          ? [
+              sendShopOwnerCancellationSms(
+                mappedShop.ownerPhone || mappedShop.phone,
+                shopName,
+                customerName,
+                customerPhone,
+                appointmentDetails
+              ),
+            ]
+          : []),
+      ]);
+
+      notificationResults.forEach((result, index) => {
+        if (result.status === "rejected") {
+          console.warn(`⚠️ Cancellation notification ${index + 1} failed:`, result.reason?.message || result.reason);
+        }
+      });
     } catch (emailError) {
-      console.error("Failed to send cancellation emails:", emailError);
+      console.error("Failed to send cancellation notifications:", emailError);
     }
 
     res.status(200).json({
@@ -270,17 +338,18 @@ exports.cancelAppointment = async (req, res) => {
 // Get appointment statistics
 exports.getAppointmentStats = async (req, res) => {
   try {
-    const { customerEmail } = req.params;
+    const { customerPhone } = req.params;
+    const normalizedPhone = normalizePhone(customerPhone);
 
-    if (!customerEmail) {
+    if (!normalizedPhone) {
       return res.status(400).json({
         success: false,
-        error: "Customer email is required",
+        error: "Customer phone is required",
       });
     }
 
     const appointments = await prisma.appointment.findMany({
-      where: { customerEmail },
+      where: buildCustomerWhereByPhone(normalizedPhone),
       include: { timeSlot: true },
     });
 

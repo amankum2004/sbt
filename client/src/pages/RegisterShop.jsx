@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { stateDistrictCityData } from "../utils/locationData";
 import Swal from "sweetalert2";
 import { api } from "../utils/api";
+import { isValidPhone, normalizePhone } from "../utils/phone";
 
 const MAX_LOCATION_SAMPLES = 6;
 const TARGET_ACCURACY_METERS = 15;
@@ -32,6 +33,7 @@ const defaultFormData = {
   name: "",
   email: "",
   phone: "",
+  ownerPhone: "",
   password: "",
   shopname: "",
   state: "",
@@ -276,8 +278,9 @@ export const RegisterShop = () => {
       setFormData((prev) => ({
         ...prev,
         name: user.name,
-        email: user.email,
+        email: user.email || "",
         phone: user.phone,
+        ownerPhone: user.phone,
       }));
     }
   }, [user, isAdmin]);
@@ -329,7 +332,10 @@ export const RegisterShop = () => {
       
       setFormData((prev) => ({ ...prev, [name]: limitedValue }));
     } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
+      const normalizedValue = name === "phone" || name === "ownerPhone"
+        ? normalizePhone(value)
+        : value;
+      setFormData((prev) => ({ ...prev, [name]: normalizedValue }));
     }
 
     if (shouldInvalidateCoords) {
@@ -406,7 +412,6 @@ export const RegisterShop = () => {
     // Validate all required fields before submission
     const requiredFields = {
       name: "Full Name",
-      email: "Email",
       phone: "Phone",
       shopname: "Shop Name",
       state: "State",
@@ -427,6 +432,26 @@ export const RegisterShop = () => {
         title: "Missing Information",
         html: `Please fill in the following required fields:<br><strong>${fieldNames}</strong>`,
         icon: "warning",
+        confirmButtonColor: "#3B82F6",
+      });
+      return;
+    }
+
+    if (!isValidPhone(formData.phone)) {
+      Swal.fire({
+        title: "Invalid Phone Number",
+        text: "Please enter a valid 10-digit shop mobile number",
+        icon: "error",
+        confirmButtonColor: "#3B82F6",
+      });
+      return;
+    }
+
+    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      Swal.fire({
+        title: "Invalid Email",
+        text: "Please enter a valid email address or leave it blank",
+        icon: "error",
         confirmButtonColor: "#3B82F6",
       });
       return;
@@ -527,6 +552,7 @@ export const RegisterShop = () => {
     try {
       const payload = {
         ...formData,
+        ownerPhone: formData.ownerPhone || user?.phone || formData.phone,
         lat: submissionLat,
         lng: submissionLng,
         coordinatesSource: submissionCoordinateSource,
@@ -670,7 +696,7 @@ export const RegisterShop = () => {
               <input
                 type="email"
                 name="email"
-                placeholder="Email *"
+                placeholder="Email (optional)"
                 value={formData.email}
                 onChange={handleInput}
                 readOnly={!isAdmin}

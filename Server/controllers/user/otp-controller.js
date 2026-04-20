@@ -1,19 +1,38 @@
 const otpGenerator = require("otp-generator");
 const prisma = require("../../utils/prisma");
-const { mailOtp } = require("../../utils/mail");
+const { sendOtpSms } = require("../../utils/mail");
+const { normalizePhone } = require("../../utils/phone");
+const SMS_OTP_ENABLED = process.env.ENABLE_SMS_OTP === "true";
 
-const normalizeEmail = (value) => (value || "").trim().toLowerCase();
+const buildOtpFailureMessage = (error) => {
+  const rawMessage = error?.message || "";
+  const isSchemaMismatch =
+    error?.code === "P2022" ||
+    /column [`"]?phone[`"]? does not exist/i.test(rawMessage) ||
+    /current database/i.test(rawMessage);
+
+  if (isSchemaMismatch) {
+    return process.env.NODE_ENV === "development"
+      ? "The database schema is outdated for phone-based OTP. Run the latest Prisma migration, then restart the server."
+      : "We are updating the login system right now. Please try again in a moment.";
+  }
+
+  if (process.env.NODE_ENV === "development") {
+    return rawMessage || "Failed to send OTP. Please try again later.";
+  }
+  return "Failed to send OTP. Please try again later.";
+};
 
 exports.userOTP = async (req, res) => {
-  const normalizedEmail = normalizeEmail(req.body?.email);
+  const normalizedPhone = normalizePhone(req.body?.phone);
 
   try {
-    if (!normalizedEmail) {
-      return res.status(400).json({ success: false, message: "Email is required" });
+    if (!normalizedPhone) {
+      return res.status(400).json({ success: false, message: "Phone number is required" });
     }
 
     const user = await prisma.user.findFirst({
-      where: { email: normalizedEmail, isDeleted: false },
+      where: { phone: normalizedPhone, isDeleted: false },
     });
     if (user) {
       return res.status(200).json({
@@ -22,6 +41,14 @@ exports.userOTP = async (req, res) => {
       });
     }
 
+    if (!SMS_OTP_ENABLED) {
+      return res.status(200).json({
+        success: true,
+        message: "OTP is temporarily disabled. You can continue registration with your mobile number.",
+      });
+    }
+
+    // Preserve the real OTP flow so it can be re-enabled later by setting ENABLE_SMS_OTP=true.
     const otp = otpGenerator.generate(6, {
       upperCaseAlphabets: false,
       lowerCaseAlphabets: false,
@@ -29,36 +56,34 @@ exports.userOTP = async (req, res) => {
     });
 
     await prisma.otp.create({
-      data: { email: normalizedEmail, otp },
+      data: { phone: normalizedPhone, otp },
     });
+
+    await sendOtpSms(otp, normalizedPhone);
 
     res.status(200).json({
       success: true,
-      message: "OTP generated successfully",
+      message: "OTP sent to your mobile number",
     });
-
-    mailOtp(otp, normalizedEmail)
-      .then(() => console.log("OTP email sent:", normalizedEmail))
-      .catch((err) => console.error("Failed to send OTP email:", err));
   } catch (error) {
     console.error("Error generating OTP:", error);
     return res.status(500).json({
       success: false,
-      message: "Failed to generate OTP. Please try again later.",
+      message: buildOtpFailureMessage(error),
     });
   }
 };
 
 exports.sendOTPforgot = async (req, res) => {
   try {
-    const normalizedEmail = normalizeEmail(req.body?.email);
+    const normalizedPhone = normalizePhone(req.body?.phone);
 
-    if (!normalizedEmail) {
-      return res.status(400).json({ success: false, message: "Email is required" });
+    if (!normalizedPhone) {
+      return res.status(400).json({ success: false, message: "Phone number is required" });
     }
 
     const user = await prisma.user.findFirst({
-      where: { email: normalizedEmail, isDeleted: false },
+      where: { phone: normalizedPhone, isDeleted: false },
     });
     if (!user) {
       return res.status(200).json({
@@ -67,6 +92,14 @@ exports.sendOTPforgot = async (req, res) => {
       });
     }
 
+    if (!SMS_OTP_ENABLED) {
+      return res.status(200).json({
+        success: true,
+        message: "OTP is temporarily disabled. You can update your password directly using your mobile number.",
+      });
+    }
+
+    // Preserve the real OTP flow so it can be re-enabled later by setting ENABLE_SMS_OTP=true.
     const otp = otpGenerator.generate(6, {
       upperCaseAlphabets: false,
       lowerCaseAlphabets: false,
@@ -74,19 +107,19 @@ exports.sendOTPforgot = async (req, res) => {
     });
 
     await prisma.otp.create({
-      data: { email: normalizedEmail, otp },
+      data: { phone: normalizedPhone, otp },
     });
 
-    await mailOtp(otp, normalizedEmail);
+    await sendOtpSms(otp, normalizedPhone);
     res.status(200).json({
       success: true,
-      message: "OTP sent successfully",
+      message: "OTP sent to your mobile number",
     });
   } catch (error) {
     console.error("Error sending OTP:", error);
     return res.status(500).json({
       success: false,
-      message: "Failed to send OTP. Please try again later.",
+      message: buildOtpFailureMessage(error),
     });
   }
 };

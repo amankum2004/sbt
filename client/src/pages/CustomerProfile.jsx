@@ -5,6 +5,7 @@ import Swal from "sweetalert2";
 import { FaUserEdit, FaEnvelope, FaPhoneAlt } from "react-icons/fa";
 import { MdEdit, MdCancel } from "react-icons/md";
 import { FiSave, FiTrash2 } from "react-icons/fi";
+import { normalizePhone } from "../utils/phone";
 
 const defaultContactFormData = {
   username: "",
@@ -21,15 +22,15 @@ export const CustomerProfile = () => {
     if (user) {
       setProfile({
         username: user.name,
-        email: user.email,
-        phone: user.phone,
+        email: user.email || "",
+        phone: user.phone || "",
       });
     }
   }, [user]);
 
   const handleInput = (e) => {
     const { name, value } = e.target;
-    setProfile({ ...profile, [name]: value });
+    setProfile({ ...profile, [name]: name === "phone" ? normalizePhone(value) : value });
   };
 
   const toggleEdit = () => setIsEditable(!isEditable);
@@ -37,7 +38,11 @@ export const CustomerProfile = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await api.put(`/user/update-profile/${user.userId}`, profile);
+      const response = await api.put(`/user/update-profile/${user.userId}`, {
+        name: profile.username,
+        email: profile.email || null,
+        phone: profile.phone,
+      });
       if (response.status === 200) {
         // alert("Profile updated successfully!");
         Swal.fire({
@@ -143,6 +148,7 @@ export const CustomerProfile = () => {
                 id="email"
                 value={profile.email}
                 readOnly
+                placeholder="Not provided"
                 className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-3 text-sm text-slate-700 outline-none"
               />
             </div>

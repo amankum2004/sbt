@@ -2,9 +2,11 @@ const prisma = require("../utils/prisma");
 const bcrypt = require("bcrypt");
 const {
   sendShopStatusNotification,
+  sendShopStatusSms,
   sendAdminPendingShopNotification,
 } = require("../utils/mail");
 const { mapShop } = require("../utils/legacy-mappers");
+const { normalizePhone } = require("../utils/phone");
 
 const VALID_COORDINATE_SOURCES = new Set([
   "device_gps",
@@ -72,6 +74,7 @@ exports.registershop = async (req, res) => {
       name,
       email,
       phone,
+      ownerPhone,
       password,
       shopname,
       state,
@@ -87,7 +90,6 @@ exports.registershop = async (req, res) => {
 
     const requiredFields = [
       "name",
-      "email",
       "phone",
       "shopname",
       "state",
@@ -124,20 +126,45 @@ exports.registershop = async (req, res) => {
     }
 
     const normalizedEmail = normalizeEmail(email);
+    const normalizedPhone = normalizePhone(phone);
+    const normalizedOwnerPhone = normalizePhone(ownerPhone || phone);
+
+    if (!normalizedPhone) {
+      return res.status(200).json({
+        success: false,
+        message: "A valid shop mobile number is required",
+      });
+    }
+
+    if (!normalizedOwnerPhone) {
+      return res.status(200).json({
+        success: false,
+        message: "A valid owner mobile number is required",
+      });
+    }
 
     const shopExists = await prisma.shop.findFirst({
       where: {
-        email: {
-          equals: normalizedEmail,
-          mode: "insensitive",
-        },
+        OR: [
+          ...(normalizedOwnerPhone ? [{ ownerPhone: normalizedOwnerPhone }] : []),
+          ...(normalizedEmail
+            ? [
+                {
+                  email: {
+                    equals: normalizedEmail,
+                    mode: "insensitive",
+                  },
+                },
+              ]
+            : []),
+        ],
       },
     });
 
     if (shopExists) {
       return res.status(200).json({
         success: false,
-        message: "Shop with this email already exists",
+        message: "Shop already exists for this owner",
       });
     }
 
@@ -145,10 +172,7 @@ exports.registershop = async (req, res) => {
     if (password) {
       const userExist = await prisma.user.findFirst({
         where: {
-          email: {
-            equals: normalizedEmail,
-            mode: "insensitive",
-          },
+          phone: normalizedOwnerPhone,
           isDeleted: false,
         },
       });
@@ -156,7 +180,7 @@ exports.registershop = async (req, res) => {
       if (!userExist) {
         return res.status(200).json({
           success: false,
-          message: "No user found with this email",
+          message: "No user found with this mobile number",
         });
       }
 
@@ -181,8 +205,9 @@ exports.registershop = async (req, res) => {
     const newShop = await prisma.shop.create({
       data: {
         name,
-        email: normalizedEmail,
-        phone,
+        email: normalizedEmail || null,
+        phone: normalizedPhone,
+        ownerPhone: normalizedOwnerPhone || null,
         password: hash_password || undefined,
         shopname,
         state,
@@ -244,18 +269,15 @@ exports.registershop = async (req, res) => {
   }
 };
 
-// Check if shop exists by email
+// Check if shop exists by owner phone
 exports.checkShopExists = async (req, res) => {
   try {
-    const { email } = req.params;
-    const normalizedEmail = normalizeEmail(email);
+    const { phone } = req.params;
+    const normalizedOwnerPhone = normalizePhone(phone);
 
     const shop = await prisma.shop.findFirst({
       where: {
-        email: {
-          equals: normalizedEmail,
-          mode: "insensitive",
-        },
+        ownerPhone: normalizedOwnerPhone,
       },
       include: { services: true },
     });
@@ -361,17 +383,12 @@ exports.getShopById = async (req, res) => {
   }
 };
 
-// Function to get shopId from user's email
-exports.getShopByEmail = async (req, res) => {
+// Function to get shopId from owner's phone
+exports.getShopByPhone = async (req, res) => {
   try {
-    const email = req.params.email;
+    const phone = req.params.phone;
     const shop = await prisma.shop.findFirst({
-      where: {
-        email: {
-          equals: normalizeEmail(email),
-          mode: "insensitive",
-        },
-      },
+      where: { ownerPhone: normalizePhone(phone) },
       include: { services: true },
     });
 
@@ -384,13 +401,16 @@ exports.getShopByEmail = async (req, res) => {
   }
 };
 
-// update barber Profile by email
+// update barber profile by owner phone
 exports.updateBarberProfile = async (req, res) => {
   try {
-    const { email, lat, lng, latString, lngString, services, ...rest } = req.body;
+    const { ownerPhone, email, lat, lng, latString, lngString, services, ...rest } = req.body;
 
-    if (!email) {
-      return res.status(400).json({ success: false, message: "Email is required" });
+    const normalizedOwnerPhone = normalizePhone(ownerPhone);
+    const normalizedEmail = normalizeEmail(email);
+
+    if (!normalizedOwnerPhone) {
+      return res.status(400).json({ success: false, message: "Owner phone is required" });
     }
 
     const hasLat = lat !== undefined;
@@ -436,7 +456,6 @@ exports.updateBarberProfile = async (req, res) => {
       updatePayload.coordinatesSource = updatePayload.coordinatesSource || "manual_update";
     }
 
-    const normalizedEmail = normalizeEmail(email);
     const servicePayload = buildServicePayload(services);
 
     const updatedProfile = await prisma.$transaction(async (tx) => {
@@ -444,19 +463,17 @@ exports.updateBarberProfile = async (req, res) => {
         await tx.shopService.deleteMany({
           where: {
             shop: {
-              email: {
-                equals: normalizedEmail,
-                mode: "insensitive",
-              },
+              ownerPhone: normalizedOwnerPhone,
             },
           },
         });
       }
 
       return tx.shop.update({
-        where: { email: normalizedEmail },
+        where: { ownerPhone: normalizedOwnerPhone },
         data: {
           ...updatePayload,
+          email: normalizedEmail || null,
           ...(Array.isArray(services)
             ? {
                 services: {
@@ -595,7 +612,7 @@ const notifyCustomersAboutStatusChange = async (shop, newStatus) => {
         },
       },
       include: {
-        user: { select: { email: true, name: true } },
+        user: { select: { email: true, name: true, phone: true } },
         showtimes: { orderBy: { date: "asc" } },
       },
     });
@@ -606,13 +623,36 @@ const notifyCustomersAboutStatusChange = async (shop, newStatus) => {
     }
 
     for (const appointment of upcomingAppointments) {
-      await sendShopStatusNotification(
-        appointment.user?.email,
-        appointment.user?.name,
-        shop.shopname,
-        newStatus,
-        appointment.showtimes?.[0]?.date
-      );
+      const notificationResults = await Promise.allSettled([
+        ...(appointment.user?.email
+          ? [
+              sendShopStatusNotification(
+                appointment.user.email,
+                appointment.user?.name,
+                shop.shopname,
+                newStatus,
+                appointment.showtimes?.[0]?.date
+              ),
+            ]
+          : []),
+        ...(appointment.customerPhone || appointment.user?.phone
+          ? [
+              sendShopStatusSms(
+                appointment.customerPhone || appointment.user?.phone,
+                appointment.user?.name,
+                shop.shopname,
+                newStatus,
+                appointment.showtimes?.[0]?.date
+              ),
+            ]
+          : []),
+      ]);
+
+      notificationResults.forEach((result, index) => {
+        if (result.status === "rejected") {
+          console.warn(`⚠️ Shop status notification ${index + 1} failed:`, result.reason?.message || result.reason);
+        }
+      });
     }
 
     console.log(

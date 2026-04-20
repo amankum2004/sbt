@@ -1,25 +1,25 @@
 import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
-import { FaEye, FaEyeSlash, FaEnvelope, FaLock, FaPhoneAlt } from "react-icons/fa";
+import { FaEye, FaEyeSlash, FaLock, FaPhoneAlt } from "react-icons/fa";
 import { api } from "../utils/api";
 import { useLogin } from "../components/LoginContext";
 import { useLoading } from "../components/Loading";
 import BackgroundIcons from "../components/BackgroundIcons";
+import { isValidPhone, normalizePhone } from "../utils/phone";
 
 const Login = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { showLoading, hideLoading } = useLoading();
   const { login } = useLogin();
 
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [loginMethod, setLoginMethod] = useState("email");
   const [formData, setFormData] = useState({
-    email: localStorage.getItem("signupEmail") || "",
-    phone: "",
+    phone: location.state?.phone || localStorage.getItem("signupPhone") || "",
     password: "",
-    contactType: "email",
+    contactType: "phone",
   });
 
   useEffect(() => {
@@ -41,28 +41,13 @@ const Login = () => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleLoginMethodChange = (method) => {
-    setLoginMethod(method);
-    setFormData((prev) => ({
-      ...prev,
-      contactType: method,
-      email: method === "email" ? prev.email : "",
-      phone: method === "phone" ? prev.phone : "",
+      [name]: name === "phone" ? normalizePhone(value) : value,
     }));
   };
 
   const validate = () => {
-    if (loginMethod === "email" && !formData.email) {
-      Swal.fire({ title: "Error", text: "Email is required", icon: "error" });
-      return false;
-    }
-
-    if (loginMethod === "phone" && !formData.phone) {
-      Swal.fire({ title: "Error", text: "Phone number is required", icon: "error" });
+    if (!isValidPhone(formData.phone)) {
+      Swal.fire({ title: "Error", text: "Enter a valid 10-digit mobile number", icon: "error" });
       return false;
     }
 
@@ -85,8 +70,8 @@ const Login = () => {
     try {
       const payload = {
         password: formData.password,
-        contactType: loginMethod,
-        [loginMethod]: loginMethod === "email" ? formData.email : formData.phone,
+        contactType: "phone",
+        phone: normalizePhone(formData.phone),
       };
 
       const response = await api.post("/auth/login", payload, {
@@ -168,45 +153,18 @@ const Login = () => {
             <p className="mt-1 text-sm text-slate-300">Login to continue your bookings</p>
           </div>
 
-          <div className="mb-5 grid grid-cols-2 gap-2 rounded-xl border border-white/10 bg-slate-950/60 p-1">
-            <button
-              type="button"
-              onClick={() => handleLoginMethodChange("email")}
-              className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${
-                loginMethod === "email"
-                  ? "bg-gradient-to-r from-cyan-500 to-teal-500 text-slate-950"
-                  : "text-slate-300 hover:text-white"
-              }`}
-            >
-              <FaEnvelope className="mr-2 inline" />
-              Email
-            </button>
-            <button
-              type="button"
-              onClick={() => handleLoginMethodChange("phone")}
-              className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${
-                loginMethod === "phone"
-                  ? "bg-gradient-to-r from-amber-400 to-orange-400 text-slate-950"
-                  : "text-slate-300 hover:text-white"
-              }`}
-            >
-              <FaPhoneAlt className="mr-2 inline" />
-              Phone
-            </button>
-          </div>
-
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="relative">
               <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
-                {loginMethod === "email" ? <FaEnvelope /> : <FaPhoneAlt />}
+                <FaPhoneAlt />
               </span>
               <input
-                type={loginMethod === "email" ? "email" : "tel"}
-                name={loginMethod}
-                value={formData[loginMethod]}
+                type="tel"
+                name="phone"
+                value={formData.phone}
                 onChange={handleInput}
                 disabled={isSubmitting}
-                placeholder={loginMethod === "email" ? "you@example.com" : "1234567890"}
+                placeholder="10-digit mobile number"
                 className="h-11 w-full rounded-xl border border-white/15 bg-slate-950/65 pl-10 pr-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/30"
                 autoComplete="off"
                 required
@@ -258,9 +216,7 @@ const Login = () => {
             </div>
 
             <p className="text-center text-xs text-slate-400">
-              {loginMethod === "phone"
-                ? "Use your registered phone number"
-                : "Use your registered email address"}
+              Use your registered mobile number
             </p>
           </form>
         </div>

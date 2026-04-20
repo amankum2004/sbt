@@ -7,14 +7,14 @@ const barberController = require('../controllers/barberAppointmentController');
 
 router.route('/appointment').post(bookAppointment)
 // @desc    Get customer appointments
-// @route   GET /api/customer/appointments/:customerEmail
+// @route   GET /api/customer/appointments/phone/:customerPhone
 // @access  Private
-router.get('/appointments/:customerEmail', customerController.getCustomerAppointments);
+router.get('/appointments/phone/:customerPhone', customerController.getCustomerAppointments);
 
 // @desc    Get appointment statistics
-// @route   GET /api/customer/stats/:customerEmail
+// @route   GET /api/customer/stats/phone/:customerPhone
 // @access  Private
-router.get('/stats/:customerEmail', customerController.getAppointmentStats);
+router.get('/stats/phone/:customerPhone', customerController.getAppointmentStats);
 
 // @desc    Get appointment details
 // @route   GET /api/customer/appointments/details/:appointmentId

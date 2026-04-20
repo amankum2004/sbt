@@ -2,132 +2,72 @@ import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import Swal from "sweetalert2";
 import { api } from "../utils/api";
-import { FaEye, FaEyeSlash, FaEnvelope, FaKey, FaLock } from "react-icons/fa";
+import { FaEye, FaEyeSlash, FaPhoneAlt, FaLock } from "react-icons/fa";
 import BackgroundIcons from "../components/BackgroundIcons";
+import { isValidPhone, normalizePhone } from "../utils/phone";
 
 export const UpdatePassword = () => {
   const navigate = useNavigate();
-  const [step, setStep] = useState(1); // 1: Email, 2: OTP & Password
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSendingOTP, setIsSendingOTP] = useState(false);
-  
   const [formData, setFormData] = useState({
-    email: "",
+    phone: "",
     password: "",
-    otp: ""
   });
 
-  const { email, password, otp } = formData;
+  const { phone, password } = formData;
   const [showPassword, setShowPassword] = useState(false);
-  const [showOTP, setShowOTP] = useState(false);
-
-  const togglePasswordVisibility = () => setShowPassword(!showPassword);
-  const toggleOTPVisibility = () => setShowOTP(!showOTP);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: name === "phone" ? normalizePhone(value) : value,
+    }));
   };
 
-  // Step 1: Send OTP to email
-  const handleSendOTP = async (e) => {
+  const handleResetPassword = async (e) => {
     e.preventDefault();
-    if (!email) {
-      Swal.fire({ title: "Error", text: "Please enter your email", icon: "error" });
+
+    if (!isValidPhone(phone)) {
+      Swal.fire({ title: "Error", text: "Please enter a valid 10-digit mobile number", icon: "error" });
       return;
     }
 
-    setIsSendingOTP(true);
-    try {
-      const res = await api.post(
-        `/otp/forgot`,
-        { email },
-        { allowSuccessFalse: true }
-      );
-
-      if (res.data?.success) {
-        setStep(2);
-        Swal.fire({ title: "Success", text: "OTP sent to your email", icon: "success" });
-      } else {
-        Swal.fire({
-          title: "Error",
-          text: res.data?.message || res.data?.error || "Unable to send OTP",
-          icon: "error"
-        });
-      }
-    } catch (err) {
-      Swal.fire({
-        title: "Error",
-        text: err.response?.data?.message || err.response?.data?.error || "Failed to send OTP. Please try again.",
-        icon: "error"
-      });
-    } finally {
-      setIsSendingOTP(false);
-    }
-  };
-
-  // Step 2: Reset password with OTP
-  const handleResetPassword = async (e) => {
-    e.preventDefault();
-    if (!otp || !password) {
-      Swal.fire({ title: "Error", text: "Please enter OTP and new password", icon: "error" });
+    if (!password) {
+      Swal.fire({ title: "Error", text: "Please enter a new password", icon: "error" });
       return;
     }
 
     setIsSubmitting(true);
     try {
-      const res = await api.post(`/auth/update`, formData, { allowSuccessFalse: true });
-      if (res.data.success) {
-        Swal.fire({ 
-          title: "Success", 
-          text: "Password updated successfully", 
-          icon: "success" 
+      const payload = {
+        phone: normalizePhone(phone),
+        password,
+      };
+
+      const res = await api.post(`/auth/update`, payload, { allowSuccessFalse: true });
+      if (res.data?.success) {
+        Swal.fire({
+          title: "Success",
+          text: "Password updated successfully",
+          icon: "success",
         });
-        navigate("/login");
+        navigate("/login", { state: { phone: normalizePhone(phone) } });
       } else {
         Swal.fire({
           title: "Error",
           text: res.data?.message || res.data?.error || "Failed to update password",
-          icon: "error"
+          icon: "error",
         });
       }
     } catch (err) {
       Swal.fire({
         title: "Error",
-        text: err.response?.data?.message || err.response?.data?.error || "Invalid OTP or error updating password",
-        icon: "error"
+        text: err.response?.data?.message || err.response?.data?.error || "Error updating password",
+        icon: "error",
       });
     } finally {
       setIsSubmitting(false);
-    }
-  };
-
-  // Resend OTP
-  const handleResendOTP = async () => {
-    setIsSendingOTP(true);
-    try {
-      const res = await api.post(
-        `/otp/forgot`,
-        { email },
-        { allowSuccessFalse: true }
-      );
-
-      if (res.data?.success) {
-        Swal.fire({ title: "Success", text: "OTP resent to your email", icon: "success" });
-      } else {
-        Swal.fire({
-          title: "Error",
-          text: res.data?.message || res.data?.error || "Unable to resend OTP",
-          icon: "error"
-        });
-      }
-    } catch (err) {
-      Swal.fire({
-        title: "Error",
-        text: err.response?.data?.message || err.response?.data?.error || "Failed to resend OTP",
-        icon: "error"
-      });
-    } finally {
-      setIsSendingOTP(false);
     }
   };
 
@@ -142,112 +82,62 @@ export const UpdatePassword = () => {
           <div className="mb-6 text-center">
             <img src="/images/salonHub-logo.svg" alt="Logo" className="mx-auto h-16 w-16 rounded-full bg-white p-1" />
             <h1 className="mt-4 bg-gradient-to-r from-cyan-200 via-amber-200 to-orange-200 bg-clip-text text-3xl font-black text-transparent">
-              {step === 1 ? "Reset Password" : "Create New Password"}
+              Reset Password
             </h1>
             <p className="mt-1 text-sm text-slate-300">
-              {step === 1 ? "Enter your email to receive OTP" : "Enter OTP and set your new password"}
+              Enter your mobile number and set a new password.
             </p>
           </div>
 
-          <form onSubmit={step === 1 ? handleSendOTP : handleResetPassword} className="space-y-4">
+          <form onSubmit={handleResetPassword} className="space-y-4">
+
             <div className="relative">
               <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
-                <FaEnvelope />
+                <FaPhoneAlt />
               </span>
               <input
-                type="email"
-                name="email"
-                placeholder="you@example.com"
+                type="tel"
+                name="phone"
+                placeholder="10-digit mobile number"
                 required
-                value={email}
+                value={phone}
                 onChange={handleChange}
-                disabled={step === 2 || isSubmitting}
+                disabled={isSubmitting}
                 className="h-11 w-full rounded-xl border border-white/15 bg-slate-950/65 pl-10 pr-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/30 disabled:cursor-not-allowed disabled:opacity-70"
               />
             </div>
 
-            {step === 2 && (
-              <>
-                <div className="relative">
-                  <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
-                    <FaKey />
-                  </span>
-                  <input
-                    type={showOTP ? "text" : "password"}
-                    name="otp"
-                    placeholder="Enter OTP"
-                    required
-                    value={otp}
-                    onChange={handleChange}
-                    disabled={isSubmitting}
-                    className="h-11 w-full rounded-xl border border-white/15 bg-slate-950/65 pl-10 pr-10 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/30"
-                  />
-                  <button
-                    type="button"
-                    className="absolute right-3 top-2.5 text-slate-300 transition hover:text-white"
-                    onClick={toggleOTPVisibility}
-                  >
-                    {showOTP ? <FaEye size={18} /> : <FaEyeSlash size={18} />}
-                  </button>
-                </div>
-
-                <div className="relative">
-                  <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
-                    <FaLock />
-                  </span>
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    name="password"
-                    placeholder="Enter new password"
-                    required
-                    value={password}
-                    onChange={handleChange}
-                    disabled={isSubmitting}
-                    className="h-11 w-full rounded-xl border border-white/15 bg-slate-950/65 pl-10 pr-10 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/30"
-                  />
-                  <button
-                    type="button"
-                    className="absolute right-3 top-2.5 text-slate-300 transition hover:text-white"
-                    onClick={togglePasswordVisibility}
-                  >
-                    {showPassword ? <FaEye size={18} /> : <FaEyeSlash size={18} />}
-                  </button>
-                </div>
-
-                <div className="text-right">
-                  <button
-                    type="button"
-                    onClick={handleResendOTP}
-                    disabled={isSendingOTP}
-                    className="text-sm font-medium text-amber-300 transition hover:text-amber-200 disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    {isSendingOTP ? "Sending..." : "Resend OTP"}
-                  </button>
-                </div>
-              </>
-            )}
+            <div className="relative">
+              <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                <FaLock />
+              </span>
+              <input
+                type={showPassword ? "text" : "password"}
+                name="password"
+                placeholder="Enter new password"
+                required
+                value={password}
+                onChange={handleChange}
+                disabled={isSubmitting}
+                className="h-11 w-full rounded-xl border border-white/15 bg-slate-950/65 pl-10 pr-10 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/30"
+              />
+              <button
+                type="button"
+                className="absolute right-3 top-2.5 text-slate-300 transition hover:text-white"
+                onClick={() => setShowPassword((prev) => !prev)}
+                aria-label="Toggle password visibility"
+              >
+                {showPassword ? <FaEye size={18} /> : <FaEyeSlash size={18} />}
+              </button>
+            </div>
 
             <button
               type="submit"
-              disabled={isSubmitting || (step === 1 && isSendingOTP)}
+              disabled={isSubmitting}
               className="inline-flex h-11 w-full items-center justify-center rounded-xl bg-gradient-to-r from-cyan-500 via-teal-500 to-amber-400 text-sm font-black text-slate-950 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {step === 1
-                ? (isSendingOTP ? "Sending OTP..." : "Send OTP")
-                : (isSubmitting ? "Updating..." : "Update Password")}
+              {isSubmitting ? "Updating..." : "Update Password"}
             </button>
-
-            {step === 2 && (
-              <div className="text-center">
-                <button
-                  type="button"
-                  onClick={() => setStep(1)}
-                  className="text-sm text-slate-300 hover:text-white"
-                >
-                  Back to change email
-                </button>
-              </div>
-            )}
 
             <div className="text-center text-sm text-slate-300">
               Remember your password?{" "}
@@ -260,7 +150,4 @@ export const UpdatePassword = () => {
       </div>
     </main>
   );
-}
-
-
-
+};

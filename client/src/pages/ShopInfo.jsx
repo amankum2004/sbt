@@ -24,6 +24,7 @@ const DateTimeSelection = () => {
   const [showtimeServices, setShowtimeServices] = useState({});
   const [totalAmount, setTotalAmount] = useState(0);
   const [shopDetails, setShopDetails] = useState({});
+  const [customerPhone, setCustomerPhone] = useState('');
   const [customerEmail, setCustomerEmail] = useState('');
   const [customerName, setCustomerName] = useState('');
   const [selectedDate, setSelectedDate] = useState(null);
@@ -173,10 +174,11 @@ const DateTimeSelection = () => {
     [hideLoading, shopId, showLoading]
   );
 
-  const fetchCustomerEmail = useCallback(() => {
+  const fetchCustomerContact = useCallback(() => {
+    setCustomerPhone(user?.phone || '');
     setCustomerEmail(user?.email || '');
     setCustomerName(user?.name || '');
-  }, [user?.email, user?.name]);
+  }, [user?.phone, user?.email, user?.name]);
 
   useEffect(() => {
     fetchTimeSlots();
@@ -197,8 +199,8 @@ const DateTimeSelection = () => {
   }, [fetchShopDetails, fetchTimeSlots]);
 
   useEffect(() => {
-    fetchCustomerEmail();
-  }, [fetchCustomerEmail]);
+    fetchCustomerContact();
+  }, [fetchCustomerContact]);
 
   useEffect(() => {
     if (!shopId) return undefined;
@@ -314,6 +316,7 @@ const DateTimeSelection = () => {
   console.log('=== BOOKING REQUEST DATA ===');
   console.log('Selected Showtimes:', selectedShowtimes);
   console.log('Showtime Services:', showtimeServices);
+  console.log('Customer Phone:', customerPhone);
   console.log('Customer Email:', customerEmail);
   console.log('User ID:', user?.userId);
   console.log('Shop ID:', shopId);
@@ -332,12 +335,18 @@ const DateTimeSelection = () => {
     return;
   }
 
+  if (!customerPhone) {
+    toast.error('Please log in with your registered mobile number before booking.');
+    return;
+  }
+
   // Prepare booking data
   const bookingData = {
     shopId,
     timeSlotId: selectedShowtimes[0].timeSlotId,
     showtimeId: selectedShowtimes[0].showtimeId,
     date: selectedShowtimes[0].showtimeDate,
+    customerPhone,
     customerEmail,
     userId: user?.userId,
     serviceInfo: showtimeServices[selectedShowtimes[0].showtimeId],
@@ -355,6 +364,7 @@ const DateTimeSelection = () => {
       state: {
         selectedShowtimes,
         totalAmount,
+        customerPhone,
         customerEmail,
         customerName,
         shopName: shopDetails.shopname,
