@@ -108,24 +108,16 @@ const updateProfile = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    const updatedUser = await prisma.$transaction(async (tx) => {
-      const nextUser = await tx.user.update({
-        where: { id: userId },
-        data: {
-          name,
-          email: normalizedEmail || null,
-          phone: normalizedPhone || existingUser.phone,
-        },
-      });
+    if (normalizedPhone && normalizedPhone !== existingUser.phone) {
+      return res.status(400).json({ message: "Phone number cannot be changed once registered" });
+    }
 
-      if (existingUser.usertype === "shopOwner" && normalizedPhone && normalizedPhone !== existingUser.phone) {
-        await tx.shop.updateMany({
-          where: { ownerPhone: existingUser.phone },
-          data: { ownerPhone: normalizedPhone },
-        });
-      }
-
-      return nextUser;
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        name,
+        email: normalizedEmail || null,
+      },
     });
 
     res.json({

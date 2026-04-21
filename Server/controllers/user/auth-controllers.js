@@ -3,6 +3,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { mapShop } = require("../../utils/legacy-mappers");
 const { normalizePhone } = require("../../utils/phone");
+const { findShopForOwner } = require("../../utils/shop-owner-lookup");
 
 const normalizeEmail = (value) => (value || "").trim().toLowerCase();
 const SMS_OTP_ENABLED = process.env.ENABLE_SMS_OTP === "true";
@@ -142,8 +143,7 @@ const login = async (req, res) => {
 
     let shop = null;
     if (user.usertype === "shopOwner") {
-      const shopRecord = await prisma.shop.findFirst({
-        where: { ownerPhone: user.phone },
+      const shopRecord = await findShopForOwner(prisma, user.phone, {
         include: { services: true },
       });
       shop = shopRecord ? mapShop(shopRecord) : null;

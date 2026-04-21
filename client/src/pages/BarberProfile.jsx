@@ -8,7 +8,6 @@ import { FiSave, FiEdit, FiTrash2 } from 'react-icons/fi';
 import { api } from '../utils/api';
 import Swal from 'sweetalert2';
 import ShopStatusButton from '../components/ShopStatusButton';
-import { normalizePhone } from '../utils/phone';
 
 export const BarberProfile = () => {
   const { user, shop, shopExists, refreshShopData, setUser, logout } = useLogin();
@@ -60,17 +59,16 @@ export const BarberProfile = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setEditableProfile({ ...editableProfile, [name]: name === "phone" ? normalizePhone(value) : value });
+    setEditableProfile({ ...editableProfile, [name]: value });
   };
 
   const handleSaveProfile = async () => {
     try {
       const response = await api.put(`/user/update-profile/${user.userId}`, {
         name: editableProfile.name,
-        phone: editableProfile.phone,
       });
       if (response.status === 200) {
-        const updatedUser = { ...user, name: editableProfile.name, phone: editableProfile.phone };
+        const updatedUser = { ...user, name: editableProfile.name };
         Swal.fire({ 
           title: 'Success', 
           text: 'Profile updated successfully!', 
@@ -356,20 +354,10 @@ export const BarberProfile = () => {
                     <FaPhoneAlt className="text-gray-400 text-sm" />
                     <p className="text-gray-500 text-xs font-medium uppercase tracking-wide">Phone</p>
                   </div>
-                  {isEditing ? (
-                    <input
-                      type="text"
-                      name="phone"
-                      value={editableProfile.phone}
-                      onChange={handleInputChange}
-                      className="w-full px-3 py-2 rounded-lg border border-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent bg-white text-sm"
-                      placeholder="Enter phone number"
-                    />
-                  ) : (
-                    <p className="text-gray-900 font-semibold text-sm leading-snug break-words whitespace-normal" title={user.phone || 'Not provided'}>
-                      {user.phone || 'Not provided'}
-                    </p>
-                  )}
+                  <p className="text-gray-900 font-semibold text-sm leading-snug break-words whitespace-normal" title={user.phone || 'Not provided'}>
+                    {user.phone || 'Not provided'}
+                  </p>
+                  <p className="mt-2 text-xs text-gray-500">Your registered mobile number is fixed and cannot be changed.</p>
                 </div>
 
                 <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">

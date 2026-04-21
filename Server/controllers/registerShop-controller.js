@@ -7,6 +7,10 @@ const {
 } = require("../utils/mail");
 const { mapShop } = require("../utils/legacy-mappers");
 const { normalizePhone } = require("../utils/phone");
+const {
+  findExistingShopForOwner,
+  findShopForOwner,
+} = require("../utils/shop-owner-lookup");
 
 const VALID_COORDINATE_SOURCES = new Set([
   "device_gps",
@@ -143,23 +147,11 @@ exports.registershop = async (req, res) => {
       });
     }
 
-    const shopExists = await prisma.shop.findFirst({
-      where: {
-        OR: [
-          ...(normalizedOwnerPhone ? [{ ownerPhone: normalizedOwnerPhone }] : []),
-          ...(normalizedEmail
-            ? [
-                {
-                  email: {
-                    equals: normalizedEmail,
-                    mode: "insensitive",
-                  },
-                },
-              ]
-            : []),
-        ],
-      },
-    });
+    const shopExists = await findExistingShopForOwner(
+      prisma,
+      normalizedOwnerPhone,
+      normalizedEmail
+    );
 
     if (shopExists) {
       return res.status(200).json({
@@ -275,10 +267,7 @@ exports.checkShopExists = async (req, res) => {
     const { phone } = req.params;
     const normalizedOwnerPhone = normalizePhone(phone);
 
-    const shop = await prisma.shop.findFirst({
-      where: {
-        ownerPhone: normalizedOwnerPhone,
-      },
+    const shop = await findShopForOwner(prisma, normalizedOwnerPhone, {
       include: { services: true },
     });
 
@@ -387,8 +376,7 @@ exports.getShopById = async (req, res) => {
 exports.getShopByPhone = async (req, res) => {
   try {
     const phone = req.params.phone;
-    const shop = await prisma.shop.findFirst({
-      where: { ownerPhone: normalizePhone(phone) },
+    const shop = await findShopForOwner(prisma, phone, {
       include: { services: true },
     });
 
@@ -397,7 +385,8 @@ exports.getShopByPhone = async (req, res) => {
     }
     res.status(200).json(mapShop(shop));
   } catch (error) {
-    res.status(500).json({ message: "Error fetching shop data", error });
+    console.error("Error fetching shop data:", error);
+    res.status(500).json({ message: "Error fetching shop data", error: error.message });
   }
 };
 
@@ -458,19 +447,25 @@ exports.updateBarberProfile = async (req, res) => {
 
     const servicePayload = buildServicePayload(services);
 
+    const existingShop = await findShopForOwner(prisma, normalizedOwnerPhone, {
+      select: { id: true },
+    });
+
+    if (!existingShop) {
+      return res.status(200).json({ success: false, message: "Profile not found" });
+    }
+
     const updatedProfile = await prisma.$transaction(async (tx) => {
       if (Array.isArray(services)) {
         await tx.shopService.deleteMany({
           where: {
-            shop: {
-              ownerPhone: normalizedOwnerPhone,
-            },
+            shopId: existingShop.id,
           },
         });
       }
 
       return tx.shop.update({
-        where: { ownerPhone: normalizedOwnerPhone },
+        where: { id: existingShop.id },
         data: {
           ...updatePayload,
           email: normalizedEmail || null,
@@ -495,7 +490,7 @@ exports.updateBarberProfile = async (req, res) => {
     if (error.code === "P2025") {
       return res.status(200).json({ success: false, message: "Profile not found" });
     }
-    res.status(500).json({ message: "Error updating profile", error });
+    res.status(500).json({ message: "Error updating profile", error: error.message });
   }
 };
 

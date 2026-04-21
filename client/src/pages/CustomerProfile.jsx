@@ -5,7 +5,6 @@ import Swal from "sweetalert2";
 import { FaUserEdit, FaEnvelope, FaPhoneAlt } from "react-icons/fa";
 import { MdEdit, MdCancel } from "react-icons/md";
 import { FiSave, FiTrash2 } from "react-icons/fi";
-import { normalizePhone } from "../utils/phone";
 
 const defaultContactFormData = {
   username: "",
@@ -30,7 +29,7 @@ export const CustomerProfile = () => {
 
   const handleInput = (e) => {
     const { name, value } = e.target;
-    setProfile({ ...profile, [name]: name === "phone" ? normalizePhone(value) : value });
+    setProfile({ ...profile, [name]: value });
   };
 
   const toggleEdit = () => setIsEditable(!isEditable);
@@ -41,7 +40,6 @@ export const CustomerProfile = () => {
       const response = await api.put(`/user/update-profile/${user.userId}`, {
         name: profile.username,
         email: profile.email || null,
-        phone: profile.phone,
       });
       if (response.status === 200) {
         // alert("Profile updated successfully!");
@@ -55,7 +53,6 @@ export const CustomerProfile = () => {
           ...user,
           name: profile.username,
           email: profile.email,
-          phone: profile.phone,
         };
         setUser(updatedUser);
         localStorage.setItem("user_data", JSON.stringify(updatedUser));
@@ -163,15 +160,11 @@ export const CustomerProfile = () => {
                 name="phone"
                 id="phone"
                 value={profile.phone}
-                onChange={handleInput}
-                readOnly={!isEditable}
-                className={`h-11 w-full rounded-xl pl-10 pr-3 text-sm outline-none transition ${
-                  isEditable
-                    ? "border border-slate-300 bg-white text-slate-800 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-200"
-                    : "border border-slate-200 bg-slate-50 text-slate-700"
-                }`}
+                readOnly
+                className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-3 text-sm text-slate-700 outline-none"
               />
             </div>
+            <p className="mt-1 text-xs text-slate-500">Your registered mobile number is fixed and cannot be changed.</p>
           </div>
 
           <div className="flex flex-wrap items-center justify-center gap-3 pt-3">

@@ -80,6 +80,18 @@ const formatMonthInputValue = (dateValue = new Date()) => {
   return `${year}-${month}`;
 };
 
+const toDisplayMessage = (value, fallback) => {
+  if (typeof value === "string" && value.trim()) {
+    return value;
+  }
+
+  if (value && typeof value === "object" && typeof value.message === "string" && value.message.trim()) {
+    return value.message;
+  }
+
+  return fallback;
+};
+
 const getPeriodQueryParams = (period, selectedDayDate, selectedMonthValue, selectedYearValue) => {
   if (period === "day") {
     return { period, date: selectedDayDate };
@@ -277,9 +289,13 @@ const BarberAnalyticsDashboard = () => {
         } else {
           setShopStatus("error");
           setErrorMessage(
-            error?.response?.data?.error ||
-              error?.response?.data?.message ||
-              "Failed to load analytics. Please try again."
+            toDisplayMessage(
+              error?.response?.data?.error,
+              toDisplayMessage(
+                error?.response?.data?.message,
+                "Failed to load analytics. Please try again."
+              )
+            )
           );
         }
       } finally {
