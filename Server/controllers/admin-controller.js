@@ -1,5 +1,6 @@
 const prisma = require("../utils/prisma");
 const { mapUser, mapContact, mapShop } = require("../utils/legacy-mappers");
+const { normalizePhone } = require("../utils/phone");
 
 const normalizeEmail = (value) => (value || "").trim().toLowerCase();
 
@@ -126,21 +127,40 @@ const getAllContacts = async (req, res) => {
     const contactEmails = contacts
       .map((contact) => normalizeEmail(contact.email))
       .filter(Boolean);
+    const contactPhones = contacts
+      .map((contact) => normalizePhone(contact.phone))
+      .filter(Boolean);
+    const userLookupConditions = [
+      ...(contactEmails.length ? [{ email: { in: contactEmails } }] : []),
+      ...(contactPhones.length ? [{ phone: { in: contactPhones } }] : []),
+    ];
 
-    const users = await prisma.user.findMany({
-      where: { email: { in: contactEmails }, isDeleted: false },
-      select: { email: true, usertype: true },
-    });
+    const users = userLookupConditions.length
+      ? await prisma.user.findMany({
+          where: {
+            isDeleted: false,
+            OR: userLookupConditions,
+          },
+          select: { email: true, phone: true, usertype: true },
+        })
+      : [];
 
     const userTypeByEmail = new Map(
       users.map((user) => [normalizeEmail(user.email), user.usertype || "customer"])
     );
+    const userTypeByPhone = new Map(
+      users.map((user) => [normalizePhone(user.phone), user.usertype || "customer"])
+    );
 
     const contactsWithUserType = contacts.map((contact) => {
       const normalizedEmail = normalizeEmail(contact.email);
+      const normalizedPhone = normalizePhone(contact.phone);
       return {
         ...mapContact(contact),
-        usertype: userTypeByEmail.get(normalizedEmail) || "guest",
+        usertype:
+          userTypeByPhone.get(normalizedPhone) ||
+          userTypeByEmail.get(normalizedEmail) ||
+          "guest",
       };
     });
 

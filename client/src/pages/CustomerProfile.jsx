@@ -164,7 +164,6 @@ export const CustomerProfile = () => {
                 className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-3 text-sm text-slate-700 outline-none"
               />
             </div>
-            <p className="mt-1 text-xs text-slate-500">Your registered mobile number is fixed and cannot be changed.</p>
           </div>
 
           <div className="flex flex-wrap items-center justify-center gap-3 pt-3">

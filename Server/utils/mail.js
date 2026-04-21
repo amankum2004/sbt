@@ -390,6 +390,7 @@ const sendAdminAlertEmail = async ({
 
 const sendAdminContactNotification = async (contact = {}) => {
   const contactName = (contact.name || '').trim() || '-';
+  const contactPhone = (contact.phone || '').trim() || '-';
   const contactEmail = (contact.email || '').trim() || '-';
   const contactMessage = (contact.message || '').trim() || '-';
 
@@ -401,6 +402,7 @@ const sendAdminContactNotification = async (contact = {}) => {
     dashboardPath: '/admin/contacts',
     details: [
       { label: 'Name', value: contactName },
+      { label: 'Phone', value: contactPhone },
       { label: 'Email', value: contactEmail },
       { label: 'Message', value: contactMessage },
       { label: 'Submitted At (IST)', value: formatIndianDateTime(contact.createdAt || new Date()) },

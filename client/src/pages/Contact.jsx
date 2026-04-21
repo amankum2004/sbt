@@ -13,9 +13,11 @@ import {
 } from "react-icons/fa";
 import { useLogin } from "../components/LoginContext";
 import { api } from "../utils/api";
+import { isValidPhone, normalizePhone } from "../utils/phone";
 
 const defaultContactFormData = {
   name: "",
+  phone: "",
   email: "",
   message: "",
 };
@@ -61,6 +63,7 @@ export const Contact = () => {
     if (user) {
       setContact({
         name: user.name || "",
+        phone: user.phone || "",
         email: user.email || "",
         message: "",
       });
@@ -69,15 +72,43 @@ export const Contact = () => {
 
   const handleInput = (e) => {
     const { name, value } = e.target;
-    setContact((prev) => ({ ...prev, [name]: value }));
+    setContact((prev) => ({
+      ...prev,
+      [name]: name === "phone" ? normalizePhone(value) : value,
+    }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!isValidPhone(contact.phone)) {
+      Swal.fire({
+        title: "Error",
+        text: "Please enter a valid 10-digit mobile number",
+        icon: "error",
+        confirmButtonColor: "#0f172a",
+      });
+      return;
+    }
+
+    if (contact.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact.email)) {
+      Swal.fire({
+        title: "Error",
+        text: "Please enter a valid email address",
+        icon: "error",
+        confirmButtonColor: "#0f172a",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
-      const response = await api.post("/form/contact", contact);
+      const response = await api.post("/form/contact", {
+        ...contact,
+        phone: normalizePhone(contact.phone),
+        email: contact.email?.trim() || "",
+      });
       if (response) {
         setContact(defaultContactFormData);
         Swal.fire({
@@ -260,21 +291,37 @@ export const Contact = () => {
                   </div>
 
                   <div>
-                    <label htmlFor="email" className="mb-1 block text-sm font-semibold text-slate-700">
-                      Email Address
+                    <label htmlFor="phone" className="mb-1 block text-sm font-semibold text-slate-700">
+                      Mobile Number
                     </label>
                     <input
-                      type="email"
-                      name="email"
-                      id="email"
-                      value={contact.email}
-                      readOnly={!!user}
+                      type="tel"
+                      name="phone"
+                      id="phone"
+                      value={contact.phone}
+                      readOnly={!!user?.phone}
                       onChange={handleInput}
                       required
-                      placeholder="you@example.com"
+                      placeholder="10-digit mobile number"
                       className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-800 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-200"
                     />
                   </div>
+                </div>
+
+                <div>
+                  <label htmlFor="email" className="mb-1 block text-sm font-semibold text-slate-700">
+                    Email Address
+                    <span className="ml-2 text-xs font-medium text-slate-500">(optional)</span>
+                  </label>
+                  <input
+                    type="email"
+                    name="email"
+                    id="email"
+                    value={contact.email}
+                    onChange={handleInput}
+                    placeholder="you@example.com"
+                    className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-800 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-200"
+                  />
                 </div>
 
                 <div>

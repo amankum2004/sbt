@@ -1,14 +1,37 @@
 const prisma = require("../utils/prisma");
 const { mapContact } = require("../utils/legacy-mappers");
 const { sendAdminContactNotification } = require("../utils/mail");
+const { normalizePhone } = require("../utils/phone");
+
+const normalizeEmail = (value) => {
+  const trimmedValue = (value || "").trim().toLowerCase();
+  return trimmedValue || null;
+};
+
+const isValidEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 
 const contactForm = async (req, res) => {
   try {
     const payload = {
       name: (req.body?.name || "").trim(),
-      email: (req.body?.email || "").trim().toLowerCase(),
+      phone: normalizePhone(req.body?.phone),
+      email: normalizeEmail(req.body?.email),
       message: (req.body?.message || "").trim(),
     };
+
+    if (!payload.name || !payload.phone || !payload.message) {
+      return res.status(400).json({
+        success: false,
+        message: "Name, phone number, and message are required",
+      });
+    }
+
+    if (payload.email && !isValidEmail(payload.email)) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide a valid email address",
+      });
+    }
 
     const createdContact = await prisma.contact.create({
       data: payload,

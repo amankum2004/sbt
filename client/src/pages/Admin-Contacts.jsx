@@ -93,6 +93,7 @@ export const AdminContacts = () => {
 
     const searchableData = {
       name: String(contact.name || "").toLowerCase(),
+      phone: String(contact.phone || "").toLowerCase(),
       email: String(contact.email || "").toLowerCase(),
       usertype: String(contact.usertype || "guest").toLowerCase(),
       message: String(contact.message || "").toLowerCase(),
@@ -152,6 +153,7 @@ export const AdminContacts = () => {
             >
               <option value="all">All Fields</option>
               <option value="name">Name</option>
+              <option value="phone">Phone</option>
               <option value="email">Email</option>
               <option value="usertype">User Type</option>
               <option value="message">Message</option>
@@ -215,15 +217,28 @@ export const AdminContacts = () => {
                       </span>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 mb-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 mb-3">
                       <div className="bg-slate-50 border border-slate-200 rounded-lg p-3">
-                        <p className="text-xs uppercase tracking-wide text-slate-500">Email</p>
+                        <p className="text-xs uppercase tracking-wide text-slate-500">Phone</p>
                         <a
-                          href={`mailto:${contact.email}`}
+                          href={`tel:${contact.phone}`}
                           className="text-sm text-blue-700 break-all mt-1 inline-block hover:underline"
                         >
-                          {contact.email || "-"}
+                          {contact.phone || "-"}
                         </a>
+                      </div>
+                      <div className="bg-slate-50 border border-slate-200 rounded-lg p-3">
+                        <p className="text-xs uppercase tracking-wide text-slate-500">Email</p>
+                        {contact.email ? (
+                          <a
+                            href={`mailto:${contact.email}`}
+                            className="text-sm text-blue-700 break-all mt-1 inline-block hover:underline"
+                          >
+                            {contact.email}
+                          </a>
+                        ) : (
+                          <p className="text-sm text-slate-800 mt-1">-</p>
+                        )}
                       </div>
                       <div className="bg-slate-50 border border-slate-200 rounded-lg p-3">
                         <p className="text-xs uppercase tracking-wide text-slate-500">Created At</p>
