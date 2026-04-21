@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
-import { FaEye, FaEyeSlash, FaLock, FaPhoneAlt } from "react-icons/fa";
+import { FaEye, FaEyeSlash, FaLock, FaPhoneAlt, FaEnvelope } from "react-icons/fa";
 import { api } from "../utils/api";
 import { useLogin } from "../components/LoginContext";
 import { useLoading } from "../components/Loading";
 import BackgroundIcons from "../components/BackgroundIcons";
 import { isValidPhone, normalizePhone } from "../utils/phone";
+
+const isValidEmail = (value = "") => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value).trim());
 
 const Login = () => {
   const navigate = useNavigate();
@@ -14,12 +16,15 @@ const Login = () => {
   const { showLoading, hideLoading } = useLoading();
   const { login } = useLogin();
 
+  const initialPhone = location.state?.phone || localStorage.getItem("signupPhone") || "";
+
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
-    phone: location.state?.phone || localStorage.getItem("signupPhone") || "",
-    password: "",
     contactType: "phone",
+    phone: initialPhone,
+    email: "",
+    password: "",
   });
 
   useEffect(() => {
@@ -45,9 +50,21 @@ const Login = () => {
     }));
   };
 
+  const handleContactTypeChange = (contactType) => {
+    setFormData((prev) => ({
+      ...prev,
+      contactType,
+    }));
+  };
+
   const validate = () => {
-    if (!isValidPhone(formData.phone)) {
-      Swal.fire({ title: "Error", text: "Enter a valid 10-digit mobile number", icon: "error" });
+    if (formData.contactType === "phone") {
+      if (!isValidPhone(formData.phone)) {
+        Swal.fire({ title: "Error", text: "Enter a valid 10-digit mobile number", icon: "error" });
+        return false;
+      }
+    } else if (!isValidEmail(formData.email)) {
+      Swal.fire({ title: "Error", text: "Enter a valid email address", icon: "error" });
       return false;
     }
 
@@ -68,11 +85,18 @@ const Login = () => {
     showLoading("Verifying your details");
 
     try {
-      const payload = {
-        password: formData.password,
-        contactType: "phone",
-        phone: normalizePhone(formData.phone),
-      };
+      const payload =
+        formData.contactType === "email"
+          ? {
+              contactType: "email",
+              email: formData.email.trim().toLowerCase(),
+              password: formData.password,
+            }
+          : {
+              contactType: "phone",
+              phone: normalizePhone(formData.phone),
+              password: formData.password,
+            };
 
       const response = await api.post("/auth/login", payload, {
         allowSuccessFalse: true,
@@ -137,6 +161,8 @@ const Login = () => {
     }
   };
 
+  const isPhoneMode = formData.contactType === "phone";
+
   return (
     <main className="relative min-h-screen overflow-hidden bg-gradient-to-b from-slate-950 via-slate-900 to-cyan-950 px-4 py-10">
       <div className="pointer-events-none absolute -left-24 top-16 h-72 w-72 rounded-full bg-cyan-500/20 blur-3xl" />
@@ -150,21 +176,46 @@ const Login = () => {
             <h1 className="mt-4 bg-gradient-to-r from-cyan-200 via-amber-200 to-orange-200 bg-clip-text text-3xl font-black text-transparent">
               Welcome Back
             </h1>
-            <p className="mt-1 text-sm text-slate-300">Login to continue your bookings</p>
+            <p className="mt-1 text-sm text-slate-300">Login with your registered phone number or email</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-2 gap-2 rounded-2xl border border-white/10 bg-slate-950/50 p-1">
+              <button
+                type="button"
+                onClick={() => handleContactTypeChange("phone")}
+                className={`rounded-xl px-4 py-2.5 text-sm font-bold transition ${
+                  isPhoneMode
+                    ? "bg-gradient-to-r from-cyan-300 via-teal-300 to-amber-300 text-slate-950 shadow-[0_10px_30px_-12px_rgba(45,212,191,0.9)] ring-2 ring-white/20"
+                    : "bg-slate-900/70 text-slate-300 hover:bg-slate-800/80 hover:text-white"
+                }`}
+              >
+                Phone
+              </button>
+              <button
+                type="button"
+                onClick={() => handleContactTypeChange("email")}
+                className={`rounded-xl px-4 py-2.5 text-sm font-bold transition ${
+                  !isPhoneMode
+                    ? "bg-gradient-to-r from-cyan-300 via-teal-300 to-amber-300 text-slate-950 shadow-[0_10px_30px_-12px_rgba(45,212,191,0.9)] ring-2 ring-white/20"
+                    : "bg-slate-900/70 text-slate-300 hover:bg-slate-800/80 hover:text-white"
+                }`}
+              >
+                Email
+              </button>
+            </div>
+
             <div className="relative">
               <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
-                <FaPhoneAlt />
+                {isPhoneMode ? <FaPhoneAlt /> : <FaEnvelope />}
               </span>
               <input
-                type="tel"
-                name="phone"
-                value={formData.phone}
+                type={isPhoneMode ? "tel" : "email"}
+                name={isPhoneMode ? "phone" : "email"}
+                value={isPhoneMode ? formData.phone : formData.email}
                 onChange={handleInput}
                 disabled={isSubmitting}
-                placeholder="10-digit mobile number"
+                placeholder={isPhoneMode ? "10-digit mobile number" : "you@example.com"}
                 className="h-11 w-full rounded-xl border border-white/15 bg-slate-950/65 pl-10 pr-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/30"
                 autoComplete="off"
                 required
@@ -216,7 +267,7 @@ const Login = () => {
             </div>
 
             <p className="text-center text-xs text-slate-400">
-              Use your registered mobile number
+              Use the phone number or email you registered with
             </p>
           </form>
         </div>

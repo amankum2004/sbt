@@ -57,13 +57,34 @@ const userTypeSchema = z.enum(USER_TYPES, {
 
 const loginSchema = z
   .object({
-    contactType: z.literal("phone").optional(),
-    phone: phoneSchema,
+    contactType: z.enum(["phone", "email"]).optional(),
+    phone: optionalPhoneSchema,
+    email: optionalEmailSchema,
     password: passwordSchema,
+  })
+  .superRefine((data, ctx) => {
+    if (data.contactType === "email") {
+      if (!data.email) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["email"],
+          message: "Email is required",
+        });
+      }
+      return;
+    }
+
+    if (!data.phone) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["phone"],
+        message: "Phone number is required",
+      });
+    }
   })
   .transform((data) => ({
     ...data,
-    contactType: "phone",
+    contactType: data.contactType === "email" ? "email" : "phone",
   }));
 
 const signupSchema = z

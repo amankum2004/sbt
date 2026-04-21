@@ -104,7 +104,7 @@ const login = async (req, res) => {
   // console.log("Request body:", req.body);
   console.log("Request time:", new Date().toISOString());
 
-  const { phone, password } = req.body;
+  const { phone, email, password, contactType } = req.body;
 
   try {
     if (!password) {
@@ -114,16 +114,29 @@ const login = async (req, res) => {
       });
     }
 
-    if (!phone) {
+    const loginMode = contactType === "email" ? "email" : "phone";
+    const normalizedPhone = normalizePhone(phone);
+    const normalizedEmail = normalizeEmail(email);
+
+    if (loginMode === "email" && !normalizedEmail) {
+      return res.status(400).json({
+        success: false,
+        error: "Email is required",
+      });
+    }
+
+    if (loginMode === "phone" && !normalizedPhone) {
       return res.status(400).json({
         success: false,
         error: "Phone number is required",
       });
     }
 
-    const normalizedPhone = normalizePhone(phone);
     const user = await prisma.user.findFirst({
-      where: { phone: normalizedPhone, isDeleted: false },
+      where:
+        loginMode === "email"
+          ? { email: normalizedEmail, isDeleted: false }
+          : { phone: normalizedPhone, isDeleted: false },
     });
 
     if (!user) {
