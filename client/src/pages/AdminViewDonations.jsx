@@ -42,6 +42,7 @@ export const AdminViewDonations = () => {
 
     const searchableData = {
       name: String(donation.name || "").toLowerCase(),
+      phone: String(donation.phone || "").toLowerCase(),
       email: String(donation.email || "").toLowerCase(),
       amount: String(donation.amount ?? "").toLowerCase(),
       message: String(donation.message || "").toLowerCase(),
@@ -127,6 +128,7 @@ export const AdminViewDonations = () => {
             >
               <option value="all">All Fields</option>
               <option value="name">Name</option>
+              <option value="phone">Mobile</option>
               <option value="email">Email</option>
               <option value="amount">Amount</option>
               <option value="message">Message</option>
@@ -164,6 +166,7 @@ export const AdminViewDonations = () => {
               <thead>
                 <tr className="bg-green-600 text-white">
                   <th className="p-3 border text-left">Name</th>
+                  <th className="p-3 border text-left">Mobile</th>
                   <th className="p-3 border text-left">Email</th>
                   <th className="p-3 border text-left">Amount (₹)</th>
                   <th className="p-3 border text-left">Message</th>
@@ -173,7 +176,7 @@ export const AdminViewDonations = () => {
               <tbody>
                 {filteredDonations.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="p-6 border text-center text-gray-500">
+                    <td colSpan={6} className="p-6 border text-center text-gray-500">
                       No matching donations found.
                     </td>
                   </tr>
@@ -184,6 +187,7 @@ export const AdminViewDonations = () => {
                       className="border-t hover:bg-gray-50 transition duration-150"
                     >
                       <td className="p-3 border">{donation.name}</td>
+                      <td className="p-3 border">{donation.phone || "-"}</td>
                       <td className="p-3 border text-blue-600">{donation.email}</td>
                       <td className="p-3 border font-semibold text-green-700">₹{donation.amount}</td>
                       <td className="p-3 border max-w-xs">
@@ -217,7 +221,6 @@ export const AdminViewDonations = () => {
     </div>
   );
 };
-
 
 
 

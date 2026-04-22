@@ -240,6 +240,10 @@ export const AdminHome = () => {
                   </div>
 
                   <div className="mt-3 space-y-1 text-sm text-slate-700">
+                    <p>
+                      <span className="font-semibold text-slate-900">Mobile:</span>{" "}
+                      {donation.phone || "-"}
+                    </p>
                     <p className="break-all">
                       <span className="font-semibold text-slate-900">Email:</span>{" "}
                       {donation.email || "-"}
@@ -263,6 +267,7 @@ export const AdminHome = () => {
                   <thead className="bg-slate-100 text-left text-xs uppercase tracking-wide text-slate-600">
                     <tr>
                       <th className="px-4 py-3 font-semibold">Name</th>
+                      <th className="px-4 py-3 font-semibold">Mobile</th>
                       <th className="px-4 py-3 font-semibold">Email</th>
                       <th className="px-4 py-3 font-semibold">Amount</th>
                       <th className="px-4 py-3 font-semibold">Message</th>
@@ -275,6 +280,7 @@ export const AdminHome = () => {
                         <td className="px-4 py-3 font-semibold text-slate-900">
                           {donation.name || "-"}
                         </td>
+                        <td className="px-4 py-3">{donation.phone || "-"}</td>
                         <td className="px-4 py-3 break-all">{donation.email || "-"}</td>
                         <td className="px-4 py-3 font-semibold text-emerald-700">
                           {formatCurrency(donation.amount)}

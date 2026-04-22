@@ -4,12 +4,14 @@ import { api } from '../utils/api';
 import { useLogin } from '../components/LoginContext';
 import Swal from 'sweetalert2';
 import { LoadingSpinner } from "../components/Loading";
+import { isValidPhone, normalizePhone } from "../utils/phone";
 
 const Donate = () => {
   const navigate = useNavigate();
   const { user } = useLogin();
   const [form, setForm] = useState({
     name: '',
+    phone: '',
     email: '',
     amount: '',
     message: ''
@@ -58,6 +60,7 @@ const Donate = () => {
       setForm(prev => ({
         ...prev,
         name: user.name || '',
+        phone: user.phone || '',
         email: user.email || ''
       }));
     }
@@ -113,6 +116,15 @@ const Donate = () => {
       return;
     }
 
+    if (!isValidPhone(form.phone)) {
+      Swal.fire({
+        title: "Invalid Mobile Number",
+        text: "Please enter a valid 10-digit mobile number",
+        icon: "warning"
+      });
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -149,7 +161,8 @@ const Donate = () => {
                 // ✅ FIX: Create donation details object with validation
                 const donationDetails = {
                     name: form.name.trim(),
-                    email: form.email.toLowerCase().trim(),
+                    phone: normalizePhone(form.phone),
+                    email: form.email ? form.email.toLowerCase().trim() : '',
                     amount: parseFloat(form.amount),
                     message: form.message ? form.message.trim() : ''
                 };
@@ -190,16 +203,18 @@ const Donate = () => {
                                 <p style="font-size: 18px; margin-bottom: 10px;">
                                     Your donation of <strong>₹${donationDetails.amount}</strong> has been received successfully!
                                 </p>
-                                <p style="color: #666; font-size: 14px;">
-                                    A confirmation email has been sent to ${donationDetails.email}
-                                </p>
+                                ${
+                                  donationDetails.email
+                                    ? `<p style="color: #666; font-size: 14px;">A confirmation email has been sent to ${donationDetails.email}</p>`
+                                    : `<p style="color: #666; font-size: 14px;">We have saved your donation details with mobile number ${donationDetails.phone}.</p>`
+                                }
                             </div>
                         `,
                         icon: "success",
                         confirmButtonText: "Continue",
                         confirmButtonColor: "#10B981"
                     }).then(() => {
-                        setForm({ name: '', email: '', amount: '', message: '' });
+                        setForm({ name: '', phone: '', email: '', amount: '', message: '' });
                         navigate('/');
                     });
                 } else {
@@ -218,7 +233,7 @@ const Donate = () => {
         prefill: {
           name: form.name,
           email: form.email,
-          contact: user?.phone || ''
+          contact: form.phone
         },
         notes: {
           purpose: "Environmental Donation",
@@ -306,12 +321,22 @@ const Donate = () => {
             className="h-11 w-full rounded-xl border border-slate-300 bg-white px-4 text-sm text-slate-800 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-200"
           />
           <input
+            type="tel"
+            name="phone"
+            value={form.phone}
+            onChange={handleChange}
+            required
+            inputMode="numeric"
+            maxLength={10}
+            placeholder="Your Mobile Number"
+            className="h-11 w-full rounded-xl border border-slate-300 bg-white px-4 text-sm text-slate-800 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-200"
+          />
+          <input
             type="email"
             name="email"
             value={form.email}
             onChange={handleChange}
-            required
-            placeholder="Your Email"
+            placeholder="Your Email (Optional)"
             className="h-11 w-full rounded-xl border border-slate-300 bg-white px-4 text-sm text-slate-800 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-200"
           />
           <div className="relative">
