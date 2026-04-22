@@ -245,7 +245,8 @@ model Contact {
 model Donation {
   id         String         @id @default(cuid())
   donorName  String
-  donorEmail String
+  donorPhone String
+  donorEmail String?
   amount     Float
   message    String?
   paymentId  String

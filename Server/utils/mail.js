@@ -413,6 +413,7 @@ const sendAdminContactNotification = async (contact = {}) => {
 
 const sendAdminDonationNotification = async (donation = {}) => {
   const donorName = (donation.donorName || donation.name || '').trim() || '-';
+  const donorPhone = (donation.donorPhone || donation.phone || '').trim() || '-';
   const donorEmail = (donation.donorEmail || donation.email || '').trim() || '-';
   const donationAmount = Number(donation.amount);
   const amountLabel = Number.isFinite(donationAmount) ? `₹${donationAmount.toFixed(2)}` : '-';
@@ -428,6 +429,7 @@ const sendAdminDonationNotification = async (donation = {}) => {
     dashboardPath: '/admin/donations',
     details: [
       { label: 'Donor Name', value: donorName },
+      { label: 'Donor Mobile', value: donorPhone },
       { label: 'Donor Email', value: donorEmail },
       { label: 'Amount', value: amountLabel },
       { label: 'Message', value: donationMessage },

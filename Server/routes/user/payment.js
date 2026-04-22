@@ -77,12 +77,14 @@ router.post("/donation/validate", async (req, res) => {
     });
   }
 
-  const { name, email, amount, message } = donationDetails;
+  const normalizePhone = (value = "") => String(value || "").replace(/\D/g, "").slice(-10);
+  const { name, phone, email, amount, message } = donationDetails;
+  const normalizedPhone = normalizePhone(phone);
 
-  if (!name || !email || !amount) {
+  if (!name || !normalizedPhone || !amount) {
     return res.status(400).json({
       success: false,
-      error: "Missing required donation fields: name, email, and amount are required",
+      error: "Missing required donation fields: name, phone, and amount are required",
     });
   }
 
@@ -101,7 +103,8 @@ router.post("/donation/validate", async (req, res) => {
     const savedDonation = await prisma.donation.create({
       data: {
         donorName: name ? name.trim() : "",
-        donorEmail: email ? email.toLowerCase().trim() : "",
+        donorPhone: normalizedPhone,
+        donorEmail: email ? email.toLowerCase().trim() : null,
         amount: parseFloat(amount) || 0,
         message: message ? message.trim() : "",
         paymentId: payment_id,
@@ -111,13 +114,15 @@ router.post("/donation/validate", async (req, res) => {
       },
     });
 
-    sendDonationConfirmationEmail(name, email, amount, message)
-      .then(() => {
-        console.log("Donation confirmation email sent");
-      })
-      .catch((emailError) => {
-        console.warn("Email sending failed:", emailError.message);
-      });
+    if (email) {
+      sendDonationConfirmationEmail(name, email, amount, message)
+        .then(() => {
+          console.log("Donation confirmation email sent");
+        })
+        .catch((emailError) => {
+          console.warn("Email sending failed:", emailError.message);
+        });
+    }
 
     sendAdminDonationNotification({
       ...savedDonation,

@@ -9,6 +9,7 @@ const getAllDonations = async (req, res) => {
     const normalizedDonations = donations.map((donation) => ({
       _id: donation.id,
       name: donation.donorName,
+      phone: donation.donorPhone,
       email: donation.donorEmail,
       amount: donation.amount,
       message: donation.message,

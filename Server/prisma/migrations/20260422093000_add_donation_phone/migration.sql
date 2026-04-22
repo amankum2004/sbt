@@ -1,0 +1,6 @@
+ALTER TABLE "Donation"
+ADD COLUMN "donorPhone" TEXT NOT NULL DEFAULT '';
+
+ALTER TABLE "Donation"
+ALTER COLUMN "donorPhone" DROP DEFAULT,
+ALTER COLUMN "donorEmail" DROP NOT NULL;
