@@ -149,7 +149,7 @@ api.interceptors.response.use(
       }
     }
 
-    const timeoutMessage = 'Request timed out. Verify backend is running and VITE_DEV_BASE_URL points to the correct local API port.';
+    const timeoutMessage = '';
 
     // Only handle actual HTTP errors (404, 500, etc.)
     const errorInfo = {
