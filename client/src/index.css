@@ -104,4 +104,96 @@ button {
   }
 }
 
+/* ─── Dark mode overrides ──────────────────────────────────────────────────── */
+
+/* Page backgrounds */
+.dark main.relative,
+.dark main {
+  background: linear-gradient(to bottom, #0f172a, #0c1a2e, #0f172a) !important;
+}
+
+/* White/light cards → dark cards */
+.dark .bg-white,
+.dark .bg-white\/90,
+.dark .bg-white\/85,
+.dark .bg-white\/95 {
+  background-color: #1e293b !important;
+}
+
+.dark .bg-slate-50,
+.dark .bg-slate-50\/60 {
+  background-color: #1e293b !important;
+}
+
+/* Card borders */
+.dark .border-white\/70,
+.dark .border-slate-100,
+.dark .border-slate-200,
+.dark .border-cyan-100,
+.dark .border-orange-100,
+.dark .border-emerald-100 {
+  border-color: rgba(255,255,255,0.08) !important;
+}
+
+/* Headings */
+.dark .text-slate-900 {
+  color: #f1f5f9 !important;
+}
+
+/* Body text */
+.dark .text-slate-700 {
+  color: #cbd5e1 !important;
+}
+
+.dark .text-slate-600 {
+  color: #94a3b8 !important;
+}
+
+.dark .text-slate-500 {
+  color: #64748b !important;
+}
+
+/* Subtle backgrounds used in FAQ / feature cards */
+.dark .bg-slate-50:not(input):not(select):not(textarea),
+.dark .bg-slate-100 {
+  background-color: #1e293b !important;
+}
+
+/* Gradient backgrounds on light pages */
+.dark .bg-gradient-to-b,
+.dark .bg-gradient-to-br {
+  --tw-gradient-from: #0f172a;
+  --tw-gradient-to: #0f172a;
+}
+
+/* Inputs and selects */
+.dark input:not([type="checkbox"]):not([type="radio"]),
+.dark select,
+.dark textarea {
+  background-color: #0f172a !important;
+  border-color: rgba(255,255,255,0.12) !important;
+  color: #f1f5f9 !important;
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #475569 !important;
+}
+
+/* Decorative blobs — tone down in dark mode */
+.dark [class*="bg-cyan-200"],
+.dark [class*="bg-orange-200"],
+.dark [class*="bg-amber-200"],
+.dark [class*="bg-emerald-200"] {
+  opacity: 0.15 !important;
+}
+
+/* Service cards image overlay — already dark, fine */
+
+/* Smooth transition on theme switch */
+html {
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+
 

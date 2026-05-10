@@ -5,6 +5,7 @@ import PropTypes from "prop-types";
 import {
   BarChart3,
   BookOpen,
+  Briefcase,
   Calendar,
   ClipboardList,
   HeartHandshake,
@@ -14,14 +15,18 @@ import {
   LayoutDashboard,
   LogIn,
   LogOut,
+  Moon,
   PhoneCall,
   Scissors,
+  Sun,
   UserCircle,
 } from "lucide-react";
 import { useLogin } from "./LoginContext";
+import { useTheme } from "./ThemeContext";
 
 export const Header = () => {
   const { loggedIn, user, logout } = useLogin();
+  const { isDark, toggleTheme } = useTheme();
   const [isOpenLeft, setIsOpenLeft] = useState(false);
   const [isOpenRight, setIsOpenRight] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -103,6 +108,7 @@ export const Header = () => {
           { to: "/barberDashboard", label: "Dashboard", icon: LayoutDashboard },
           { to: "/analytics-dashboard", label: "Analytics", icon: BarChart3 },
           { to: "/timeSlot-create", label: "Create Slots", icon: Calendar },
+          { to: "/manage-jobs", label: "Manage Jobs", icon: Briefcase },
           // { to: "/poster", label: "Poster", icon: Image },
           { to: "/nearbyShops", label: "Book Appointment", icon: Calendar },
           { to: "/customerDashboard", label: "My Bookings", icon: ClipboardList },
@@ -163,7 +169,18 @@ export const Header = () => {
             <NavLink to="/" label="Home" className="text-slate-200 hover:text-white" />
             <NavLink to="/about" label="About" className="text-slate-200 hover:text-white" />
             <NavLink to="/services" label="Services" className="text-slate-200 hover:text-white" />
+            <NavLink to="/jobs" label="Jobs" className="text-slate-200 hover:text-white" />
             <NavLink to="/contact" label="Contact" className="text-slate-200 hover:text-white" />
+
+            {/* Theme toggle */}
+            <button
+              type="button"
+              onClick={toggleTheme}
+              aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-white/5 text-slate-200 transition hover:bg-white/15"
+            >
+              {isDark ? <Sun className="h-4 w-4 text-amber-300" /> : <Moon className="h-4 w-4 text-slate-300" />}
+            </button>
 
             {loggedIn ? (
               <button
@@ -190,20 +207,40 @@ export const Header = () => {
           </div>
 
           {!loggedIn ? (
-            <Link
-              to="/login"
-              className="rounded-lg bg-gradient-to-r from-cyan-500 to-amber-500 px-3 py-1.5 text-xs font-bold text-slate-950 transition hover:brightness-110 md:hidden"
-            >
-              Login
-            </Link>
+            <div className="flex items-center gap-2 md:hidden">
+              <button
+                type="button"
+                onClick={toggleTheme}
+                aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-white/5 text-slate-200 transition hover:bg-white/15"
+              >
+                {isDark ? <Sun className="h-4 w-4 text-amber-300" /> : <Moon className="h-4 w-4 text-slate-300" />}
+              </button>
+              <Link
+                to="/login"
+                className="rounded-lg bg-gradient-to-r from-cyan-500 to-amber-500 px-3 py-1.5 text-xs font-bold text-slate-950 transition hover:brightness-110"
+              >
+                Login
+              </Link>
+            </div>
           ) : (
-            <button
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-cyan-300/10 md:hidden"
-              onClick={toggleRightSidebar}
-              aria-label="Open user menu"
-            >
-              <img alt="User Avatar" src="/images/dp_logo.png" className="h-8 w-8 rounded-full" />
-            </button>
+            <div className="flex items-center gap-2 md:hidden">
+              <button
+                type="button"
+                onClick={toggleTheme}
+                aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-white/5 text-slate-200 transition hover:bg-white/15"
+              >
+                {isDark ? <Sun className="h-4 w-4 text-amber-300" /> : <Moon className="h-4 w-4 text-slate-300" />}
+              </button>
+              <button
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-cyan-300/10"
+                onClick={toggleRightSidebar}
+                aria-label="Open user menu"
+              >
+                <img alt="User Avatar" src="/images/dp_logo.png" className="h-8 w-8 rounded-full" />
+              </button>
+            </div>
           )}
         </div>
       </nav>
@@ -268,6 +305,25 @@ export const Header = () => {
             onClick={closeAll}
             className="w-full text-slate-200 hover:text-white"
           />
+          <NavLink
+            to="/jobs"
+            label="Jobs"
+            icon={Briefcase}
+            onClick={closeAll}
+            className="w-full text-slate-200 hover:text-white"
+          />
+
+          {/* Theme toggle in mobile drawer */}
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="group relative inline-flex w-full items-center gap-2 rounded-lg px-1 py-2 text-sm font-medium text-slate-200 hover:text-white transition"
+          >
+            {isDark
+              ? <Sun className="h-4 w-4 text-amber-300" />
+              : <Moon className="h-4 w-4 text-slate-400" />}
+            <span>{isDark ? "Light Mode" : "Dark Mode"}</span>
+          </button>
         </div>
       </aside>
 

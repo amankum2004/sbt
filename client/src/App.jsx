@@ -46,6 +46,10 @@ import BarberAnalyticsDashboard from "./pages/BarberAnalyticsDashboard";
 import CustomerDashboard from "./pages/customerDashboard";
 import AdminReviews from "./pages/Admin-Reviews";
 import ShopReviews from "./pages/ShopReviews";
+import Jobs from "./pages/Jobs";
+import JobDetail from "./pages/JobDetail";
+import ManageJobs from "./pages/ManageJobs";
+import ChatBot from "./components/ChatBot";
 
 function App() {
   const { deviceSize, isDesktop, isLandscape, isMobile, isTablet } = useDeviceSize();
@@ -71,6 +75,7 @@ function App() {
             <AppRoutes />
           </div>
           <Footer />
+          <ChatBot />
         </div>
       </LoginProvider>
     </BrowserRouter>
@@ -97,6 +102,8 @@ function AppRoutes()  {
       <Route path="/login" element={user ? <Navigate to="/" replace /> : <Login />} />
       <Route path="/updatePassword" element={<UpdatePassword />}/>
       <Route path="/poster" element={<Poster />} />
+      <Route path="/jobs" element={<Jobs />} />
+      <Route path="/jobs/:jobId" element={<JobDetail />} />
       
       {/* Protected Routes */}
       <Route path="/nearbyShops" element={<ProtectedRoute><Shops /></ProtectedRoute>} />
@@ -109,6 +116,7 @@ function AppRoutes()  {
       <Route path="/customerDashboard" element={<ProtectedRoute><CustomerDashboard /></ProtectedRoute>} />
       <Route path="/barber-profile-update" element={<ProtectedRoute><BarberProfileUpdate /></ProtectedRoute>} />
       <Route path="/payment" element={<ProtectedRoute><Payment /></ProtectedRoute>} />
+      <Route path="/manage-jobs" element={<ProtectedRoute><ManageJobs /></ProtectedRoute>} />
       <Route
         path="/nearbyShops/:shopId/shopinfo"
         element={<ProtectedRoute><DateTimeSelection /></ProtectedRoute>}

@@ -6,6 +6,7 @@ import {NextUIProvider }from '@nextui-org/react'
 import {ToastContainer} from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
 import { LoadingProvider } from './components/Loading.jsx'
+import { ThemeProvider } from './components/ThemeContext.jsx'
 
 // Suppress service worker preload warning
 if ('serviceWorker' in navigator) {
@@ -29,24 +30,26 @@ if (import.meta.env.MODE !== 'development') {
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <NextUIProvider>
-      <LoadingProvider>
-        <App />
-      </LoadingProvider>
-      <ToastContainer 
-        position='top-right'
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme='colored'
-        bodyClassName="toastBody"
-      />
-    </NextUIProvider>
+    <ThemeProvider>
+      <NextUIProvider>
+        <LoadingProvider>
+          <App />
+        </LoadingProvider>
+        <ToastContainer 
+          position='top-right'
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme='colored'
+          bodyClassName="toastBody"
+        />
+      </NextUIProvider>
+    </ThemeProvider>
   </React.StrictMode>,
 )
 

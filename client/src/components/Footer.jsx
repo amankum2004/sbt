@@ -52,10 +52,10 @@ export const Footer = () => {
   ];
 
   const quickLinks = [
-    { name: "Home", url: "/" },
     { name: "About", url: "/about" },
     { name: "Services", url: "/services" },
     { name: "Contact", url: "/contact" },
+    { name: "Jobs", url: "/jobs" },
     { name: "Booking Guide", url: "/learning" },
     { name: "Donate", url: "/donate" },
   ];
