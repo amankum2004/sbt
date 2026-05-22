@@ -234,7 +234,24 @@ const updateShopById = async (req, res) => {
   try {
     const id = req.params.id;
     const updatedShopData = req.body || {};
-    const { services, ...rest } = updatedShopData;
+    const { services } = updatedShopData;
+
+    // Only pick fields that are valid Prisma shop columns — never spread raw body
+    const {
+      name, email, phone, ownerPhone, shopname,
+      state, district, city, street, pin,
+      lat, lng, coordinatesSource,
+      isApproved, status,
+    } = updatedShopData;
+
+    const shopData = Object.fromEntries(
+      Object.entries({
+        name, email, phone, ownerPhone, shopname,
+        state, district, city, street, pin,
+        lat, lng, coordinatesSource,
+        isApproved, status,
+      }).filter(([, v]) => v !== undefined)
+    );
 
     const updatedShop = await prisma.$transaction(async (tx) => {
       if (Array.isArray(services)) {
@@ -244,7 +261,7 @@ const updateShopById = async (req, res) => {
       return tx.shop.update({
         where: { id },
         data: {
-          ...rest,
+          ...shopData,
           ...(Array.isArray(services)
             ? {
                 services: {
