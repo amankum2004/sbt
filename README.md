@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="SalonHub-logo/salonhub-logo.png" alt="SalonHub Logo" width="200"/>
+  <img src="salonHub-logo.png" alt="SalonHub Logo" width="200"/>
 
   <h1>SalonHub – Smart Salon Booking Platform</h1>
 
