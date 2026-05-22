@@ -40,7 +40,6 @@ export default function Jobs() {
   const [selectedState, setSelectedState] = useState("");
   const [selectedCity, setSelectedCity] = useState("");
   const [minSalary, setMinSalary] = useState("");
-  const [maxSalary, setMaxSalary] = useState("");
   const [cities, setCities] = useState([]);
 
   const fetchJobs = useCallback(async (page = 1) => {
@@ -52,7 +51,6 @@ export default function Jobs() {
       if (selectedState) params.state = selectedState;
       if (selectedCity) params.city = selectedCity;
       if (minSalary) params.minSalary = minSalary;
-      if (maxSalary) params.maxSalary = maxSalary;
 
       const res = await api.get("/jobs", { params });
       setJobs(res.data.jobs || []);
@@ -62,7 +60,7 @@ export default function Jobs() {
     } finally {
       setLoading(false);
     }
-  }, [search, jobType, selectedState, selectedCity, minSalary, maxSalary]);
+  }, [search, jobType, selectedState, selectedCity, minSalary]);
 
   useEffect(() => {
     fetchJobs(1);
@@ -82,11 +80,10 @@ export default function Jobs() {
     setSelectedState("");
     setSelectedCity("");
     setMinSalary("");
-    setMaxSalary("");
     setCities([]);
   };
 
-  const hasActiveFilters = search || jobType || selectedState || selectedCity || minSalary || maxSalary;
+  const hasActiveFilters = search || jobType || selectedState || selectedCity || minSalary;
 
   const formatSalary = (min, max, currency = "INR") => {
     const symbol = currency === "INR" ? "₹" : currency;
@@ -154,7 +151,7 @@ export default function Jobs() {
 
         {/* Filters panel */}
         {showFilters && (
-          <div className="mb-6 p-4 rounded-2xl bg-white border border-slate-100 shadow-sm grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+          <div className="mb-6 p-4 rounded-2xl bg-white border border-slate-100 shadow-sm grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             <select
               value={jobType}
               onChange={(e) => setJobType(e.target.value)}
@@ -195,17 +192,6 @@ export default function Jobs() {
                 placeholder="Min salary"
                 value={minSalary}
                 onChange={(e) => setMinSalary(e.target.value)}
-                className="w-full pl-6 pr-3 py-2 rounded-lg bg-slate-50 border border-slate-200 text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:border-cyan-400"
-              />
-            </div>
-
-            <div className="relative">
-              <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-slate-400">₹</span>
-              <input
-                type="number"
-                placeholder="Max salary"
-                value={maxSalary}
-                onChange={(e) => setMaxSalary(e.target.value)}
                 className="w-full pl-6 pr-3 py-2 rounded-lg bg-slate-50 border border-slate-200 text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:border-cyan-400"
               />
             </div>
