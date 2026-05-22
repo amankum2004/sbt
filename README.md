@@ -1,62 +1,90 @@
-#  SalonHub – Smart Salon Appointment Booking Platform
+<div align="center">
+  <img src="SalonHub-logo/salonhub-logo.png" alt="SalonHub Logo" width="200"/>
 
-SalonHub is a web-based appointment booking system that allows users to easily discover and book appointments with nearby barber shops. The goal is to eliminate long queues and reduce wait time, making salon visits more efficient and convenient.
+  <h1>SalonHub – Smart Salon Booking Platform</h1>
+
+  <p>
+    <a href="https://www.salonhub.co.in" target="_blank"><strong>🌐 Live Website → salonhub.co.in</strong></a>
+  </p>
+
+  <p>
+    <img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" />
+    <img src="https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" />
+    <img src="https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white" />
+    <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" />
+    <img src="https://img.shields.io/badge/Razorpay-02042B?style=for-the-badge&logo=razorpay&logoColor=3395FF" />
+  </p>
+</div>
+
+---
+
+## 🧠 The Problem
+
+In tier-1 and tier-2 cities across India, visiting a salon is a time sink. You walk in, wait 30–60 minutes, and sometimes leave without even getting served. There's no way to check availability, no way to book ahead, and no structure for salon owners to manage their day.
+
+The beauty and grooming sector in India is massive — yet almost entirely unorganised.
+
+## ✂️ The Solution — SalonHub
+
+SalonHub brings structure to the salon experience. Customers discover nearby salons, check real-time slot availability, and book appointments in seconds. Salon owners get a full dashboard to manage bookings, time slots, and customer flow — no more chaos at the front desk.
+
+> **5,000+ happy customers · 50+ cities · 24/7 booking access**
 
 ---
 
 ## 🚀 Features
 
-- 📍 **Nearby Barber Shop Discovery**  
-  Find salons close to your location using geolocation.
+### For Customers
+- 📍 **Nearby Salon Discovery** — Find salons close to your location using geolocation
+- 📅 **Instant Appointment Booking** — Select services, pick a time slot, confirm in seconds
+- ⭐ **Verified Reviews & Ratings** — Read genuine customer feedback before you book
+- 🔔 **Real-time Notifications** — Instant confirmation and appointment reminders
+- 💳 **Secure Payments** — Integrated Razorpay for safe, transparent transactions
+- 💬 **Live Chat Support** — In-app chat for quick help
 
-- 📅 **Online Appointment Booking**  
-  Select preferred services, time slots, and confirm bookings instantly.
+### For Salon Owners
+- 🧑‍💼 **Barber Dashboard** — Manage today's bookings, upcoming appointments, and past history
+- 📊 **Analytics Dashboard** — Track revenue, appointment trends, and customer insights
+- 🕐 **Time Slot Management** — Create and control your own availability schedule
+- 🏪 **Shop Profile Management** — Update services, pricing, images, and shop details
+- 💼 **Job Portal** — Post job openings and hire skilled barbers/stylists directly through the platform
 
-- 🔔 **Real-time Notifications**  
-  Receive instant confirmation and reminders for your appointments.
-
-- 🧑‍💼 **Salon Owner Dashboard**  
-  Manage bookings, time slots, and customer data from a dedicated admin interface.
-
-- 📲 **Responsive Design**  
-  Fully mobile-friendly UI for users and shop owners.
+### Platform-wide
+- 🤖 **AI Chatbot** — Helps users navigate the platform and find the right services
+- 🌙 **Dark / Light Mode** — Full theme support across the entire app
+- 📲 **Fully Responsive** — Seamless experience on mobile, tablet, and desktop
+- 🛡️ **Admin Panel** — Full control over users, shops, reviews, and platform health
+- ❤️ **Donation Support** — Community-driven giving feature built into the platform
 
 ---
+
+<!-- ## 🛠️ Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Frontend | React.js, Tailwind CSS, React Router, Framer Motion |
+| Backend | Node.js, Express.js |
+| Database | PostgreSQL with Prisma ORM |
+| Auth | JWT, OTP-based verification |
+| Payments | Razorpay |
+| Media | Cloudinary |
+| Real-time | Socket.io |
+| Maps | Geolocation API, Maps |
+| Deployment | Vercel (client), AWS (server) | -->
+
 
 ## 💡 Problem
 
-Traditional salons often operate on a first-come, first-served basis, leading to long wait times. With problems like:
-- Customers spend hours waiting at salons.
-- No easy way to check availability.
-- Inefficient management for salon owners.
+Traditional salons often operate on a first-come, first-served basis, leading to long wait times:
+- Customers spend 30–60 minutes waiting with no guarantee of service
+- No way to check real-time availability
+- Inefficient, manual scheduling for salon owners
+- Skilled barbers and stylists have no structured way to find work
 
-## 💡 Solution – SalonHub
+## ✅ Solution – SalonHub
 
-With SalonHub:
-- Customers avoid waiting in queues by booking appointments online.
-- View real-time availability.
-- Instant confirmation and time-saving experience.
-- Salon owners manage their schedules better.
-- Both enjoy a seamless, digitized experience.
-
----
-
-## 🛠️ Tech Stack
-
-**Frontend:**
-- React.js
-- Tailwind CSS
-- React Router
-
-**Backend:**
-- Node.js
-- Express.js
-
-**Database:**
-- PostgreSQL (Prisma ORM)
-
-**Other Tools:**
-- Razorpay (for payments)
-- JWT (authentication)
-- Cloudinary (image uploads)
-- Geolocation API
+- Book appointments online and skip the queue entirely
+- Real-time slot availability — know before you go
+- Salon owners manage their entire day from one dashboard
+- Built-in job portal connects talent with opportunity
+- Analytics help owners grow their business with data
