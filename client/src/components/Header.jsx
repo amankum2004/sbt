@@ -388,7 +388,7 @@ export const Header = () => {
                 label="Donate for Environment"
                 icon={HeartHandshake}
                 onClick={closeAll}
-                className="w-full text-slate-200 hover:text-white"
+                className="w-full text-emerald-400 hover:text-emerald-300"
               />
               <NavLink
                 to="/login"
